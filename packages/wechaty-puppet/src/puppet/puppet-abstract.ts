@@ -504,9 +504,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * Retirement waits for all active operations to finish under stop timeout.
    *
    * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
-   * @returns Result of work.
+   * @returns Promise resolving to the result of `work`, or rejected with `LifecycleUnsafeStateError`
+   *          if the puppet is not currently running.
    */
-  operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  async operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
     if (this.#scope) {
       return operation(this.#scope, signal => work(signal))
     }

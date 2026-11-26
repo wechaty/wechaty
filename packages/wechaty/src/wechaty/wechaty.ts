@@ -53,6 +53,7 @@ import type {
 } from 'scopelet'
 import {
   createLifecycle,
+  LifecycleChildFailureError,
   LifecycleSupersededError,
 } from 'scopelet'
 
@@ -137,11 +138,46 @@ export function legacyStateView (lifecycle: Pick<Lifecycle, 'state'>): LegacySta
  * properties with backwards-compatible `StateSwitch` query methods.
  */
 export type WechatyState = LifecycleState & {
-  active (val?: boolean | 'pending'): boolean | 'pending'
-  inactive (val?: boolean | 'pending'): boolean | 'pending'
-  on (val?: boolean | 'pending'): boolean | 'pending'
-  off (val?: boolean | 'pending'): boolean | 'pending'
+  active (): boolean | 'pending'
+  inactive (): boolean | 'pending'
+  on (): boolean | 'pending'
+  off (): boolean | 'pending'
   stable (expected?: 'active' | 'inactive'): Promise<void>
+}
+
+/**
+ * Creates a frozen `WechatyState` view derived consistently from the current lifecycle state.
+ *
+ * @param lifecycle - Lifecycle controller instance.
+ * @returns Frozen `WechatyState` combining current snapshot properties with query methods.
+ */
+export function createWechatyState (lifecycle: Pick<Lifecycle, 'state' | 'whenState'>): WechatyState {
+  const current = lifecycle.state
+  const active = (): boolean | 'pending' => {
+    const kind = current.kind
+    return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
+  }
+  const inactive = (): boolean | 'pending' => {
+    const kind = current.kind
+    return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
+  }
+  const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
+    if (expected === 'active') {
+      await lifecycle.whenState(st => st.kind === 'running')
+    } else if (expected === 'inactive') {
+      await lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
+    } else {
+      await lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
+    }
+  }
+  return Object.freeze({
+    ...current,
+    active,
+    inactive,
+    on: active,
+    off: inactive,
+    stable,
+  })
 }
 
 export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDisposable, SayableSayer {
@@ -197,6 +233,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   #readyWaits = new AbortController()
 
   #memory?: MemoryCard
+  #startFailureEmitted = false
 
   constructor (options: WechatyOptions = {}) {
     super()
@@ -223,19 +260,15 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     const lifeTimer = setInterval(() => {
       log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
     }, 1000 * 60 * 60)
-    if (typeof (lifeTimer as any)?.unref === 'function') {
-      (lifeTimer as any).unref()
-    }
     scope.defer(() => clearInterval(lifeTimer))
 
-    // Children start in order and stop in reverse (C-CHILD-04).
-    // Puppet starts first:
-    await scope.start(this.puppet)
-
-    // Optional Io client starts second:
+    // Optional Io client starts first so it captures early events emitted during puppet start:
     if (this.#ioManager.hasIo) {
       await this.#ioManager.start(scope)
     }
+
+    // Puppet starts second under hierarchical ownership (C-CHILD-04):
+    await scope.start(this.puppet)
   }
 
   #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {
@@ -243,10 +276,17 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
       this.dispatchEvent(new WechatyEvent('start'))
     } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {
       this.dispatchEvent(new WechatyEvent('stop'))
-    } else if (state.kind === 'failed') {
+    } else if (state.kind === 'failed' && previous.kind !== 'failed') {
       this.#cancelReadyWaits(new LifecycleSupersededError('the bot failed before the puppet was ready', { cause: state.error }))
-      const err = (state.error as any)?.cause ?? state.error
-      this.emitError(err)
+      const err = (state.error instanceof LifecycleChildFailureError && state.error.cause !== undefined)
+        ? state.error.cause
+        : state.error
+      const puppetState = this.#puppetManager.hasPuppet ? this.puppet.state : undefined
+      const isPuppetFailure = puppetState?.kind === 'failed' && (err === puppetState.error || puppetState.error === undefined)
+      if (!isPuppetFailure && !this.#startFailureEmitted) {
+        this.emitError(err)
+      }
+      this.#startFailureEmitted = false
     }
   }
 
@@ -263,36 +303,17 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     return this.#memory
   }
 
+  /**
+   * Current lifecycle state of the bot, combining modern `LifecycleState` properties
+   * with backwards-compatible `StateSwitch` query methods (`.active()`, `.inactive()`, `.stable()`).
+   */
   get state (): WechatyState {
-    const lifecycle = this.#lifecycle
-    const active = (): boolean | 'pending' => {
-      const kind = lifecycle.state.kind
-      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
-    }
-    const inactive = (): boolean | 'pending' => {
-      const kind = lifecycle.state.kind
-      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
-    }
-    const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
-      if (expected === 'active') {
-        await lifecycle.whenState(st => st.kind === 'running')
-      } else if (expected === 'inactive') {
-        await lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
-      } else {
-        await lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
-      }
-    }
-    const current = lifecycle.state
-    return Object.freeze({
-      ...current,
-      active,
-      inactive,
-      on: active,
-      off: inactive,
-      stable,
-    })
+    return createWechatyState(this.#lifecycle)
   }
 
+  /**
+   * Backwards-compatible `state-switch` view interface.
+   */
   get legacyState (): LegacyStateView {
     return legacyStateView(this.#lifecycle)
   }
@@ -361,9 +382,20 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     await this.#puppetManager.init()
   }
 
-  start (options?: LifecycleWaitOptions): Promise<void> {
+  async start (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'start()')
-    return this.#lifecycle.start(options)
+    this.#startFailureEmitted = false
+    try {
+      return await this.#lifecycle.start(options)
+    } catch (e) {
+      const puppetState = this.#puppetManager.hasPuppet ? this.puppet.state : undefined
+      const isPuppetFailure = puppetState?.kind === 'failed' && (e === puppetState.error || (e as any)?.cause === puppetState.error)
+      if (!isPuppetFailure) {
+        this.#startFailureEmitted = true
+        this.emitError(e)
+      }
+      throw e
+    }
   }
 
   stop (options?: LifecycleWaitOptions): Promise<void> {
@@ -374,16 +406,33 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     return this.#lifecycle.stop(options)
   }
 
+  /**
+   * Restarts the bot lifecycle atomically.
+   *
+   * @param options - Optional wait options.
+   */
   restart (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'restart()')
     return this.#lifecycle.restart(options)
   }
 
+  /**
+   * Alias for restart().
+   *
+   * @param options - Optional wait options.
+   */
   reset (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'reset()')
     return this.restart(options)
   }
 
+  /**
+   * Awaits a lifecycle state transition matching the given predicate.
+   *
+   * @param predicate - Function returning true when target state is reached.
+   * @param options - Optional wait options (signal, timeout).
+   * @returns Promise resolving to matching LifecycleState.
+   */
   whenState (
     predicate: (state: LifecycleState) => boolean,
     options?: LifecycleWaitOptions,
@@ -391,6 +440,12 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     return this.#lifecycle.whenState(predicate, options)
   }
 
+  /**
+   * Resolves when the bot's puppet is fully initialized, started, and ready to handle operations.
+   *
+   * @param options - Optional wait options (signal, timeout).
+   * @returns Promise resolving when ready.
+   */
   async ready (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'ready()')
     const signal = options?.signal
@@ -403,13 +458,25 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     return puppet.ready({ signal })
   }
 
+  /**
+   * Asynchronously disposes the bot by stopping its lifecycle.
+   */
   [Symbol.asyncDispose] (): Promise<void> {
     log.verbose('Wechaty', '[Symbol.asyncDispose]()')
     return this.stop()
   }
 
   // --- Operations & Facades ---
-  say (conversationId: string, text: string): Promise<string>
+
+  /**
+   * Sends a message to a conversation or sends a Sayable directly to bot itself.
+   * Execution is bound to the puppet's active lifecycle generation and drains on stop.
+   *
+   * @param conversationId - Target conversation identifier.
+   * @param text - Text message content.
+   * @returns Promise resolving to the sent message ID, or void if unsupported by puppet.
+   */
+  say (conversationId: string, text: string): Promise<void | string>
   say (sayable: Sayable): Promise<void>
   async say (conversationOrSayable: string | Sayable, text?: string): Promise<void | string> {
     log.verbose('Wechaty', 'say(%s%s)', conversationOrSayable, text ? `, ${text}` : '')
@@ -424,6 +491,13 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     })
   }
 
+  /**
+   * Publishes a post moment.
+   * Execution is bound to the puppet's active lifecycle generation and drains on stop.
+   *
+   * @param post - Post instance to publish.
+   * @returns Promise resolving to the created Post or undefined.
+   */
   async publish (post: Post): Promise<void | Post> {
     log.verbose('Wechaty', 'publish(%s)', post)
     return this.puppet.operation(async () => {

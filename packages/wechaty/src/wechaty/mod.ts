@@ -4,6 +4,7 @@ export {
   type WechatyConstructor,
   type WechatyState,
   type LegacyStateView,
+  createWechatyState,
   legacyStateView,
 } from './wechaty.ts'
 

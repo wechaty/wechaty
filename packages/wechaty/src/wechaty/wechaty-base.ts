@@ -34,6 +34,7 @@ import type {
 } from 'scopelet'
 import {
   createLifecycle,
+  LifecycleChildFailureError,
   LifecycleSupersededError,
 } from 'scopelet'
 
@@ -70,6 +71,7 @@ import type { Post } from '../user-modules/post.ts'
 import {
   type WechatyState,
   type LegacyStateView,
+  createWechatyState,
   legacyStateView,
 } from './wechaty.ts'
 
@@ -118,6 +120,28 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
 
   readonly #lifecycle: LifecycleController
   #readyWaits = new AbortController()
+  #startFailureEmitted = false
+
+  /**
+   * The term [Puppet](https://wechaty.js.org/docs/specs/puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
+   * The plugins are the component that helps Wechaty to control the WeChat(that's the reason we call it puppet).
+   * The plugins are named XXXPuppet, for example:
+   * - [PuppetWeChat](https://github.com/wechaty/puppet-wechat)
+   * - [PuppetService](https://github.com/wechaty/puppet-service)
+   * - [PuppetXP](https://github.com/wechaty/puppet-xp)
+   *
+   * @typedef PuppetModuleName
+   * @property {string} wechaty-puppet-service
+   * @property {string} wechaty-puppet-neo
+   * @property {string} wechaty-puppet-mock
+   */
+
+  /**
+   * The option parameter to create a wechaty instance.
+   *
+   * @typedef WechatyOptions
+   * @property {string} [name] - Wechaty Name.
+   */
 
   /**
    * Creates an instance of Wechaty.
@@ -137,59 +161,44 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
     this.#lifecycle = createLifecycle({
       onStart: async scope => {
         log.verbose('Wechaty', 'lifecycle onStart()')
+        await this.init()
+
         const lifeTimer = setInterval(() => {
           log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
         }, 1000 * 60 * 60)
         scope.defer(() => clearInterval(lifeTimer))
 
         await super.start()
+        scope.defer(async () => {
+          this._stopCallbackList.forEach(fn => fn())
+          this._stopCallbackList.length = 0
+          await super.stop()
+        })
         await this.onStart()
       },
       onStop: async () => {
         log.verbose('Wechaty', 'lifecycle onStop()')
         await this.onStop()
-        this._stopCallbackList.forEach(fn => fn())
-        this._stopCallbackList.length = 0
-        await super.stop()
       },
-      onStateChange: (state, _previous) => {
-        if (state.kind === 'failed') {
+      onStateChange: (state, previous) => {
+        if (state.kind === 'failed' && previous.kind !== 'failed') {
           this.#cancelReadyWaits(new LifecycleSupersededError('the bot failed before the puppet was ready', { cause: state.error }))
-          const err = (state.error as any)?.cause ?? state.error
-          this.emitError(err)
+          const err = (state.error instanceof LifecycleChildFailureError && state.error.cause !== undefined)
+            ? state.error.cause
+            : state.error
+          const puppetState = this.__puppet ? this.__puppet.state : undefined
+          const isPuppetFailure = puppetState?.kind === 'failed' && (err === puppetState.error || puppetState.error === undefined)
+          if (!isPuppetFailure && !this.#startFailureEmitted) {
+            this.emitError(err)
+          }
+          this.#startFailureEmitted = false
         }
       },
     }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
   }
 
   get state (): WechatyState {
-    const lifecycle = this.#lifecycle
-    const active = (): boolean | 'pending' => {
-      const kind = lifecycle.state.kind
-      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
-    }
-    const inactive = (): boolean | 'pending' => {
-      const kind = lifecycle.state.kind
-      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
-    }
-    const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
-      if (expected === 'active') {
-        await lifecycle.whenState(st => st.kind === 'running')
-      } else if (expected === 'inactive') {
-        await lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
-      } else {
-        await lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
-      }
-    }
-    const current = lifecycle.state
-    return Object.freeze({
-      ...current,
-      active,
-      inactive,
-      on: active,
-      off: inactive,
-      stable,
-    })
+    return createWechatyState(this.#lifecycle)
   }
 
   get legacyState (): LegacyStateView {
@@ -198,11 +207,16 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
 
   override async start (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'start()')
-    await this.init()
+    this.#startFailureEmitted = false
     try {
       return await this.#lifecycle.start(options)
     } catch (e) {
-      this.emitError(e)
+      const puppetState = this.__puppet ? this.__puppet.state : undefined
+      const isPuppetFailure = puppetState?.kind === 'failed' && (e === puppetState.error || (e as any)?.cause === puppetState.error)
+      if (!isPuppetFailure) {
+        this.#startFailureEmitted = true
+        this.emitError(e)
+      }
       throw e
     }
   }
@@ -281,17 +295,38 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
 
   /**
    * Send message to currentUser, in other words, bot send message to itself.
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/wechaty/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
+   * @param conversationId - Target conversation identifier.
+   * @param text - Text message content.
+   * @returns Promise resolving to the sent message ID, or void.
+   *
+   * @example
+   * const bot = WechatyBuilder.build()
+   * await bot.start()
+   * // after logged in
+   *
+   * // 1. send text to bot itself
+   * await bot.say('hello!')
+   *
+   * // 2. send Contact to bot itself
+   * const contact = await bot.Contact.find()
+   * await bot.say(contact)
    */
-  async say (
-    sayable: Sayable,
-  ): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', sayable)
-    if (this.puppet?.operation) {
+  say (conversationId: string, text: string): Promise<void | string>
+  say (sayable: Sayable): Promise<void>
+  async say (conversationOrSayable: string | Sayable, text?: string): Promise<void | string> {
+    log.verbose('Wechaty', 'say(%s%s)', conversationOrSayable, text ? `, ${text}` : '')
+    if (typeof conversationOrSayable === 'string' && typeof text === 'string') {
       return this.puppet.operation(async () => {
-        await this.currentUser.say(sayable)
+        const msgId = await this.puppet.messageSendText(conversationOrSayable, text)
+        return msgId || undefined
       })
     }
-    await this.currentUser.say(sayable)
+    return this.puppet.operation(async () => {
+      await this.currentUser.say(conversationOrSayable as Sayable)
+    })
   }
 
   async publish (
@@ -301,11 +336,13 @@ class WechatyBase extends mixinBase implements SayableSayer, Lifecycle {
       (post.payload.sayableList as PUPPET.payloads.Sayable[])
         .map(s => s.type).join(','),
     )
-    const postId = await this.puppet.postPublish(post.payload)
-
-    if (postId) {
-      return this.Post.find({ id: postId })
-    }
+    return this.puppet.operation(async () => {
+      const postId = await this.puppet.postPublish(post.payload)
+      if (postId) {
+        return this.Post.find({ id: postId })
+      }
+      return undefined
+    })
   }
 
   /**

@@ -54,6 +54,10 @@ export class PuppetManager {
     this.#options = options
   }
 
+  get hasPuppet (): boolean {
+    return !!this.#puppet
+  }
+
   get puppet (): PUPPET.Puppet {
     if (!this.#puppet) {
       throw new Error('NOPUPPET')
@@ -65,6 +69,14 @@ export class PuppetManager {
     return this.#initialized
   }
 
+  /**
+   * Retrieves the current puppet instance or awaits its initialization.
+   * If a signal is provided and aborts before initialization completes,
+   * the returned promise rejects with the abort reason and unregisters the waiter.
+   *
+   * @param signal - Optional AbortSignal to cancel waiting.
+   * @returns Promise resolving to the initialized Puppet.
+   */
   getPuppetOrWait (signal?: AbortSignal): Promise<PUPPET.Puppet> {
     if (this.#puppet) {
       return Promise.resolve(this.#puppet)
@@ -73,18 +85,19 @@ export class PuppetManager {
       if (signal?.aborted) {
         return reject(signal.reason)
       }
+      const resolver = (puppet: PUPPET.Puppet) => {
+        signal?.removeEventListener('abort', onAbort)
+        resolve(puppet)
+      }
       const onAbort = () => {
-        const idx = this.#puppetInitResolvers.indexOf(resolve)
+        const idx = this.#puppetInitResolvers.indexOf(resolver)
         if (idx >= 0) {
           this.#puppetInitResolvers.splice(idx, 1)
         }
         reject(signal!.reason)
       }
       signal?.addEventListener('abort', onAbort, { once: true })
-      this.#puppetInitResolvers.push(puppet => {
-        signal?.removeEventListener('abort', onAbort)
-        resolve(puppet)
-      })
+      this.#puppetInitResolvers.push(resolver)
     })
   }
 

@@ -357,7 +357,7 @@ test('startup puppet failure rejects with an error listener (#2855)', async t =>
       'should reject start() when the puppet fails to start, even with an error listener',
     )
     assert.equal(handledBot.state.active(), false, 'should not report active after a failed puppet start')
-    assert.ok(errors.length >= 1, 'should emit the startup failure to an error listener')
+    assert.equal(errors.length, 1, 'should emit the startup failure to an error listener exactly once')
     assert.equal(errors[0]?.message, expectedError.message, 'should preserve the startup failure message')
   } finally {
     await handledBot.stop()

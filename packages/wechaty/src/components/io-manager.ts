@@ -83,13 +83,23 @@ export class IoManager {
     try {
       this.#io = io
       if (scope) {
-        scope.defer(() => { this.#io = undefined })
+        scope.defer(() => {
+          if (this.#io === io) {
+            this.#io = undefined
+          }
+        })
         await scope.start(io)
       } else {
         await io.start()
       }
     } catch (e) {
-      this.#io = undefined
+      if (this.#io === io) {
+        this.#io = undefined
+      }
+      if (scope) {
+        // When managed by a scope, let the lifecycle controller handle error escalation and single-dispatch
+        throw e
+      }
       this.#wechaty.emitError(e)
       throw GError.from(e)
     }

@@ -69,10 +69,17 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
     }
 
     readonly __readyState = {
-      active: () => this.__puppet?.state.active() === true,
-      inactive: () => this.__puppet?.state.inactive() === true,
-      stable: async (_expected?: 'active' | 'inactive') => {
-        await this.ready()
+      active: () => this.__puppet?.readyIndicator.value() === true,
+      inactive: () => !this.__puppet || this.__puppet.readyIndicator.value() === false,
+      stable: async (expected?: 'active' | 'inactive') => {
+        if (expected === 'inactive') {
+          if (!this.__puppet || !this.__puppet.readyIndicator.value()) {
+            return
+          }
+          await this.__puppet.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
+        } else {
+          await this.ready()
+        }
       },
     }
 
@@ -144,18 +151,19 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
           return reject(signal.reason)
         }
         const resolvers = getResolvers(this)
+        const resolver = (puppet: PUPPET.Puppet) => {
+          signal?.removeEventListener('abort', onAbort)
+          resolve(puppet)
+        }
         const onAbort = () => {
-          const idx = resolvers.indexOf(resolve)
+          const idx = resolvers.indexOf(resolver)
           if (idx >= 0) {
             resolvers.splice(idx, 1)
           }
           reject(signal!.reason)
         }
         signal?.addEventListener('abort', onAbort, { once: true })
-        resolvers.push(puppet => {
-          signal?.removeEventListener('abort', onAbort)
-          resolve(puppet)
-        })
+        resolvers.push(resolver)
       })
     }
 
@@ -248,7 +256,6 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
           const room = await this.Room.find({ id }) as unknown as undefined | RoomImpl
           await room?.ready(true)
         },
-        setReady: () => {},
         dispatchEvent: this.dispatchEvent.bind(this),
         emitError: error => this.emitError(error),
       })
