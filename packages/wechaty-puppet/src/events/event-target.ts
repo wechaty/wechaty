@@ -489,7 +489,9 @@ class EventEmitter extends WechatyEventTarget {
       } else if (type === 'logout') {
         payload = Object.assign([...args], {
           [MULTI_ARG_SYMBOL]: true,
+          contact: args[0],
           user: args[0],
+          data: args[1],
           reason: args[1],
         })
       } else if (type === 'room-join') {
@@ -516,6 +518,34 @@ class EventEmitter extends WechatyEventTarget {
           oldTopic: args[2],
           changer: args[3],
           date: args[4],
+        })
+      } else if (type === 'join') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          inviteeList: args[0],
+          inviter: args[1],
+          date: args[2],
+        })
+      } else if (type === 'leave') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          leaverList: args[0],
+          remover: args[1],
+          date: args[2],
+        })
+      } else if (type === 'topic') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          topic: args[0],
+          oldTopic: args[1],
+          changer: args[2],
+          date: args[3],
+        })
+      } else if (type === 'invite') {
+        payload = Object.assign([...args], {
+          [MULTI_ARG_SYMBOL]: true,
+          inviter: args[0],
+          invitation: args[1],
         })
       } else {
         payload = Object.assign([...args], { [MULTI_ARG_SYMBOL]: true })

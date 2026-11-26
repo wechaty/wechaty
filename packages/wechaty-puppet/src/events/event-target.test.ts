@@ -405,7 +405,35 @@ test('EventEmitter legacy multi-argument emit payload mappings', () => {
 
   target.emit('logout', 'user1', 'logout-reason')
   assert.equal(logoutDetail.user, 'user1')
+  assert.equal(logoutDetail.contact, 'user1')
   assert.equal(logoutDetail.reason, 'logout-reason')
+
+  let roomJoinDetail: any
+  let roomLeaveDetail: any
+  let roomTopicDetail: any
+  let roomInviteDetail: any
+
+  target.addEventListener('join', (e: Event) => { roomJoinDetail = (e as CustomEvent).detail })
+  target.addEventListener('leave', (e: Event) => { roomLeaveDetail = (e as CustomEvent).detail })
+  target.addEventListener('topic', (e: Event) => { roomTopicDetail = (e as CustomEvent).detail })
+  target.addEventListener('invite', (e: Event) => { roomInviteDetail = (e as CustomEvent).detail })
+
+  target.emit('join', ['invitee1'], 'inviter1', new Date(1000))
+  assert.deepEqual(roomJoinDetail.inviteeList, ['invitee1'])
+  assert.equal(roomJoinDetail.inviter, 'inviter1')
+
+  target.emit('leave', ['leaver1'], 'remover1', new Date(1000))
+  assert.deepEqual(roomLeaveDetail.leaverList, ['leaver1'])
+  assert.equal(roomLeaveDetail.remover, 'remover1')
+
+  target.emit('topic', 'current-topic', 'previous-topic', 'changer1', new Date(1000))
+  assert.equal(roomTopicDetail.topic, 'current-topic')
+  assert.equal(roomTopicDetail.oldTopic, 'previous-topic')
+  assert.equal(roomTopicDetail.changer, 'changer1')
+
+  target.emit('invite', 'inviter2', 'invitation2')
+  assert.equal(roomInviteDetail.inviter, 'inviter2')
+  assert.equal(roomInviteDetail.invitation, 'invitation2')
 
   target.emit('room-join', 'room1', ['invitee'], 'inviter', new Date(1000))
   assert.equal(joinDetail.room, 'room1')

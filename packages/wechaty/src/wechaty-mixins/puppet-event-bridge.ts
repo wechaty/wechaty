@@ -1,7 +1,7 @@
 /**
  * Translates puppet events into Wechaty events through the dependencies supplied
  * by `puppet-mixin.ts`. Provider setup, memory, lifecycle timeouts, and the
- * compatibility `puppet` event remain owned by the mixin; this module registers
+ * `puppet` event remain owned by the mixin; this module registers
  * persistent event listeners and forwards hydrated single-payload CustomEvents.
  */
 import * as PUPPET from 'wechaty-puppet'
@@ -52,7 +52,7 @@ interface PuppetEventBridgeDependencies {
   roomInvitationLoad: (id: string) => RoomInvitation
   roomReady: (id: string) => Promise<void>
   setReady: (state: 'active' | 'inactive') => void
-  dispatchEvent?: (event: Event) => boolean
+  dispatchEvent: (event: Event) => boolean
   emit?: PuppetEventBridgeEmit
   emitError: (error: GError) => void
 }
@@ -120,12 +120,21 @@ function registerPuppetEventBridge (
 
       case 'error':
         addListener((payload: PUPPET.payloads.EventError) => {
+          /**
+           * Huan(202112):
+           *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
+           *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
+           */
           dependencies.emitError(GError.from(payload.gerror || (payload as any).data || payload))
         })
         break
 
       case 'heartbeat':
         addListener((payload: PUPPET.payloads.EventHeartbeat) => {
+          /**
+           * Use `watchdog` event from Puppet to `heartbeat` Wechaty.
+           */
+          // TODO: use a throttle queue to prevent beat too fast.
           dispatchBridgeEvent(dependencies, 'heartbeat', payload.data)
         })
         break
@@ -273,6 +282,9 @@ function registerPuppetEventBridge (
               throw new Error('no room found for id: ' + payload.roomId)
             }
 
+            /**
+             * See: https://github.com/wechaty/wechaty/pull/1833
+             */
             await room.sync()
 
             const leaverListAll = await Promise.all(
@@ -289,6 +301,7 @@ function registerPuppetEventBridge (
             dispatchBridgeEvent(dependencies, 'room-leave', { room, leaverList, remover, date }, [ room, leaverList, remover, date ])
             room.emit('leave', leaverList, remover, date)
 
+            // issue #254
             if (payload.removeeIdList.includes(puppet.currentUserId)) {
               await puppet.roomPayloadDirty(payload.roomId)
               await puppet.roomMemberPayloadDirty(payload.roomId)
@@ -335,6 +348,9 @@ function registerPuppetEventBridge (
         break
 
       case 'dirty':
+        /**
+         * https://github.com/wechaty/wechaty-puppet-service/issues/43
+         */
         addListener(async ({ payloadType, payloadId }: PUPPET.payloads.EventDirty) => {
           try {
             switch (payloadType) {
@@ -347,6 +363,9 @@ function registerPuppetEventBridge (
                 await dependencies.roomReady(payloadId)
                 break
 
+              /**
+               * Huan(202008): noop for the following
+               */
               case PUPPET.types.Payload.Friendship:
               case PUPPET.types.Payload.Message:
                 break

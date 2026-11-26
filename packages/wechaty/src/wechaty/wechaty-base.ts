@@ -115,10 +115,10 @@ const mixinBase = FP.pipe(
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
  * import { WechatyBuilder } from 'wechaty'
  * const bot = WechatyBuilder.build() // the puppet comes from WECHATY_PUPPET
- * bot.on('scan',    (qrCode, status) => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(qrcode)))
- * bot.on('login',   user => console.log(`User ${user} logged in`))
- * bot.on('message', message => console.log(`Message: ${message}`))
- * bot.start()
+ * bot.addEventListener('scan',    e => console.log('https://wechaty.js.org/qrcode/' + encodeURIComponent(e.detail.qrcode)))
+ * bot.addEventListener('login',   e => console.log(`User ${e.detail} logged in`))
+ * bot.addEventListener('message', e => console.log(`Message: ${e.detail}`))
+ * await bot.start()
  */
 class WechatyBase extends mixinBase implements SayableSayer {
 
@@ -296,6 +296,19 @@ class WechatyBase extends mixinBase implements SayableSayer {
     if (postId) {
       return this.Post.find({ id: postId })
     }
+  }
+
+  /**
+   * Compatibility emit required by state-switch ServiceCtl.
+   * Normalizes 'error' events through `this.emitError(e)`.
+   * @internal
+   */
+  override emit (event: string, ...args: any[]): boolean {
+    if (event === 'error') {
+      this.emitError(args[0])
+      return true
+    }
+    return super.emit(event, ...args)
   }
 
   /**

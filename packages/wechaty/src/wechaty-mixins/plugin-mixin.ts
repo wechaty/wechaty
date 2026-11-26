@@ -46,7 +46,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
      *
      * function WechatyReportPlugin(options: { url: string }) {
      *   return function (bot: Wechaty) {
-     *     bot.on('message', message => http.post(options.url, { data: message }))
+     *     bot.addEventListener('message', event => http.post(options.url, { data: event.detail }))
      *   }
      * }
      *
