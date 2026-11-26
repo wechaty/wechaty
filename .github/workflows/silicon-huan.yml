@@ -1,4 +1,4 @@
-# Experimental agent-centric launcher; see docs/antigravity-next.md and RFC #3157.
+# Experimental agent-centric launcher; see docs/silicon-huan.md and RFC #3157.
 # Requested tasks inherit Huan permissions. Automatic reviews use a limited token.
 # PEM is used only by the token action, never passed to agy or MCP.
 name: Huanˢⁱ ⚡
@@ -241,19 +241,51 @@ jobs:
             const { status, data } = await github.request(`POST ${endpoint}`, { content: 'eyes' })
             // A 200 reuses an existing reaction, which this run does not own.
             if (status === 201) core.setOutput('eyes_id', String(data.id))
+      - name: Check for a completed automatic review pair
+        id: pair
+        if: github.event_name == 'pull_request_target'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          NUMBER: ${{ needs.authorize.outputs.number }}
+          HEAD_SHA: ${{ needs.authorize.outputs.sha }}
+          BASE_SHA: ${{ needs.authorize.outputs.base }}
+          APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+        run: |
+          set -euo pipefail
+          marker="<!-- huan-review-pair head=$HEAD_SHA base=$BASE_SHA -->"
+          if gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/reviews?per_page=100" |
+            jq -e --arg login "$APP_LOGIN" --arg sha "$HEAD_SHA" --arg marker "$marker" '
+              any(.[][]; .user.login == $login and .commit_id == $sha
+                and (.state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED")
+                and ((.body // "") | endswith($marker)))
+            ' >/dev/null; then
+            echo 'duplicate=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          else
+            status=("${PIPESTATUS[@]}")
+            if [[ "${status[0]}" != 0 || "${status[1]}" != 1 ]]; then
+              echo '::error::Could not check for an existing automatic review.'
+              exit 1
+            fi
+          fi
       - uses: actions/checkout@v5
+        if: steps.pair.outputs.duplicate != 'true'
         with:
           # Automatic reviews inspect the PR through GitHub from a trusted checkout.
           ref: ${{ github.event_name == 'pull_request_target' && github.workflow_sha || needs.authorize.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v5
+        if: steps.pair.outputs.duplicate != 'true'
         with:
           node-version: '26'
       - uses: denoland/setup-deno@v2
+        if: steps.pair.outputs.duplicate != 'true'
         with:
           deno-version: v2.x
       - name: Install engineering tools
+        if: steps.pair.outputs.duplicate != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -266,7 +298,7 @@ jobs:
           docker pull ghcr.io/github/github-mcp-server
       - name: Mark Huanˢⁱ ⚡ as running
         id: rocket
-        if: steps.reactions.outputs.endpoint != ''
+        if: steps.reactions.outputs.endpoint != '' && steps.pair.outputs.duplicate != 'true'
         continue-on-error: true
         shell: bash
         env:
@@ -287,6 +319,7 @@ jobs:
             echo "rocket_id=$rocket_id" >> "$GITHUB_OUTPUT"
           fi
       - name: Run Huanˢⁱ ⚡
+        if: steps.pair.outputs.duplicate != 'true'
         id: agent
         shell: bash
         env:
@@ -299,9 +332,13 @@ jobs:
           TASK: ${{ needs.authorize.outputs.task }}
           MODE: ${{ needs.authorize.outputs.mode }}
           PROGRESS_URL: ${{ steps.progress.outputs.url }}
+          HEAD_SHA: ${{ needs.authorize.outputs.sha }}
+          BASE_SHA: ${{ needs.authorize.outputs.base }}
+          VERDICT_FILE: ${{ runner.temp }}/huan-verdict.json
         run: |
           set -euo pipefail
           umask 077
+          if [[ "$MODE" == review ]]; then rm -f "$VERDICT_FILE"; fi
           private_dir="$(mktemp -d "$RUNNER_TEMP/antigravity-next.XXXXXX")"
           cleanup() {
             secret-tool clear service gemini username antigravity 2>/dev/null || true
@@ -332,9 +369,9 @@ jobs:
 
           Check existing inline threads. Refresh them immediately before posting to catch findings added during this review. Add new evidence to the matching thread or link to it if replies are unavailable. Post only distinct new findings inline.
 
-          Submit a formal GitHub pull request review as Comment, with a summary headed "## Huanˢⁱ ⚡ review". Anchor actionable findings to the relevant diff lines. Submit the summary even if there are no findings.
+          Review the comparison identified by the HEAD_SHA and BASE_SHA environment variables. If either has changed, stop. Submit a formal Comment review headed "## Huanˢⁱ ⚡ review" on HEAD_SHA, with actionable findings inline. On the next line put the marker <!-- huan-reviewed-base base=BASE_SHA -->, substituting the value of BASE_SHA. Submit the summary even if there are no findings.
 
-          Then submit a separate formal review decision: Approve if the PR is ready to merge, or Request changes if fixes are required. Sign the decision "— Huanˢⁱ ⚡". Use MCP, CLI, or Node as needed.
+          Leave the verdict to the workflow. Write JSON to VERDICT_FILE with the published summary's numeric reviewId, event (APPROVE or REQUEST_CHANGES), and body (brief justification). Report in progress that the verdict is pending.
           EOF
             if [[ -n "$PROGRESS_URL" ]]; then
               evidence='tests run and results'
@@ -365,25 +402,79 @@ jobs:
             exit 1
           fi
 
-      - name: Finalize progress after interruption or interaction
-        if: always() && steps.progress.outputs.comment_id != '' && (failure() || cancelled() || (needs.authorize.outputs.mode == 'interaction' && steps.agent.outcome == 'success'))
+      - name: Publish revision-checked verdict
+        id: verdict
+        if: needs.authorize.outputs.mode == 'review' && steps.pair.outputs.duplicate != 'true'
+        uses: actions/github-script@v8
+        env:
+          NUMBER: ${{ needs.authorize.outputs.number }}
+          HEAD_SHA: ${{ needs.authorize.outputs.sha }}
+          BASE_SHA: ${{ needs.authorize.outputs.base }}
+          APP_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+          VERDICT_FILE: ${{ runner.temp }}/huan-verdict.json
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const { readFile } = await import('node:fs/promises')
+            const { HEAD_SHA, BASE_SHA, APP_LOGIN, VERDICT_FILE } = process.env
+            const pull = { ...context.repo, pull_number: Number(process.env.NUMBER) }
+            const isCurrent = async () => {
+              const { data } = await github.rest.pulls.get(pull)
+              if (data.state === 'open' && data.head.sha === HEAD_SHA && data.base.sha === BASE_SHA) return true
+              core.setOutput('partial', 'true')
+              core.notice('Verdict skipped because the reviewed revision is no longer current.')
+              return false
+            }
+
+            // Check before reading the handoff as the agent may have stopped on a revision change.
+            if (!await isCurrent()) return
+            const { reviewId, event, body } = JSON.parse(await readFile(VERDICT_FILE, 'utf8'))
+            if (!Number.isSafeInteger(reviewId) || !['APPROVE', 'REQUEST_CHANGES'].includes(event)
+              || typeof body !== 'string' || !body.trim()) throw new Error('Invalid review verdict handoff')
+            const { data: review } = await github.rest.pulls.getReview({ ...pull, review_id: reviewId })
+            if (review.user?.login !== APP_LOGIN || review.commit_id !== HEAD_SHA
+              || review.state !== 'COMMENTED' || !/^## Huanˢⁱ ⚡ review[ \t]*\r?\n/.test(review.body ?? '')
+              || !review.body.split(/\r?\n/).includes(`<!-- huan-reviewed-base base=${BASE_SHA} -->`)) {
+              throw new Error('Verdict handoff does not identify the formal review for this HEAD and BASE')
+            }
+
+            // Automatic jobs for this PR are serialized. Record completion with the verdict itself
+            // so later automatic jobs can recognize a completed pair even if progress editing fails.
+            const marker = context.eventName === 'pull_request_target'
+              ? `\n\n<!-- huan-review-pair head=${HEAD_SHA} base=${BASE_SHA} -->` : ''
+            if (!await isCurrent()) return
+            await github.rest.pulls.createReview({
+              ...pull, commit_id: HEAD_SHA, event, body: `${body.trim()}\n\n— Huanˢⁱ ⚡${marker}`,
+            })
+
+      - name: Finalize progress
+        if: always() && steps.progress.outputs.comment_id != ''
         continue-on-error: true
         uses: actions/github-script@v8
         env:
           COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
           RUN_STATUS: ${{ job.status }}
+          PARTIAL: ${{ steps.verdict.outputs.partial }}
+          DUPLICATE: ${{ steps.pair.outputs.duplicate }}
           MODE: ${{ needs.authorize.outputs.mode }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const comment = { ...context.repo, comment_id: Number(process.env.COMMENT_ID) }
             const { data } = await github.rest.issues.getComment(comment)
-            const outcome = { success: 'completed', cancelled: 'cancelled' }[process.env.RUN_STATUS] ?? 'failed'
+            const outcome = process.env.RUN_STATUS === 'success' && process.env.PARTIAL === 'true'
+              ? 'partial. The PR changed and the verdict was skipped'
+              : process.env.RUN_STATUS === 'success' && process.env.DUPLICATE === 'true'
+                ? 'skipped. An automatic review and verdict already exist for this HEAD and BASE'
+                : { success: 'completed', cancelled: 'cancelled' }[process.env.RUN_STATUS] ?? 'failed'
             const activity = process.env.MODE === 'review' ? 'Review' : 'Task'
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            const heading = outcome.startsWith('partial.') ? 'Partial review'
+              : `${activity} ${outcome.split('.')[0]}`
+            const body = data.body.replace(/^### Huanˢⁱ ⚡ · .*$/m, `### Huanˢⁱ ⚡ · ${heading}`)
             await github.rest.issues.updateComment({
               ...comment,
-              body: `${data.body}\n\n**${activity} ${outcome}.** See the [Actions run](${run}).`,
+              body: `${body}\n\n**${activity} ${outcome}.** See the [Actions run](${run}).`,
             })
 
       - name: Finish request reactions
@@ -396,10 +487,12 @@ jobs:
           ROCKET_ID: ${{ steps.rocket.outputs.rocket_id }}
           JOB_STATUS: ${{ job.status }}
           AGENT_OUTCOME: ${{ steps.agent.outcome }}
+          PARTIAL: ${{ steps.verdict.outputs.partial }}
+          DUPLICATE: ${{ steps.pair.outputs.duplicate }}
         with:
           github-token: ${{ steps.reaction-token.outputs.token || steps.app-token.outputs.token }}
           script: |
-            const { ENDPOINT, EYES_ID, ROCKET_ID, JOB_STATUS, AGENT_OUTCOME } = process.env
+            const { ENDPOINT, EYES_ID, ROCKET_ID, JOB_STATUS, AGENT_OUTCOME, PARTIAL, DUPLICATE } = process.env
             for (const id of [EYES_ID, ROCKET_ID].filter(Boolean)) {
               try {
                 await github.request(`DELETE ${ENDPOINT}/${id}`)
@@ -407,6 +500,6 @@ jobs:
                 if (error.status !== 404) core.warning(`Could not remove progress reaction: ${error.message}`)
               }
             }
-            if (JOB_STATUS === 'success' && AGENT_OUTCOME === 'success') {
+            if (JOB_STATUS === 'success' && AGENT_OUTCOME === 'success' && PARTIAL !== 'true' && DUPLICATE !== 'true') {
               await github.request(`POST ${ENDPOINT}`, { content: 'hooray' })
             }
