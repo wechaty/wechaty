@@ -6,13 +6,13 @@
 import * as PUPPET from 'wechaty-puppet'
 import { log }  from 'wechaty-puppet'
 
-import type { WechatyInterface } from '../wechaty/wechaty-impl.ts'
+import type { Wechaty } from '../wechaty/mod.ts'
 
 import type {
   Sayable,
 }                   from './types.ts'
 
-const payloadToSayableWechaty: (w: WechatyInterface) => (p: PUPPET.payloads.Sayable) => Promise<undefined | Sayable> = (wechaty: WechatyInterface) => async (
+const payloadToSayableWechaty: (w: Wechaty) => (p: PUPPET.payloads.Sayable) => Promise<undefined | Sayable> = (wechaty: Wechaty) => async (
   sayable: PUPPET.payloads.Sayable,
 ) => {
   // Sayable types are already names (for example `Text`).

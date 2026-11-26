@@ -46,8 +46,8 @@ import {
 }                                 from './wechaty-base.ts'
 
 import type {
-  WechatyInterface,
-}                           from '../wechaty/wechaty-impl.ts'
+  Wechaty,
+}                           from '../wechaty/mod.ts'
 import { WechatySkeleton }  from './wechaty-skeleton.ts'
 
 class WechatyTest extends WechatyBase {
@@ -193,13 +193,13 @@ test('use plugin', async t => {
   let result = ''
 
   // const myGlobalPlugin = function () {
-  //   return function (bot: WechatyInterface) {
+  //   return function (bot: Wechaty) {
   //     bot.on('message', () => { result += 'FROM_GLOBAL_PLUGIN:' })
   //   }
   // }
 
   const myPlugin = function () {
-    return function (bot: WechatyInterface) {
+    return function (bot: Wechaty) {
       bot.on('message', () => { result += 'FROM_MY_PLUGIN:' })
     }
   }

@@ -36,7 +36,7 @@ const pluginMixin = <MixinBase extends typeof WechatySkeleton & GErrorMixin & Mi
     /**
      * @param   {WechatyPlugin[]} plugins      - The plugins you want to use
      *
-     * @return  {WechatyInterface}                      - this for chaining,
+     * @return  {Wechaty}                      - this for chaining,
      *
      * @desc
      * For wechaty ecosystem, allow user to define a 3rd party plugin for the all wechaty instances

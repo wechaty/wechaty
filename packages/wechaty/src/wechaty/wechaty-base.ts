@@ -53,7 +53,7 @@ import {
   WechatySkeleton,
 }                             from './wechaty-skeleton.ts'
 import type {
-  WechatyInterface,
+  Wechaty,
 }                             from './wechaty-impl.ts'
 import type {
   WechatyOptions,
@@ -124,7 +124,7 @@ class WechatyBase extends mixinBase implements SayableSayer {
   override __options: WechatyOptions
 
   static   override readonly VERSION = VERSION
-  readonly wechaty : WechatyInterface
+  readonly wechaty : Wechaty
 
   readonly _stopCallbackList: (() => void)[] = []
 

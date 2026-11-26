@@ -1,11 +1,11 @@
-import type { WechatyInterface } from './wechaty/mod.ts'
+import type { Wechaty } from './wechaty/mod.ts'
 
 export type WechatyPluginUninstaller = () => void
 
 export type WechatyPluginReturn = void | WechatyPluginUninstaller
 
 export interface WechatyPlugin {
-  (bot: WechatyInterface): WechatyPluginReturn
+  (bot: Wechaty): WechatyPluginReturn
 }
 
 function isWechatyPluginUninstaller (

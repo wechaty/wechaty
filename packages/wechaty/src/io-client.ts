@@ -40,7 +40,7 @@ import {
   type LifecycleScope,
 }                       from 'scopelet'
 import type { MessageInterface }  from './user-modules/mod.ts'
-import type { WechatyInterface }  from './wechaty/mod.ts'
+import type { Wechaty }           from './wechaty/mod.ts'
 
 import {
   log,
@@ -50,7 +50,7 @@ import { Io, type IoOptions } from './io.ts'
 /** The bot an {@link IoClient} runs, and its Io token and PuppetServer port. */
 export interface IoClientOptions {
   token   : string,
-  wechaty : WechatyInterface,
+  wechaty : Wechaty,
   port?: number
 }
 
@@ -152,7 +152,7 @@ export class IoClient {
   }
 
   /** Log the bot's events for this run only (C-COMP-01). */
-  private hookWechaty (scope: LifecycleScope, wechaty: WechatyInterface): void {
+  private hookWechaty (scope: LifecycleScope, wechaty: Wechaty): void {
     log.verbose('IoClient', 'hookWechaty()')
 
     listen(scope, wechaty, 'login',   (user: { name (): string }) => log.info('IoClient', `${user.name()} logged in`))

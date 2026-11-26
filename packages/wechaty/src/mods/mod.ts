@@ -22,9 +22,9 @@
  * We need to put `Wechaty` at the beginning of this file for import
  * because we have circular dependencies between `Puppet` & `Wechaty`
  */
-export type {
-  WechatyOptions,
-  WechatyInterface as Wechaty,
+export {
+  Wechaty,
+  type WechatyOptions,
 }                               from '../wechaty/mod.ts'
 export {
   WechatyBuilder,

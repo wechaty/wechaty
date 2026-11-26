@@ -2,7 +2,10 @@ import type {
   WechatyInterface,
   WechatyConstructor,
 }                         from './wechaty-impl.ts'
-import { WechatyImpl }    from './wechaty-impl.ts'
+import {
+  Wechaty,
+  WechatyImpl,
+}                         from './wechaty-impl.ts'
 
 import type {
   WechatyOptions,
@@ -10,6 +13,7 @@ import type {
 import { WechatySkeleton }  from './wechaty-skeleton.ts'
 
 export {
+  Wechaty,
   type WechatyInterface,
   type WechatyConstructor,
   type WechatyOptions,
