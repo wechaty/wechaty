@@ -540,15 +540,21 @@ class PostMixin extends wechatifyMixinBase() {
 
 }
 
-class PostImpl extends validationMixin(PostMixin)<PostInterface>() {}
-interface PostInterface extends PostImpl {}
+class PostImpl extends validationMixin(PostMixin)<Post>() {}
+interface Post extends PostImpl {}
+
+/**
+ * @deprecated Use `Post` instead. `PostInterface` is retained for backwards compatibility.
+ */
+type PostInterface = Post
 
 type PostConstructor = Constructor<
-  PostInterface,
+  Post,
   typeof PostImpl
 >
 
 export type {
+  Post,
   PostConstructor,
   PostInterface,
 }

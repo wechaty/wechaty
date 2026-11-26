@@ -791,8 +791,13 @@ interface ContactImplInterface extends ContactImplBase {}
 type ContactProtectedProperty =
   | 'ready'
 
-type ContactInterface = Omit<ContactImplInterface, ContactProtectedProperty>
-class ContactImpl extends validationMixin(ContactImplBase)<ContactInterface>() {}
+type Contact = Omit<ContactImplInterface, ContactProtectedProperty>
+
+/**
+ * @deprecated Use `Contact` instead. `ContactInterface` is retained for backwards compatibility.
+ */
+type ContactInterface = Contact
+class ContactImpl extends validationMixin(ContactImplBase)<Contact>() {}
 
 type ContactConstructor = Constructor<
   ContactImplInterface,
@@ -800,6 +805,7 @@ type ContactConstructor = Constructor<
 >
 
 export type {
+  Contact,
   ContactConstructor,
   ContactProtectedProperty,
   ContactInterface,

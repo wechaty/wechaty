@@ -19,81 +19,97 @@
  */
 import {
   ContactImpl,
+  type Contact,
   type ContactInterface,
   type ContactConstructor,
 }                           from './contact.ts'
 import {
   ContactSelfImpl,
+  type ContactSelf,
   type ContactSelfInterface,
   type ContactSelfConstructor,
 }                           from './contact-self.ts'
 import {
   FavoriteImpl,
+  type Favorite,
   type FavoriteInterface,
   type FavoriteConstructor,
 }                           from './favorite.ts'
 import {
   FriendshipImpl,
+  type Friendship,
   type FriendshipInterface,
   type FriendshipConstructor,
 }                           from './friendship.ts'
 import {
   ImageImpl,
+  type Image,
   type ImageInterface,
   type ImageConstructor,
 }                           from './image.ts'
 import {
   LocationImpl,
+  type Location,
   type LocationInterface,
   type LocationConstructor,
 }                           from './location.ts'
 import {
   MessageImpl,
+  type Message,
   type MessageInterface,
   type MessageConstructor,
 }                           from './message.ts'
 import {
   MiniProgramImpl,
+  type MiniProgram,
   type MiniProgramInterface,
   type MiniProgramConstructor,
 }                           from './mini-program.ts'
 import {
   MomentImpl,
+  type Moment,
   type MomentInterface,
   type MomentConstructor,
 }                           from './moment.ts'
 import {
   MoneyImpl,
+  type Money,
   type MoneyInterface,
   type MoneyConstructor,
 }                           from './money.ts'
 import {
   PostImpl,
+  type Post,
   type PostInterface,
   type PostConstructor,
 }                           from './post.ts'
 import {
   RoomImpl,
+  type Room,
   type RoomInterface,
   type RoomConstructor,
 }                           from './room.ts'
 import {
   RoomInvitationImpl,
+  type RoomInvitation,
   type RoomInvitationInterface,
   type RoomInvitationConstructor,
 }                           from './room-invitation.ts'
 import {
   TagImpl,
+  type Tag,
   type TagInterface,
   type TagConstructor,
 }                           from './tag.ts'
 import {
   UrlLinkImpl,
+  type UrlLink,
   type UrlLinkInterface,
   type UrlLinkConstructor,
 }                           from './url-link.ts'
 import {
   DelayImpl,
+  type Delay,
   type DelayInterface,
   type DelayConstructor,
 }                           from './delay.ts'
@@ -101,6 +117,23 @@ import {
 import { wechatifyUserModule } from '../user-mixins/wechatify.ts'
 
 export type {
+  Contact,
+  ContactSelf,
+  Favorite,
+  Friendship,
+  Image,
+  Location,
+  Message,
+  MiniProgram,
+  Moment,
+  Money,
+  Post,
+  Room,
+  RoomInvitation,
+  Tag,
+  Delay,
+  UrlLink,
+
   ContactInterface,
   ContactSelfInterface,
   FavoriteInterface,

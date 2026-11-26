@@ -32,15 +32,21 @@ class MoneyMixin extends wechatifyMixinBase() {
 
 }
 
-class MoneyImpl extends validationMixin(MoneyMixin)<MoneyInterface>() {}
-interface MoneyInterface extends MoneyImpl {}
+class MoneyImpl extends validationMixin(MoneyMixin)<Money>() {}
+interface Money extends MoneyImpl {}
+
+/**
+ * @deprecated Use `Money` instead. `MoneyInterface` is retained for backwards compatibility.
+ */
+type MoneyInterface = Money
 
 type MoneyConstructor = Constructor<
-  MoneyInterface,
+  Money,
   typeof MoneyImpl
 >
 
 export type {
+  Money,
   MoneyConstructor,
   MoneyInterface,
 }

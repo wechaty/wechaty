@@ -73,14 +73,21 @@ class FavoriteMixin extends wechatifyMixinBase() {
 
 }
 
-class FavoriteImpl extends validationMixin(FavoriteMixin)<FavoriteInterface>() {}
-interface FavoriteInterface extends FavoriteImpl {}
+class FavoriteImpl extends validationMixin(FavoriteMixin)<Favorite>() {}
+interface Favorite extends FavoriteImpl {}
+
+/**
+ * @deprecated Use `Favorite` instead. `FavoriteInterface` is retained for backwards compatibility.
+ */
+type FavoriteInterface = Favorite
+
 type FavoriteConstructor = Constructor<
-  FavoriteInterface,
+  Favorite,
   typeof FavoriteImpl
 >
 
 export type {
+  Favorite,
   FavoriteConstructor,
   FavoriteInterface,
 }

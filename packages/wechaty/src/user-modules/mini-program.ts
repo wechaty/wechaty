@@ -97,15 +97,21 @@ class MiniProgramMixin extends wechatifyMixinBase() {
 
 }
 
-class MiniProgramImpl extends validationMixin(MiniProgramMixin)<MiniProgramInterface>() {}
-interface MiniProgramInterface extends MiniProgramImpl {}
+class MiniProgramImpl extends validationMixin(MiniProgramMixin)<MiniProgram>() {}
+interface MiniProgram extends MiniProgramImpl {}
+
+/**
+ * @deprecated Use `MiniProgram` instead. `MiniProgramInterface` is retained for backwards compatibility.
+ */
+type MiniProgramInterface = MiniProgram
 
 type MiniProgramConstructor = Constructor<
-  MiniProgramInterface,
+  MiniProgram,
   typeof MiniProgramImpl
 >
 
 export type {
+  MiniProgram,
   MiniProgramConstructor,
   MiniProgramInterface,
 }

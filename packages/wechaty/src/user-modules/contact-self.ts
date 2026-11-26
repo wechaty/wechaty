@@ -201,14 +201,20 @@ class ContactSelfMixin extends MixinBase {
 
 }
 
-class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelfInterface>() {}
-interface ContactSelfInterface extends ContactSelfImpl {}
+class ContactSelfImpl extends validationMixin(ContactSelfMixin)<ContactSelf>() {}
+interface ContactSelf extends ContactSelfImpl {}
+
+/**
+ * @deprecated Use `ContactSelf` instead. `ContactSelfInterface` is retained for backwards compatibility.
+ */
+type ContactSelfInterface = ContactSelf
 type ContactSelfConstructor = Constructor<
-  ContactSelfInterface,
+  ContactSelf,
   Omit<typeof ContactSelfImpl, 'load'>
 >
 
 export type {
+  ContactSelf,
   ContactSelfConstructor,
   ContactSelfInterface,
 }

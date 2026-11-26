@@ -48,14 +48,21 @@ class MomentMixin extends wechatifyMixinBase() {
 
 }
 
-class MomentImpl extends validationMixin(MomentMixin)<MomentInterface>() {}
-interface MomentInterface extends MomentImpl {}
+class MomentImpl extends validationMixin(MomentMixin)<Moment>() {}
+interface Moment extends MomentImpl {}
+
+/**
+ * @deprecated Use `Moment` instead. `MomentInterface` is retained for backwards compatibility.
+ */
+type MomentInterface = Moment
+
 type MomentConstructor = Constructor<
-  MomentInterface,
+  Moment,
   typeof MomentImpl
 >
 
 export type {
+  Moment,
   MomentConstructor,
   MomentInterface,
 }

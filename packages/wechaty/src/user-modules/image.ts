@@ -77,15 +77,21 @@ class ImageMixin extends wechatifyMixinBase() {
 
 }
 
-class ImageImpl extends validationMixin(ImageMixin)<ImageInterface>() {}
-interface ImageInterface extends ImageImpl { }
+class ImageImpl extends validationMixin(ImageMixin)<Image>() {}
+interface Image extends ImageImpl {}
+
+/**
+ * @deprecated Use `Image` instead. `ImageInterface` is retained for backwards compatibility.
+ */
+type ImageInterface = Image
 
 type ImageConstructor = Constructor<
-  ImageInterface,
+  Image,
   typeof ImageImpl
 >
 
 export type {
+  Image,
   ImageConstructor,
   ImageInterface,
 }
