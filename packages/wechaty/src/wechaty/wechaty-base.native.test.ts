@@ -46,7 +46,7 @@ test('startup puppet failure rejects without an error listener (#2855)', () => {
   ].join(';')
   const nodeExecutable = process.env['NODE_BINARY'] ?? process.execPath
   // The child imports workspace packages from source, like the test runner.
-  const result = spawnSync(nodeExecutable, [ '--conditions=wechaty-source', '--input-type=module', '-e', script ], {
+  const result = spawnSync(nodeExecutable, [ '--input-type=module', '-e', script ], {
     encoding: 'utf8',
     timeout: 30_000,
   })

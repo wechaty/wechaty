@@ -18,7 +18,8 @@ mkdir -p "$DEPS_DIR"
 # in src/package-json.ts; put back exactly what was there, including
 # uncommitted edits.
 cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
-trap '[ -f "$TMPDIR/package-json.ts.orig" ] && cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
+cp package.json "$TMPDIR/package.json.orig"
+trap '[ -f "$TMPDIR/package-json.ts.orig" ] && cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; [ -f "$TMPDIR/package.json.orig" ] && cp "$TMPDIR/package.json.orig" "$PACKAGE_DIR/package.json"; rm -rf "$TMPDIR"' EXIT
 
 ./scripts/generate-package-json.sh
 npm run dist

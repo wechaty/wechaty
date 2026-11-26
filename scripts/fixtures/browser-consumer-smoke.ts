@@ -5,7 +5,7 @@
  * Verifies that the published npm tarballs of Wechaty monorepo packages (such as `scopelet`
  * and `wechaty-grpc`) work cleanly in an external consumer project running in a headless
  * browser (Chromium) without depending on monorepo workspace links, internal TypeScript
- * source resolution (`wechaty-source`), or injected Node.js runtime globals.
+ * source resolution, or injected Node.js runtime globals.
  *
  * Architectural boundaries:
  * Executes strictly inside a headless browser tab managed by Modern Web Test Runner.

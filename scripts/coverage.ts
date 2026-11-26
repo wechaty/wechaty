@@ -527,17 +527,8 @@ function run (command: string, args: string[], env?: NodeJS.ProcessEnv, cwd = RO
   return result.status ?? 1
 }
 
-/**
- * Resolves workspace packages to their TypeScript sources through the
- * `wechaty-source` export condition, as the packages' own test scripts do,
- * since `dist/` is only built for packing. Packages without the condition
- * ignore it.
- */
-const SOURCE_CONDITION = '--conditions=wechaty-source'
-
 function coverageArgs (destination: string, include = 'src/**/*.ts'): string[] {
   return [
-    SOURCE_CONDITION,
     '--test',
     '--test-timeout=180000',
     '--experimental-test-coverage',
@@ -764,7 +755,6 @@ function denoCoverage (tests: string[]): number {
     testStatus = run(denoBinary(), [
       'test',
       '--no-check',
-      SOURCE_CONDITION,
       `--coverage=${profile}`,
       // Write raw profiles only; `deno coverage` below builds the filtered
       // reports. Deno's own end-of-run summary covers every loaded module and
@@ -775,8 +765,8 @@ function denoCoverage (tests: string[]): number {
     ], env)
 
     const filterArgs = [
-      // Anchored to this package: workspace siblings loaded through the
-      // wechaty-source condition have src/ folders of their own.
+      // Anchored to this package: workspace siblings loaded through source
+      // exports have src/ folders of their own.
       `--include=^${escapeRegExp(pathToFileURL(join(ROOT, 'src')).href)}/`,
       '--exclude=\\.test\\.ts$',
       '--exclude=\\.d\\.ts$',

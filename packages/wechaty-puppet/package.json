@@ -5,43 +5,43 @@
   "type": "module",
   "exports": {
     ".": {
-      "wechaty-source": "./src/mods/mod.ts",
-      "types": "./dist/esm/src/mods/mod.d.ts",
-      "browser": "./dist/esm/src/mods/mod.js",
-      "default": "./dist/esm/src/mods/mod.js"
+      "types": "./src/mods/mod.ts",
+      "browser": "./src/mods/mod.ts",
+      "node": "./src/mods/mod.ts",
+      "default": "./src/mods/mod.ts"
     },
     "./filters": {
-      "wechaty-source": "./src/mods/filters.ts",
-      "types": "./dist/esm/src/mods/filters.d.ts",
-      "browser": "./dist/esm/src/mods/filters.js",
-      "default": "./dist/esm/src/mods/filters.js"
+      "types": "./src/mods/filters.ts",
+      "browser": "./src/mods/filters.ts",
+      "node": "./src/mods/filters.ts",
+      "default": "./src/mods/filters.ts"
     },
     "./helpers": {
-      "wechaty-source": "./src/mods/helpers.ts",
-      "types": "./dist/esm/src/mods/helpers.d.ts",
-      "browser": "./dist/esm/src/mods/helpers.js",
-      "default": "./dist/esm/src/mods/helpers.js"
+      "types": "./src/mods/helpers.ts",
+      "browser": "./src/mods/helpers.ts",
+      "node": "./src/mods/helpers.ts",
+      "default": "./src/mods/helpers.ts"
     },
     "./impls": {
-      "wechaty-source": "./src/mods/impls.ts",
-      "types": "./dist/esm/src/mods/impls.d.ts",
-      "browser": "./dist/esm/src/mods/impls.js",
-      "default": "./dist/esm/src/mods/impls.js"
+      "types": "./src/mods/impls.ts",
+      "browser": "./src/mods/impls.ts",
+      "node": "./src/mods/impls.ts",
+      "default": "./src/mods/impls.ts"
     },
     "./payloads": {
-      "wechaty-source": "./src/mods/payloads.ts",
-      "types": "./dist/esm/src/mods/payloads.d.ts",
-      "browser": "./dist/esm/src/mods/payloads.js",
-      "default": "./dist/esm/src/mods/payloads.js"
+      "types": "./src/mods/payloads.ts",
+      "browser": "./src/mods/payloads.ts",
+      "node": "./src/mods/payloads.ts",
+      "default": "./src/mods/payloads.ts"
     },
     "./types": {
-      "wechaty-source": "./src/mods/types.ts",
-      "types": "./dist/esm/src/mods/types.d.ts",
-      "browser": "./dist/esm/src/mods/types.js",
-      "default": "./dist/esm/src/mods/types.js"
+      "types": "./src/mods/types.ts",
+      "browser": "./src/mods/types.ts",
+      "node": "./src/mods/types.ts",
+      "default": "./src/mods/types.ts"
     }
   },
-  "types": "./dist/esm/src/mods/mod.d.ts",
+  "types": "./src/mods/mod.ts",
   "engines": {
     "node": ">=26",
     "npm": ">=10"
@@ -50,12 +50,14 @@
     "build": "tsc",
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && npm run build",
+    "prepack": "node ../../scripts/pack-exports.ts prepare",
+    "postpack": "node ../../scripts/pack-exports.ts restore",
     "lint": "npm run lint:biome && npm run lint:ts && npm run lint:md",
     "lint:biome": "biome lint src tests",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:md": "markdownlint --config ../../.markdownlint.json README.md",
-    "test:unit": "node --conditions=wechaty-source --test src tests/unit",
-    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,/tmp --allow-write=/tmp --allow-env --conditions=wechaty-source src tests/unit",
+    "test:unit": "node --test src tests/unit",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,/tmp --allow-write=/tmp --allow-env src tests/unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "coverage:node": "node ../../scripts/coverage.ts node",
     "coverage:deno": "node ../../scripts/coverage.ts deno",

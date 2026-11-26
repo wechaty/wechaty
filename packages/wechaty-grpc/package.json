@@ -5,12 +5,13 @@
   "type": "module",
   "exports": {
     ".": {
-      "wechaty-source": "./src/mod.ts",
-      "types": "./dist/esm/src/mod.d.ts",
-      "import": "./dist/esm/src/mod.js"
+      "types": "./src/mod.ts",
+      "browser": "./src/mod.ts",
+      "node": "./src/mod.ts",
+      "default": "./src/mod.ts"
     }
   },
-  "types": "./dist/esm/src/mod.d.ts",
+  "types": "./src/mod.ts",
   "engines": {
     "node": ">=26",
     "npm": ">=10"
@@ -22,6 +23,8 @@
     "build": "tsc",
     "dist": "npm run clean && npm run build && npm run dist:copy",
     "dist:copy": "shx cp -R proto dist/esm/",
+    "prepack": "node ../../scripts/pack-exports.ts prepare",
+    "postpack": "node ../../scripts/pack-exports.ts restore",
     "prelint:ts": "npm run generate",
     "lint": "npm run lint:biome && npm run lint:ts && npm run lint:md",
     "lint:biome": "biome lint scripts src tests examples",

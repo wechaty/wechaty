@@ -12,7 +12,8 @@ mkdir "$TMPDIR"
 # generate-version.sh rewrites src/version.ts; put back exactly what was there,
 # including uncommitted edits, instead of the committed copy.
 cp src/version.ts "$TMPDIR/version.ts.orig"
-trap 'cp "$TMPDIR/version.ts.orig" "$PACKAGE_DIR/src/version.ts"; rm -rf "$TMPDIR"' EXIT
+cp package.json "$TMPDIR/package.json.orig"
+trap 'cp "$TMPDIR/version.ts.orig" "$PACKAGE_DIR/src/version.ts"; cp "$TMPDIR/package.json.orig" "$PACKAGE_DIR/package.json"; rm -rf "$TMPDIR"' EXIT
 
 ./scripts/generate-version.sh
 npm run dist

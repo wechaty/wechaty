@@ -65,6 +65,9 @@ for name in "${PACKAGES[@]}"; do
   backup="$WORK/$name.embedded"
   cp "$dir/$embedded" "$backup"
   printf '%s\t%s\n' "$dir/$embedded" "$backup" >> "$RESTORE_LIST"
+  pkg_backup="$WORK/$name.package-json"
+  cp "$dir/package.json" "$pkg_backup"
+  printf '%s\t%s\n' "$dir/package.json" "$pkg_backup" >> "$RESTORE_LIST"
 
   (cd "$dir" && "./$generator")
   npm run dist --workspace "$name"
