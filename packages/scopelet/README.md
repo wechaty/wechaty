@@ -83,6 +83,23 @@ Extend `AsyncLifecycle` when your class does not already extend another base cla
 ```ts
 import { AsyncLifecycle, listen, type LifecycleScope } from 'scopelet'
 
+// Helper: cancellable sleep timer
+function delay (ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return Promise.reject(signal.reason)
+  if (ms <= 0) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer)
+      reject(signal.reason)
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal?.addEventListener('abort', onAbort, { once: true })
+  })
+}
+
 export class MetricCollector extends AsyncLifecycle {
 
   #server?: SomeServer
@@ -216,11 +233,15 @@ function delay (ms: number, signal?: AbortSignal): Promise<void> {
   if (signal?.aborted) return Promise.reject(signal.reason)
   if (ms <= 0) return Promise.resolve()
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => resolve(), ms)
-    signal?.addEventListener('abort', () => {
+    const onAbort = () => {
       clearTimeout(timer)
       reject(signal.reason)
-    }, { once: true })
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal?.addEventListener('abort', onAbort, { once: true })
   })
 }
 
@@ -282,7 +303,7 @@ export class Io extends AsyncLifecycle {
 
 *Adoption status: Planned in [#3024](https://github.com/wechaty/wechaty/issues/3024).*
 
-`Puppet` wraps provider drivers that authenticate asynchronously and send messages. It leverages generation-bound conditions (`ready`, `login`), wraps in-flight calls with `operation`, and manages provider shutdown via `scope.defer()` and abort listeners:
+`Puppet` wraps provider drivers that authenticate asynchronously and send messages. It leverages the generation-bound `ready` condition, wraps in-flight calls with `operation`, and manages provider shutdown via `scope.defer()` and abort listeners:
 
 ```ts
 import { EventEmitter } from 'node:events'
@@ -413,7 +434,9 @@ export class Wechaty extends EventEmitter implements Lifecycle {
       onStart: (scope: LifecycleScope) => this.#start(scope),
       onStateChange: (state: LifecycleState) => {
         if (state.kind === 'failed') {
-          this.#cancelReadyWaits(state.error)
+          this.#cancelReadyWaits(
+            new LifecycleSupersededError('the bot failed before the puppet was ready', { cause: state.error }),
+          )
         }
       },
     }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
@@ -478,7 +501,7 @@ npm install scopelet@next
 ### Runtime Support
 
 - **Node.js**: Version 26 or newer (requires native ESM and modern timer and diagnostics APIs).
-- **Deno**: Fully supported and validated in CI.
+- **Deno**: Experimental compatibility (validated against Deno 2.x in CI).
 - **Single-Realm Protection**: Within a JavaScript realm, child lifecycle ownership is guarded by a shared registry on `globalThis` under `Symbol.for('scopelet.owned-children')` (C-CHILD-02).
 - **Cross-Realm Boundaries**: Cross-realm ownership (e.g. crossing Node.js `node:vm` contexts or iframes) is explicitly unsupported per C-CHILD-02.
 - **Zero Dependencies**: Pure standard JavaScript and TypeScript with zero external runtime dependencies.
