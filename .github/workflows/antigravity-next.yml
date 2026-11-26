@@ -7,6 +7,8 @@ on:
   pull_request_target:
     branches: [main]
     types: [opened, reopened, ready_for_review, synchronize]
+  issues:
+    types: [opened]
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -42,7 +44,8 @@ jobs:
        github.event.pull_request.user.type == 'User' &&
        github.event.sender.type == 'User') ||
       (github.event.sender.type != 'Bot' &&
-       (startsWith(github.event.comment.body, '@huan') || startsWith(github.event.review.body, '@huan')))
+       (startsWith(github.event.comment.body, '@huan') || startsWith(github.event.review.body, '@huan') ||
+        (github.event_name == 'issues' && startsWith(github.event.issue.body, '@huan'))))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -72,7 +75,7 @@ jobs:
             const p = context.payload
             const automatic = context.eventName === 'pull_request_target'
             const eventPR = automatic ? p.pull_request : undefined
-            const source = p.comment ?? p.review
+            const source = p.comment ?? p.review ?? (context.eventName === 'issues' ? p.issue : undefined)
             if (source && (source.user.type !== 'User' || !/^@huan(?:\s|$)/i.test(source.body ?? ''))) return
             const actor = source?.user.login ?? context.actor
             // Authorize the event actor, rerun initiator, and (for automatic reviews) the PR author.
@@ -106,7 +109,7 @@ jobs:
               sha = (await github.rest.repos.getBranch({ owner, repo, branch: repository.default_branch })).data.commit.sha
             }
             let task = source ? source.body.replace(/^@huan(?:\s|$)/i, '').trim() : (process.env.INPUT_TASK ?? '').trim()
-            const reviewCommand = source && /^review(?:\s|$)/i.test(task)
+            const reviewCommand = source && issue.pull_request && /^review(?:\s|$)/i.test(task)
             const mode = (automatic || (source ? reviewCommand : process.env.INPUT_MODE === 'review')) ? 'review' : 'interaction'
             if (mode === 'review' && !issue.pull_request) throw new Error('Review mode requires a pull request')
             if (reviewCommand) task = task.slice('review'.length).trim()
@@ -158,19 +161,20 @@ jobs:
           permission-pull-requests: ${{ github.event_name == 'pull_request_target' && 'write' || '' }}
       - name: Add eyes to the triggering comment
         id: eyes
-        if: github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
+        if: github.event_name == 'issues' || github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
         continue-on-error: true
         uses: actions/github-script@v8
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo
-            const comment_id = context.payload.comment.id
             const reactions = github.rest.reactions
             const create = context.eventName === 'issue_comment'
               ? reactions.createForIssueComment
               : reactions.createForPullRequestReviewComment
-            const { status, data } = await create({ owner, repo, comment_id, content: 'eyes' })
+            const { status, data } = context.eventName === 'issues'
+              ? await reactions.createForIssue({ owner, repo, issue_number: context.payload.issue.number, content: 'eyes' })
+              : await create({ owner, repo, comment_id: context.payload.comment.id, content: 'eyes' })
             // HTTP 200 means the app already reacted. Only clean up a reaction created by this run.
             if (status === 201) core.setOutput('reaction_id', String(data.id))
       - uses: actions/checkout@v5
@@ -250,7 +254,7 @@ jobs:
             fi
           elif [[ -n "$REQUEST_URL" ]]; then
             cat > "$private_dir/prompt.md" <<EOF
-          You has been mentioned in the comment: $REQUEST_URL
+          You have been mentioned in this GitHub request: $REQUEST_URL
           Respond.
           EOF
           else
@@ -276,8 +280,12 @@ jobs:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo
-            const comment_id = context.payload.comment.id
             const reactions = github.rest.reactions
+            if (context.eventName === 'issues') {
+              await reactions.deleteForIssue({ owner, repo, issue_number: context.payload.issue.number, reaction_id: Number(process.env.REACTION_ID) })
+              return
+            }
+            const comment_id = context.payload.comment.id
             const remove = context.eventName === 'issue_comment'
               ? reactions.deleteForIssueComment
               : reactions.deleteForPullRequestComment
