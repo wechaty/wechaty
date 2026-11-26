@@ -418,34 +418,75 @@ jobs:
             const { readFile } = await import('node:fs/promises')
             const { HEAD_SHA, BASE_SHA, APP_LOGIN, VERDICT_FILE } = process.env
             const pull = { ...context.repo, pull_number: Number(process.env.NUMBER) }
+            const runMarker = `<!-- huan-verdict run=${context.runId} head=${HEAD_SHA} base=${BASE_SHA} -->`
+            const pairMarker = `<!-- huan-review-pair head=${HEAD_SHA} base=${BASE_SHA} -->`
             const isCurrent = async () => {
               const { data } = await github.rest.pulls.get(pull)
-              if (data.state === 'open' && data.head.sha === HEAD_SHA && data.base.sha === BASE_SHA) return true
-              core.setOutput('partial', 'true')
-              core.notice('Verdict skipped because the reviewed revision is no longer current.')
-              return false
+              return data.state === 'open' && data.head.sha === HEAD_SHA && data.base.sha === BASE_SHA
+            }
+            const findVerdict = async () => {
+              const reviews = await github.paginate(github.rest.pulls.listReviews, { ...pull, per_page: 100 })
+              return reviews.find(review => review.user?.login === APP_LOGIN && review.commit_id === HEAD_SHA
+                && ['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(review.state)
+                && review.body?.split(/\r?\n/).includes(runMarker))
+            }
+            const partial = reason => core.setOutput('partial', reason)
+
+            // Reruns and ambiguous POST failures recover a specific verdict without replaying the write.
+            let verdict
+            if (process.env.GITHUB_RUN_ATTEMPT !== '1') {
+              verdict = await findVerdict()
+              if (!verdict) {
+                partial('unconfirmed')
+                throw new Error('No verdict found for this run. Inspect the PR before requesting a fresh review.')
+              }
+            }
+            if (!verdict) {
+              if (!await isCurrent()) return partial('skipped')
+              const { reviewId, event, body } = JSON.parse(await readFile(VERDICT_FILE, 'utf8'))
+              if (!Number.isSafeInteger(reviewId) || !['APPROVE', 'REQUEST_CHANGES'].includes(event)
+                || typeof body !== 'string' || !body.trim()) throw new Error('Invalid review verdict handoff')
+              const { data: review } = await github.rest.pulls.getReview({ ...pull, review_id: reviewId })
+              if (review.user?.login !== APP_LOGIN || review.commit_id !== HEAD_SHA
+                || review.state !== 'COMMENTED' || !/^## Huanˢⁱ ⚡ review[ \t]*\r?\n/.test(review.body ?? '')
+                || !review.body.split(/\r?\n/).includes(`<!-- huan-reviewed-base base=${BASE_SHA} -->`)) {
+                throw new Error('Verdict handoff does not identify the formal review for this HEAD and BASE')
+              }
+              if (!await isCurrent()) return partial('skipped')
+              try {
+                const result = await github.rest.pulls.createReview({
+                  ...pull, commit_id: HEAD_SHA, event, body: `${body.trim()}\n\n— Huanˢⁱ ⚡\n\n${runMarker}`,
+                })
+                verdict = result.data
+              } catch (error) {
+                partial('unconfirmed')
+                verdict = await findVerdict()
+                if (!verdict) throw error
+              }
             }
 
-            // Check before reading the handoff as the agent may have stopped on a revision change.
-            if (!await isCurrent()) return
-            const { reviewId, event, body } = JSON.parse(await readFile(VERDICT_FILE, 'utf8'))
-            if (!Number.isSafeInteger(reviewId) || !['APPROVE', 'REQUEST_CHANGES'].includes(event)
-              || typeof body !== 'string' || !body.trim()) throw new Error('Invalid review verdict handoff')
-            const { data: review } = await github.rest.pulls.getReview({ ...pull, review_id: reviewId })
-            if (review.user?.login !== APP_LOGIN || review.commit_id !== HEAD_SHA
-              || review.state !== 'COMMENTED' || !/^## Huanˢⁱ ⚡ review[ \t]*\r?\n/.test(review.body ?? '')
-              || !review.body.split(/\r?\n/).includes(`<!-- huan-reviewed-base base=${BASE_SHA} -->`)) {
-              throw new Error('Verdict handoff does not identify the formal review for this HEAD and BASE')
+            partial('unconfirmed')
+            const target = { ...pull, review_id: verdict.id }
+            const current = await isCurrent()
+            if (verdict.state === 'DISMISSED') {
+              return partial('dismissed')
             }
-
-            // Automatic jobs for this PR are serialized. Record completion with the verdict itself
-            // so later automatic jobs can recognize a completed pair even if progress editing fails.
-            const marker = context.eventName === 'pull_request_target'
-              ? `\n\n<!-- huan-review-pair head=${HEAD_SHA} base=${BASE_SHA} -->` : ''
-            if (!await isCurrent()) return
-            await github.rest.pulls.createReview({
-              ...pull, commit_id: HEAD_SHA, event, body: `${body.trim()}\n\n— Huanˢⁱ ⚡${marker}`,
-            })
+            if (!current) {
+              try {
+                await github.rest.pulls.dismissReview({
+                  ...target, message: 'Huanˢⁱ ⚡ withdrew this verdict because the reviewed HEAD or BASE changed.',
+                })
+              } catch (error) {
+                const { data } = await github.rest.pulls.getReview(target)
+                if (data.state !== 'DISMISSED') throw error
+              }
+              return partial('withdrawn')
+            }
+            // Only a confirmed automatic verdict completes a pair. Withdrawn verdicts never get this marker.
+            if (context.eventName === 'pull_request_target' && !verdict.body.endsWith(pairMarker)) {
+              await github.rest.pulls.updateReview({ ...target, body: `${verdict.body}\n\n${pairMarker}` })
+            }
+            partial('')
 
       - name: Finalize progress
         if: always() && steps.progress.outputs.comment_id != ''
@@ -462,11 +503,15 @@ jobs:
           script: |
             const comment = { ...context.repo, comment_id: Number(process.env.COMMENT_ID) }
             const { data } = await github.rest.issues.getComment(comment)
-            const outcome = process.env.RUN_STATUS === 'success' && process.env.PARTIAL === 'true'
-              ? 'partial. The PR changed and the verdict was skipped'
-              : process.env.RUN_STATUS === 'success' && process.env.DUPLICATE === 'true'
+            const partial = {
+              skipped: 'partial. The PR changed and the verdict was skipped',
+              withdrawn: 'partial. The PR changed and the verdict was withdrawn',
+              dismissed: 'partial. The verdict had already been dismissed',
+              unconfirmed: 'partial. Verdict publication or withdrawal could not be confirmed. Inspect the PR before retrying',
+            }[process.env.PARTIAL]
+            const outcome = partial ?? (process.env.RUN_STATUS === 'success' && process.env.DUPLICATE === 'true'
                 ? 'skipped. An automatic review and verdict already exist for this HEAD and BASE'
-                : { success: 'completed', cancelled: 'cancelled' }[process.env.RUN_STATUS] ?? 'failed'
+                : { success: 'completed', cancelled: 'cancelled' }[process.env.RUN_STATUS] ?? 'failed')
             const activity = process.env.MODE === 'review' ? 'Review' : 'Task'
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             const heading = outcome.startsWith('partial.') ? 'Partial review'
@@ -500,6 +545,6 @@ jobs:
                 if (error.status !== 404) core.warning(`Could not remove progress reaction: ${error.message}`)
               }
             }
-            if (JOB_STATUS === 'success' && AGENT_OUTCOME === 'success' && PARTIAL !== 'true' && DUPLICATE !== 'true') {
+            if (JOB_STATUS === 'success' && AGENT_OUTCOME === 'success' && !PARTIAL && DUPLICATE !== 'true') {
               await github.request(`POST ${ENDPOINT}`, { content: 'hooray' })
             }
