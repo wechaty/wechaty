@@ -6,7 +6,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![WinterTC Compatible](https://img.shields.io/badge/Runtime-Node.js%20%7C%20Deno%20%7C%20Bun%20%7C%20Browser-success)](https://wintertc.org/)
 
-## The 30-Second Elevator Pitch
+## Why Your Async Services Leak (And How to Fix Them)
 
 Every backend and frontend engineer has fought this bug: a network socket drops, a background reconnect loop starts, listeners accumulate, and when you call `stop()`, a stray timer still wakes up in the background — or a delayed callback from a dead connection fires late and corrupts your new one.
 
@@ -32,7 +32,7 @@ import { AsyncLifecycle, createLifecycle } from 'scopelet'
 
 ## Table of Contents
 
-- [The 30-Second Elevator Pitch](#the-30-second-elevator-pitch)
+- [Why Your Async Services Leak (And How to Fix Them)](#why-your-async-services-leak-and-how-to-fix-them)
 - [Overview](#overview)
 - [The Problem: Why State Flags Fail](#the-problem-why-state-flags-fail)
 - [Design Patterns and Core Mechanisms](#design-patterns-and-core-mechanisms)
@@ -825,7 +825,7 @@ src/
 
 **Scopelet** is designed and created by:
 
-- **[Huan LI (李卓桓)](https://github.com/huan)**
+- **[Huan Li](https://github.com/huan)**
   - GitHub: <https://github.com/huan>
   - Creator of Wechaty and open-source distributed systems contributor
 
@@ -837,7 +837,7 @@ Special thanks to the **Wechaty Contributors** and the architectural contributio
 
 Apache License 2.0
 
-Copyright (c) 2016–present Huan LI (李卓桓) <huan@chatie.io> and Wechaty Contributors.
+Copyright (c) 2016–present Huan Li <huan@chatie.io> and Wechaty Contributors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
