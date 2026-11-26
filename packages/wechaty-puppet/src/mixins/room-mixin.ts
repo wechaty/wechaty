@@ -20,6 +20,7 @@ import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
 import type { ContactMixin }  from './contact-mixin.ts'
 import type { RoomMemberMixin } from './room-member-mixin.ts'
 import { DirtyType } from '../schemas/dirty.ts'
+import { WechatyEvent } from '../events/event-target.ts'
 
 const roomMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin & RoomMemberMixin>(mixinBase: MixinBase) => {
 
@@ -120,7 +121,7 @@ const roomMixin = <MixinBase extends typeof PuppetSkeleton & ContactMixin & Room
                 return await this.roomPayload(id)
               } catch (e) {
                 // log.silly('PuppetRoomMixin', 'roomSearch() roomPayload exception: %s', (e as Error).message)
-                this.emit('error', e)
+                this.dispatchEvent(new WechatyEvent('error', { detail: e }))
 
                 // Remove invalid room id from cache to avoid getting invalid room payload again
                 await this.roomPayloadDirty(id)

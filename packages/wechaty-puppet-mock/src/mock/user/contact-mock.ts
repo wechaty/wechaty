@@ -193,7 +193,9 @@ class ContactMock extends ContactEventEmitter {
       // }
 
       const msg = that.mocker.MessageMock.create(payload)
-      that.mocker.puppet.emit('message', { messageId: msg.id })
+      that.mocker.puppet.dispatchEvent(new PUPPET.WechatyEvent('message', {
+        detail: { messageId: msg.id },
+      }))
     }
 
     return { to }

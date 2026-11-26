@@ -12,6 +12,7 @@ import {
 
 import type { PuppetSkeleton } from '../puppet/puppet-skeleton.ts'
 import { WatchdogAgent }      from '../agents/watchdog-agent.ts'
+import { WechatyEvent }       from '../events/event-target.ts'
 
 const serviceMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinBase) => {
 
@@ -37,14 +38,14 @@ const serviceMixin = <MixinBase extends typeof PuppetSkeleton>(mixinBase: MixinB
       log.verbose('PuppetServiceMixin', 'start()')
       await super.start()
       this.__watchdog.start()
-      this.emit('start')
+      this.dispatchEvent(new WechatyEvent('start'))
     }
 
     override async stop (): Promise<void> {
       log.verbose('PuppetServiceMixin', 'stop()')
       this.__watchdog.stop()
       await super.stop()
-      this.emit('stop')
+      this.dispatchEvent(new WechatyEvent('stop'))
     }
 
   }

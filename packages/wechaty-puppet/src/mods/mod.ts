@@ -46,6 +46,7 @@ import {
   WechatyEvent,
   WechatyEventTarget,
   EventEmitter,
+  type EventIteratorOptions,
 }                             from '../events/event-target.ts'
 import type {
   PuppetOptions,
@@ -59,6 +60,7 @@ import {
 
 export type {
   PuppetOptions,
+  EventIteratorOptions,
 }
 export {
   EventEmitter,

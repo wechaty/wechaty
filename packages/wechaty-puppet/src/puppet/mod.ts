@@ -30,6 +30,8 @@ import type {
 import type {
   PuppetCustomEvent,
   PuppetEventDetail,
+  PuppetEventDetailMap,
+  PuppetEventName,
   PuppetEventTargetListener,
   PuppetEventTargetInterface,
 }                         from './events.ts'
@@ -42,6 +44,8 @@ export type {
   PuppetInterface,
   PuppetCustomEvent,
   PuppetEventDetail,
+  PuppetEventDetailMap,
+  PuppetEventName,
   PuppetEventTargetListener,
   PuppetEventTargetInterface,
 }

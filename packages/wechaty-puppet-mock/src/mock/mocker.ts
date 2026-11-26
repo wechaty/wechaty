@@ -185,7 +185,9 @@ class Mocker {
    */
   scan (qrcode: string, status: PUPPET.types.ScanStatus = PUPPET.types.ScanStatus.Waiting) {
     log.verbose('Mocker', 'scan(%s, %s)', qrcode, status)
-    this.puppet.emit('scan', { qrcode, status })
+    this.puppet.dispatchEvent(new PUPPET.WechatyEvent('scan', {
+      detail: { qrcode, status },
+    }))
   }
 
   login (user: ContactMock) {
@@ -312,9 +314,9 @@ class Mocker {
 
       const msg = this.MessageMock.load(payload.id)
 
-      msg.room()?.emit('message', msg)
-      msg.talker().emit('message', msg)
-      msg.listener()?.emit('message', msg)
+      msg.room()?.dispatchEvent(new PUPPET.WechatyEvent('message', { detail: msg }))
+      msg.talker().dispatchEvent(new PUPPET.WechatyEvent('message', { detail: msg }))
+      msg.listener()?.dispatchEvent(new PUPPET.WechatyEvent('message', { detail: msg }))
 
       return
     }

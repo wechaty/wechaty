@@ -14,6 +14,7 @@ import type { ServiceMixin } from '../mixins/service-mixin.ts'
 import {
   log,
 }           from '../config.ts'
+import { WechatyEvent } from '../events/event-target.ts'
 
 const DEFAULT_WATCHDOG_TIMEOUT_SECONDS  = 60
 
@@ -57,11 +58,12 @@ class WatchdogAgent {
      * puppet event `heartbeat` to feed() watchdog
      */
     const feed = (food: WatchdogFood) => { this.watchdog.feed(food) }
-    this.puppet.on('heartbeat', e => feed({ data: e.data }))
+    const onHeartbeat = (e: { data?: string }) => feed({ data: e.data })
+    this.puppet.on('heartbeat', onHeartbeat)
     log.verbose('PuppetWatchdogAgent', 'start() "heartbeat" event listener added')
 
     this.cleanCallbackList.push(() => {
-      this.puppet.off('heartbeat', e => feed({ data: e.data }))
+      this.puppet.off('heartbeat', onHeartbeat)
       log.verbose('PuppetWatchdogAgent', 'start() "heartbeat" event listener removed')
     })
 
@@ -70,16 +72,18 @@ class WatchdogAgent {
      */
     const reset = (lastFood: WatchdogFood) => {
       log.warn('PuppetWatchdogAgent', 'start() reset() reason: %s', JSON.stringify(lastFood))
-      this.puppet.emit('error', new Error(
-        `WatchdogAgent reset: lastFood: "${JSON.stringify(lastFood)}"`,
-      ))
+      this.puppet.dispatchEvent(new WechatyEvent('error', {
+        detail: new Error(
+          `WatchdogAgent reset: lastFood: "${JSON.stringify(lastFood)}"`,
+        ),
+      }))
       this.puppet.wrapAsync(this.puppet.reset())
     }
     this.watchdog.on('reset', reset)
     log.verbose('PuppetWatchdogAgent', 'start() "reset" event listener added')
 
     this.cleanCallbackList.push(() => {
-      this.puppet.off('reset', e => reset({ data: e.data }))
+      this.watchdog.off('reset', reset)
       log.verbose('PuppetWatchdogAgent', 'start() "reset" event listener removed')
     })
 

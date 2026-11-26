@@ -99,7 +99,9 @@ class PuppetMock extends PUPPET.Puppet {
 
   override ding (data?: string): void {
     log.silly('PuppetMock', 'ding(%s)', data || '')
-    setTimeout(() => this.emit('dong', { data: data || '' }), 1000)
+    setTimeout(() => this.dispatchEvent(new PUPPET.WechatyEvent('dong', {
+      detail: { data: data || '' },
+    })), 1000)
   }
 
   /**

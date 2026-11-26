@@ -44,6 +44,7 @@ import type {
 
 import {
   PuppetEventEmitter,
+  WechatyEvent,
 }                                 from './events.ts'
 
 abstract class PuppetSkeleton extends PuppetEventEmitter {
@@ -66,7 +67,7 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
    *    by catcing any errors and emit them to error event
    *  2. wrap a Promise by catcing any errors and emit them to error event
    */
-  wrapAsync: WrapAsync = wrapAsyncError((e: any) => this.emit('error', e))
+  wrapAsync: WrapAsync = wrapAsyncError((e: any) => this.dispatchEvent(new WechatyEvent('error', { detail: e })))
 
   /**
    * Huan(202110): keep constructor with `args: any[]` parameters
@@ -111,37 +112,49 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
   }
 
   /**
-   * Convert any error payload to GError ,
-   *  and re-emit a `error` event with EventErrorPayload(GError)
+   * Dispatches an event, normalizing any error payloads to standard GError JSON structure.
    */
-  override emit (event: any, ...args: any) {
+  override dispatchEvent (event: Event): boolean {
+    if (event.type === 'error' && event instanceof CustomEvent) {
+      const detail = event.detail
+      let gerr: GError
+
+      if (detail instanceof GError) {
+        gerr = detail
+      } else if (detail && typeof detail === 'object' && 'gerror' in detail) {
+        gerr = GError.from((detail as any).gerror)
+      } else {
+        gerr = GError.from(detail)
+      }
+
+      const payload: EventErrorPayload = {
+        gerror: JSON.stringify(gerr),
+      }
+
+      const normalizedEvent = new WechatyEvent('error', {
+        detail: payload,
+        id: (event as any).id,
+        source: (event as any).source,
+        traceId: (event as any).traceId,
+      })
+
+      return super.dispatchEvent(normalizedEvent)
+    }
+
+    return super.dispatchEvent(event)
+  }
+
+  /**
+   * Convert any error payload to GError,
+   * and re-emit an `error` event with EventErrorPayload(GError)
+   */
+  override emit (event: any, ...args: any): boolean {
     if (event !== 'error') {
       return super.emit(event, ...args)
     }
 
     const arg0 = args[0]
-    let gerr: GError
-
-    if (arg0 instanceof GError) {
-      gerr = arg0
-    } else if (arg0 && typeof arg0 === 'object' && 'gerror' in arg0) {
-      /**
-       * in case of the `args` is an `EventErrorPayload`
-       */
-      gerr = GError.from(arg0.gerror)
-    } else {
-      gerr = GError.from(arg0)
-    }
-
-    /**
-     * Convert everything to a GError toJSON object
-     *  as EventErrorPayload
-     */
-    const payload: EventErrorPayload = {
-      gerror: JSON.stringify(gerr),
-    }
-
-    return super.emit('error', payload)
+    return this.dispatchEvent(new WechatyEvent('error', { detail: arg0 }))
   }
 
 }

@@ -16,6 +16,7 @@ import { DirtyType }          from '../schemas/mod.ts'
 import { typeName }           from '../schemas/type-name.ts'
 
 import { CacheAgent }           from '../agents/mod.ts'
+import { WechatyEvent }         from '../events/event-target.ts'
 
 import type { PuppetSkeleton }   from '../puppet/mod.ts'
 
@@ -95,10 +96,12 @@ const cacheMixin = <MixinBase extends typeof PuppetSkeleton & LoginMixin>(mixinB
       /**
        * Huan(202111): we return first before emit the `dirty` event?
        */
-      setTimeout(() => this.emit('dirty', {
-        payloadId   : id,
-        payloadType : type,
-      }), 0)
+      setTimeout(() => this.dispatchEvent(new WechatyEvent('dirty', {
+        detail: {
+          payloadId   : id,
+          payloadType : type,
+        },
+      })), 0)
     }
 
     /**

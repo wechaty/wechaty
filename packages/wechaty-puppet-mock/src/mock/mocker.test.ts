@@ -311,6 +311,47 @@ test('MockContact.say(fileBox).to(contact) delivers in-memory media', async t =>
   }
 })
 
+test('MockContact and MockRoom EventTarget addEventListener, next(), and events()', async _t => {
+  const {
+    user,
+    room,
+    puppet,
+  } = createFixture()
+
+  let userDetail: any = null
+  let roomDetail: any = null
+
+  user.addEventListener('message', (event: Event) => {
+    if (event instanceof CustomEvent) {
+      userDetail = event.detail
+    }
+  })
+  room.addEventListener('message', (event: Event) => {
+    if (event instanceof CustomEvent) {
+      roomDetail = event.detail
+    }
+  })
+
+  const userNextPromise = user.next('message')
+  const roomNextPromise = room.next('message')
+
+  try {
+    await puppet.start()
+    const TEXT = 'event-target test'
+    user.say(TEXT).to(room)
+
+    const userNextMsg = await userNextPromise
+    const roomNextMsg = await roomNextPromise
+
+    assert.equal(userDetail.payload.text, TEXT, 'userDetail should match')
+    assert.equal(roomDetail.payload.text, TEXT, 'roomDetail should match')
+    assert.equal(userNextMsg.payload.text, TEXT, 'userNextMsg should match')
+    assert.equal(roomNextMsg.payload.text, TEXT, 'roomNextMsg should match')
+  } finally {
+    await puppet.stop()
+  }
+})
+
 // test.skip('MockContact.say(miniprogram).to(contact)', async t => {
 //   const {
 //     user,
