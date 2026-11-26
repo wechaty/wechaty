@@ -1,4 +1,6 @@
-# Reconcile Huan verdicts from GitHub metadata without checking out or executing PR code.
+# Withdraw verdicts published by silicon-huan.yml when their reviewed comparison becomes stale.
+# This job reads GitHub metadata and updates only Huan-authored review state and progress.
+# It runs independently of review execution and never checks out or runs pull request code.
 name: Reconcile Huanˢⁱ ⚡ verdicts
 on:
   pull_request_target:
@@ -90,6 +92,7 @@ jobs:
             }
 
             const { action, before, changes } = context.payload
+            // Share the wait budget across the entire main-branch sweep.
             const lagDeadline = Date.now() + 12000
             /** Detect pre-event metadata without using an old event as the current comparison. */
             const stillBeforeEvent = pr => {
@@ -152,7 +155,7 @@ jobs:
             }
 
             if (context.eventName === 'push') {
-              // Advancing main changes BASE SHA without a pull_request synchronize event.
+              // Automatic reviews target main. A push can advance their BASE without a PR event.
               const prs = await github.paginate(github.rest.pulls.list, { ...repository, state: 'open', base: 'main', per_page: 100 })
               for (const pr of prs) {
                 if (pr.head.repo?.full_name !== `${owner}/${repo}`) continue
