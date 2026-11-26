@@ -88,7 +88,6 @@ export class PuppetManager {
     if (!puppet) {
       throw new Error(NO_PUPPET_MESSAGE)
     }
-    this.#initialized = true
 
     log.verbose('PuppetManager', 'init() instantiating puppet instance ...')
     const puppetInstance = await PUPPET.helpers.resolvePuppet({
@@ -112,10 +111,11 @@ export class PuppetManager {
 
     // Dispatch puppet event
     log.verbose('PuppetManager', 'init() emitting "puppet" event ...')
-    this.#wechaty.dispatchEvent(new WechatyEvent('puppet', { detail: { puppet: puppetInstance } }))
+    this.#wechaty.dispatchEvent(new WechatyEvent('puppet', { detail: puppetInstance }))
     log.verbose('PuppetManager', 'init() emitting "puppet" event ... done')
 
     this.#puppet = puppetInstance
+    this.#initialized = true
   }
 
   async start (): Promise<void> {

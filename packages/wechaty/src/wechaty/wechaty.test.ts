@@ -243,3 +243,53 @@ test('Wechaty Symbol.asyncDispose via Wechaty.start() and await using', async ()
   assert.equal(stopped, true, 'bot must be automatically disposed and stopped via Symbol.asyncDispose')
 })
 
+test('Wechaty dispatches "puppet" event with detail: puppetInstance', async () => {
+  const puppet = new PuppetMock()
+  const bot = new Wechaty({ puppet })
+  let dispatchedPuppet: unknown
+
+  bot.addEventListener('puppet', (event) => {
+    dispatchedPuppet = event.detail
+  })
+
+  await bot.init()
+  assert.strictEqual(dispatchedPuppet, puppet, 'dispatched puppet must be the puppet instance directly')
+})
+
+test('Wechaty init() loads default MemoryCard when options.memory is omitted', async () => {
+  const puppet = new PuppetMock()
+  const bot = new Wechaty({ puppet })
+
+  assert.ok(bot.memory, 'bot.memory should be accessible')
+  await bot.init()
+  // Loading an already loaded memory card throws 'already loaded'
+  await assert.rejects(
+    async () => bot.memory.load(),
+    /already loaded/,
+    'memory card should have been loaded during init()',
+  )
+})
+
+test('Wechaty ding() routes errors through error event when puppet ding throws', async () => {
+  class DingFailingPuppet extends PuppetMock {
+    override ding (): void {
+      throw new Error('deliberate ding error')
+    }
+  }
+
+  const puppet = new DingFailingPuppet()
+  const bot = new Wechaty({ puppet })
+  await bot.init()
+
+  let receivedError: Error | undefined
+  bot.addEventListener('error', (event) => {
+    receivedError = (event.detail as any)?.gerror || event.detail
+  })
+
+  // ding() should not crash synchronously
+  assert.doesNotThrow(() => bot.ding('ping'))
+  assert.ok(receivedError, 'error should have been routed through error event')
+  assert.match(String(receivedError), /deliberate ding error/)
+})
+
+

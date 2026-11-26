@@ -38,7 +38,9 @@ import {
   type WechatyConstructor,
 } from './wechaty.ts'
 
-export type AllProtectedProperty = never
+export type AllProtectedProperty =
+  | 'emit'
+  | `_${string}`
 
 export {
   Wechaty,

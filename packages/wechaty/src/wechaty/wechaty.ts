@@ -204,13 +204,12 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
   // --- Bot Lifecycle ---
   async init (): Promise<void> {
     log.verbose('Wechaty', 'init()')
-    if (this.#memory) {
-      await this.#memory.load().catch((e: unknown) => {
-        if (!(e instanceof Error && e.message.includes('already loaded'))) {
-          throw e
-        }
-      })
-    }
+    const memory = this.memory
+    await memory.load().catch((e: unknown) => {
+      if (!(e instanceof Error && e.message.includes('already loaded'))) {
+        throw e
+      }
+    })
     await this.#puppetManager.init()
   }
 
@@ -324,7 +323,11 @@ export class Wechaty extends WechatyEventTarget implements AsyncDisposable, Saya
 
   ding (data?: string): void {
     log.verbose('Wechaty', 'ding(%s)', data || '')
-    this.puppet.ding(data)
+    try {
+      this.puppet.ding(data)
+    } catch (e) {
+      this.emitError(e)
+    }
   }
 
   name (): string {
