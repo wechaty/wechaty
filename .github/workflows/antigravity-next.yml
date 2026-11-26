@@ -117,6 +117,32 @@ jobs:
             echo '::error::PR revision changed. Request a review of the current revision.'
             exit 1
           fi
+      - name: Create repository-scoped token with all existing installation permissions
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          # No permission-* inputs: inherit all existing app permissions; do not expand the app.
+      - name: Add eyes to the triggering comment
+        id: eyes
+        if: github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const { owner, repo } = context.repo
+            const comment_id = context.payload.comment.id
+            const reactions = github.rest.reactions
+            const create = context.eventName === 'issue_comment'
+              ? reactions.createForIssueComment
+              : reactions.createForPullRequestReviewComment
+            const { status, data } = await create({ owner, repo, comment_id, content: 'eyes' })
+            // HTTP 200 means the app already reacted. Only clean up a reaction created by this run.
+            if (status === 201) core.setOutput('reaction_id', String(data.id))
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.authorize.outputs.sha }}
@@ -139,15 +165,6 @@ jobs:
           sudo apt-get install -y -qq gnome-keyring libsecret-tools dbus-x11 >/dev/null
           gh --version
           docker pull ghcr.io/github/github-mcp-server
-      - name: Create repository-scoped token with all existing installation permissions
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ vars.APP_CLIENT_ID_HUAN }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY_HUAN }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-          # No permission-* inputs: inherit all existing app permissions; do not expand the app.
       - name: Run autonomous engineer
         shell: bash
         env:
@@ -218,3 +235,20 @@ jobs:
             echo '::error::Agent execution failed; no raw session output is published. Review GitHub activity before retrying.'
             exit 1
           fi
+
+      - name: Clear eyes from the triggering comment
+        if: always() && steps.eyes.outputs.reaction_id != ''
+        continue-on-error: true
+        uses: actions/github-script@v8
+        env:
+          REACTION_ID: ${{ steps.eyes.outputs.reaction_id }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const { owner, repo } = context.repo
+            const comment_id = context.payload.comment.id
+            const reactions = github.rest.reactions
+            const remove = context.eventName === 'issue_comment'
+              ? reactions.deleteForIssueComment
+              : reactions.deleteForPullRequestComment
+            await remove({ owner, repo, comment_id, reaction_id: Number(process.env.REACTION_ID) })
