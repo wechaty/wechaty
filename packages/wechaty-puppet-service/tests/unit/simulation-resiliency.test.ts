@@ -22,32 +22,38 @@ import {
   type PuppetServiceOptions,
 } from '../../src/mod.ts'
 
+/** Deterministic `LifecycleClock` implementation for testing timers without wall-clock waits. */
 class ManualClock implements LifecycleClock {
 
   private currentTime = 0
   private nextId = 1
   private timers = new Map<number, { fireAt: number, fn: () => void }>()
 
+  /** Return the current virtual timestamp in milliseconds. */
   now (): number {
     return this.currentTime
   }
 
+  /** Schedule `fn` to run after `ms` virtual milliseconds. */
   setTimeout (fn: () => void, ms: number): unknown {
     const id = this.nextId++
     this.timers.set(id, { fireAt: this.currentTime + Math.max(0, ms), fn })
     return id
   }
 
+  /** Cancel a previously scheduled virtual timer by handle. */
   clearTimeout (id: unknown): void {
     if (typeof id === 'number') {
       this.timers.delete(id)
     }
   }
 
+  /** Number of currently pending virtual timers. */
   get pendingCount (): number {
     return this.timers.size
   }
 
+  /** Advance virtual time by `ms` milliseconds, firing due timers in chronological order. */
   async advanceBy (ms: number): Promise<void> {
     const target = this.currentTime + ms
     while (true) {

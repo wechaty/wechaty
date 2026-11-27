@@ -105,6 +105,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   }
 
   private reconnectAttempt = 0
+  private streamHealthy = false
   private remoteStopPending = false
   private currentAttemptCleanup?: () => void
   private readonly reconnectOptions: Required<Pick<GrpcReconnectOptions, 'enabled' | 'baseDelayMs' | 'maxDelayMs'>> & {
@@ -327,6 +328,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
         : new Error(String(earlyStreamLoss.reason ?? 'gRPC event stream ended during startup'))
     }
     this.remoteStopPending = false
+    this.streamHealthy = false
 
     try {
       await this.initClient(attemptController.signal)
@@ -351,6 +353,10 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       }
 
       throwIfEarlyLoss()
+
+      if (this.streamHealthy) {
+        this.reconnectAttempt = 0
+      }
 
       log.verbose('GrpcManager', 'connectAndStartStream() ... done')
     } catch (err) {
@@ -412,8 +418,10 @@ class GrpcManager extends EventEmitter implements Lifecycle {
         const delayMs = this.getReconnectDelayMs(this.reconnectAttempt)
         log.verbose('GrpcManager', 'onStart() reconnecting in %dms (attempt %d)...', delayMs, this.reconnectAttempt)
         await scope.sleep(delayMs)
+        this.emit('reconnecting')
         try {
           await this.connectAndStartStream(scope)
+          this.emit('reconnect')
           log.verbose('GrpcManager', 'onStart() reconnected ... done')
           return
         } catch (err) {
@@ -548,9 +556,10 @@ class GrpcManager extends EventEmitter implements Lifecycle {
         timeoutPromise(firstResultPromise, 5 * 1000),
         attemptSignal,
       ) as IteratorResult<EventResponse>
-      if (!first.done) {
-        peekedData = first.value
+      if (first.done) {
+        throw new Error('gRPC event stream ended')
       }
+      peekedData = first.value
     } catch (err) {
       if (!attemptSignal.aborted && err instanceof TimeoutPromiseGError) {
         log.verbose('GrpcManager', 'startStream() initial heartbeat timeout, proceeding')
@@ -564,9 +573,12 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     let eventsSeen = 0
     const recordEvent = (event: EventResponse) => {
       eventsSeen += 1
-      // Keep reconnectAttempt intact if the server drops right after the initial heartbeat.
       if (eventsSeen > 1 || event.type !== EventType.HEARTBEAT) {
-        this.reconnectAttempt = 0
+        this.streamHealthy = true
+        // Only reset backoff once running (after client.start() has settled).
+        if (this.isRunning) {
+          this.reconnectAttempt = 0
+        }
       }
       this.emit('data', event)
     }
