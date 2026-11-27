@@ -95,13 +95,13 @@ interface AttemptState {
   readonly cleanup: () => void
   earlyStreamLoss?: { reason: unknown }
   streamHealthy: boolean
-  remoteStartSent: boolean
   inConnect: boolean
 }
 
 interface RecoveryState {
   attempt: number
   recovering: boolean
+  remoteStopPending: boolean
   remoteActive: boolean
 }
 
@@ -135,6 +135,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   private readonly recovery: RecoveryState = {
     attempt: 0,
     recovering: false,
+    remoteStopPending: false,
     remoteActive: false,
   }
   private readonly reconnectOptions: Required<Pick<GrpcReconnectOptions, 'enabled' | 'baseDelayMs' | 'maxDelayMs'>> & {
@@ -273,10 +274,10 @@ class GrpcManager extends EventEmitter implements Lifecycle {
         }
       },
       streamHealthy: false,
-      remoteStartSent: false,
       inConnect: true,
     }
     this.attempt = attempt
+    this.recovery.remoteStopPending = false
 
     const throwIfEarlyLoss = () => {
       if (!attempt.earlyStreamLoss) {
@@ -295,13 +296,13 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       controller.signal.throwIfAborted()
       throwIfEarlyLoss()
 
-      attempt.remoteStartSent = true
+      this.recovery.remoteStopPending = true
       try {
         await this.client.start({}, { signal: controller.signal })
         this.recovery.remoteActive = true
       } catch (err) {
         if (!scope.signal.aborted) {
-          attempt.remoteStartSent = false
+          this.recovery.remoteStopPending = false
         }
         throw err
       }
@@ -330,14 +331,12 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     if (this.recovery.recovering) {
       return
     }
-    const useExisting = Boolean(this.attempt?.remoteStartSent && this._client)
+    const useExisting = Boolean(this.recovery.remoteStopPending && this._client)
     const useEphemeral = Boolean(options?.allowEphemeral && !this._client && this.recovery.remoteActive && this.isStopping)
     if (!useExisting && !useEphemeral) {
       return
     }
-    if (this.attempt) {
-      this.attempt.remoteStartSent = false
-    }
+    this.recovery.remoteStopPending = false
     this.recovery.remoteActive = false
 
     const timeoutMs = this.options.stopTimeoutMs ?? 5000
@@ -381,6 +380,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   protected async onStart (scope: LifecycleScope): Promise<void> {
     log.verbose('GrpcManager', 'onStart()')
     this.recovery.recovering = false
+    this.recovery.remoteStopPending = false
     // LIFO order: stopRemoteOnce runs before destroyClient() if startup is aborted.
     scope.defer(() => this.destroyClient())
     scope.defer(() => this.stopRemoteOnce(undefined, { allowEphemeral: true, suppressErrors: true }))

@@ -702,6 +702,8 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       await clock.advanceBy(100)
       await client.grpcManager.whenRunning()
       await logoutReconciled
+      // PuppetAbstract clears #currentUserId on a setTimeout(..., 0) after 'logout'
+      await new Promise(resolve => setTimeout(resolve, 10))
 
       assert.equal(client.isLoggedIn, false)
     } finally {
@@ -765,6 +767,47 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       assert.equal(service.isRunning, false)
     } finally {
       await service.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
+
+  await t.test('GrpcManager invokes remote stop() when stopped while client.start() is pending', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+
+    const backend = new PuppetMock()
+    const startEntered = Promise.withResolvers<void>()
+    const releaseStart = Promise.withResolvers<void>()
+    let remoteStopCalls = 0
+
+    backend.onStart = async () => {
+      startEntered.resolve()
+      await releaseStart.promise
+    }
+    backend.onStop = async () => {
+      remoteStopCalls += 1
+    }
+
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const manager = new GrpcManager({ endpoint, token, stopTimeoutMs: 2000 })
+    manager.on('error', () => {})
+
+    try {
+      await server.start()
+      const starting = manager.start()
+      await startEntered.promise
+
+      const stopping = manager.stop()
+      releaseStart.resolve()
+      await assert.rejects(starting)
+      await stopping
+
+      assert.equal(remoteStopCalls, 1, 'remote onStop() should be invoked when stopping during client.start()')
+    } finally {
+      releaseStart.resolve()
+      await manager.stop().catch(() => {})
       await server.stop().catch(() => {})
       await backend.stop().catch(() => {})
     }
