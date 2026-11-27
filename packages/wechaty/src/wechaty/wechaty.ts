@@ -31,7 +31,7 @@
  * Part of `packages/wechaty`. Exports canonical concrete `Wechaty` class.
  */
 import { MemoryCard } from 'memory-card'
-import type * as PUPPET from 'wechaty-puppet'
+import * as PUPPET from 'wechaty-puppet'
 import {
   log,
   type EventIteratorOptions,
@@ -46,6 +46,7 @@ import {
 } from 'gerror'
 import type {
   Lifecycle,
+  LifecycleConditionHandle,
   LifecycleController,
   LifecycleScope,
   LifecycleState,
@@ -57,7 +58,11 @@ import {
   LifecycleSupersededError,
 } from 'scopelet'
 
-import { VERSION } from '../config.ts'
+import {
+  config,
+  VERSION,
+} from '../config.ts'
+import { NO_PUPPET_MESSAGE } from '../puppet-config.ts'
 import type { WechatyOptions } from '../schemas/wechaty-options.ts'
 import type {
   WechatyEventDetailMap,
@@ -186,8 +191,27 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   static readonly VERSION: string = VERSION
   static readonly log: Loggable = log
 
+  /**
+   * Resolves a named or default Puppet provider before returning a constructed Wechaty bot.
+   */
+  static async create (options: WechatyOptions = {}): Promise<Wechaty> {
+    let resolvedOptions = options
+    if (!options.puppet || typeof options.puppet === 'string') {
+      const puppetName = options.puppet || config.systemPuppetName()
+      if (!puppetName) {
+        throw new Error(NO_PUPPET_MESSAGE)
+      }
+      const puppetInstance = await PUPPET.helpers.resolvePuppet({
+        puppet: puppetName,
+        puppetOptions: 'puppetOptions' in options ? options.puppetOptions : undefined,
+      })
+      resolvedOptions = { ...options, puppet: puppetInstance }
+    }
+    return new Wechaty(resolvedOptions)
+  }
+
   static async start (options?: WechatyOptions): Promise<Wechaty> {
-    const bot = new Wechaty(options)
+    const bot = await Wechaty.create(options)
     try {
       await bot.start()
     } catch (e) {
@@ -225,12 +249,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   readonly #userModuleManager: UserModuleManager
   readonly #ioManager: IoManager
   readonly #lifecycle: LifecycleController
-
-  /**
-   * Cancels delegated `ready()` waits created before it. Aborted and replaced
-   * when this bot accepts `stop()` or fails.
-   */
-  #readyWaits = new AbortController()
+  readonly #readyCondition: LifecycleConditionHandle
 
   #memory?: MemoryCard
 
@@ -239,7 +258,11 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     this.#options = options
     this.#memory = options.memory
 
-    this.#puppetManager = new PuppetManager(this, options)
+    this.#puppetManager = new PuppetManager(
+      this,
+      options,
+      state => this.#setReady(state),
+    )
     this.#authManager = new AuthManager(this, this.#puppetManager)
     this.#pluginManager = new PluginManager(this)
     this.#userModuleManager = new UserModuleManager(this)
@@ -249,6 +272,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
       onStart: scope => this.#lifecycleStart(scope),
       onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
     }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
+    this.#readyCondition = this.#lifecycle.condition('ready')
   }
 
   async #lifecycleStart (scope: LifecycleScope): Promise<void> {
@@ -261,13 +285,41 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     }, 1000 * 60 * 60)
     scope.defer(() => clearInterval(lifeTimer))
 
-    // Optional Io client starts first so it captures early events emitted during puppet start:
+    // Arm Io event capture before either child starts, then boot Io and Puppet concurrently.
     if (this.#ioManager.hasIo) {
-      await this.#ioManager.start(scope)
+      await this.#ioManager.prepare(scope)
     }
 
-    // Puppet starts second under hierarchical ownership (C-CHILD-04):
-    await scope.start(this.puppet)
+    // Keep bot readiness synchronized with Puppet resets, readyIndicator, and independent restarts.
+    scope.listen(this.puppet, 'reset', () => this.#setReady('inactive'))
+    scope.spawn(async signal => {
+      while (!signal.aborted) {
+        try {
+          await this.puppet.ready({ signal })
+          if (!signal.aborted) {
+            this.#setReady('active')
+          }
+        } catch {
+          if (signal.aborted) {
+            return
+          }
+        }
+        const readyGen = this.puppet.state.generation
+        const next = await this.puppet.whenState(
+          s => s.generation !== readyGen || s.kind === 'stopping' || s.kind === 'stopped' || s.kind === 'failed',
+          { signal },
+        )
+        this.#setReady('inactive')
+        if (next.kind === 'stopping') {
+          await this.puppet.whenState(s => s.kind !== 'stopping', { signal })
+        }
+      }
+    })
+
+    await Promise.all([
+      this.#ioManager.hasIo ? this.#ioManager.start(scope) : Promise.resolve(),
+      scope.start(this.puppet),
+    ])
   }
 
   #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {
@@ -276,22 +328,21 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {
       this.dispatchEvent(new WechatyEvent('stop'))
     } else if (state.kind === 'failed' && previous.kind !== 'failed') {
-      this.#cancelReadyWaits(new LifecycleSupersededError('the bot failed before the puppet was ready', { cause: state.error }))
       const err = (state.error instanceof LifecycleChildFailureError && state.error.cause !== undefined)
         ? state.error.cause
         : state.error
-      const isPuppetFailure = this.#puppetManager.hasEmittedPuppetError(err) ||
-        this.#puppetManager.hasEmittedPuppetError(state.error) ||
-        state.error instanceof LifecycleChildFailureError
-      if (!isPuppetFailure) {
-        this.emitError(err)
-      }
+      this.emitError(err)
     }
   }
 
-  #cancelReadyWaits (reason: unknown): void {
-    this.#readyWaits.abort(reason)
-    this.#readyWaits = new AbortController()
+  #setReady (state: 'active' | 'inactive'): void {
+    if (this.#lifecycle.isActive) {
+      if (state === 'active') {
+        this.#readyCondition.set()
+      } else {
+        this.#readyCondition.clear()
+      }
+    }
   }
 
   // --- Core State & Subsystem Getters ---
@@ -421,16 +472,26 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     await this.#puppetManager.init()
   }
 
-  start (options?: LifecycleWaitOptions): Promise<void> {
+  async start (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'start()')
-    return this.#lifecycle.start(options)
+    try {
+      await this.#lifecycle.start(options)
+    } catch (error) {
+      if (options?.signal?.aborted || error instanceof LifecycleSupersededError) {
+        throw error
+      }
+      if (this.#lifecycle.state.kind === 'stopping') {
+        await this.#lifecycle.whenState(
+          s => s.kind === 'failed' || s.kind === 'stopped',
+          { signal: options?.signal },
+        ).catch(() => {})
+      }
+      throw error
+    }
   }
 
   stop (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'stop()')
-    if (!options?.signal?.aborted) {
-      this.#cancelReadyWaits(new LifecycleSupersededError('the bot was stopped before the puppet was ready'))
-    }
     return this.#lifecycle.stop(options)
   }
 
@@ -469,24 +530,16 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   }
 
   /**
-   * Resolves when the bot's puppet is fully initialized, started, and ready to handle operations.
+   * Resolves when the bot's puppet is ready to handle operations.
+   * Waits created before `start()` bind to the next generation and reject
+   * with `LifecycleSupersededError` if the bot stops or fails before becoming ready.
    *
-   * Note: Calling ready() before init() awaits indefinitely until the bot is initialized and
-   * its puppet is assigned, unless an abort signal is provided in options.
-   *
-   * @param options - Optional wait options (signal, timeout).
+   * @param options - Optional wait options (signal).
    * @returns Promise resolving when ready.
    */
-  async ready (options?: LifecycleWaitOptions): Promise<void> {
+  ready (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'ready()')
-    const signal = options?.signal
-      ? AbortSignal.any([ options.signal, this.#readyWaits.signal ])
-      : this.#readyWaits.signal
-    if (signal.aborted) {
-      throw signal.reason
-    }
-    const puppet = await this.#puppetManager.getPuppetOrWait(signal)
-    return puppet.ready({ signal })
+    return this.#readyCondition.wait(options)
   }
 
   /**

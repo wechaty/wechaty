@@ -336,6 +336,22 @@ export class Io extends AsyncLifecycle {
   }
 
   /**
+   * Arm bot event listeners before child startup begins so synchronous early
+   * events (such as `scan`) are buffered while the WebSocket connects.
+   */
+  armCapture (): void {
+    this.#unhookWechaty ??= this.hookWechaty()
+  }
+
+  /**
+   * Release bot event listeners if capture was armed before Io started.
+   */
+  disarmCapture (): void {
+    this.#unhookWechaty?.()
+    this.#unhookWechaty = undefined
+  }
+
+  /**
    * Forward the bot's events into the buffer, which sends them whenever a
    * socket is connected. Returns the function that removes these listeners.
    * Not scoped to a run: between a retired run and its replacement the bot

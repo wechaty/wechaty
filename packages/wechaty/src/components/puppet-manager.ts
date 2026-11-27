@@ -29,12 +29,11 @@
  */
 import * as PUPPET from 'wechaty-puppet'
 import { log, WechatyEvent } from 'wechaty-puppet'
-import type { LifecycleWaitOptions } from 'scopelet'
 
 import { config } from '../config.ts'
 import { NO_PUPPET_MESSAGE } from '../puppet-config.ts'
 import type { ContactImpl, RoomImpl } from '../user-modules/mod.ts'
-import { registerPuppetEventBridge } from '../wechaty-mixins/puppet-event-bridge.ts'
+import { registerPuppetEventBridge } from './puppet-event-bridge.ts'
 import type { WechatyOptions } from '../schemas/wechaty-options.ts'
 import type { Wechaty } from '../wechaty/wechaty.ts'
 
@@ -44,15 +43,23 @@ export class PuppetManager {
 
   readonly #wechaty: Wechaty
   readonly #options: WechatyOptions
+  readonly #setReady?: (state: 'active' | 'inactive') => void
 
   #puppet?: PUPPET.Puppet
+  #memoryBound = false
   #initialized = false
-  readonly #puppetInitResolvers: Array<(puppet: PUPPET.Puppet) => void> = []
-  readonly #lastPuppetErrors = new Set<unknown>()
 
-  constructor (wechaty: Wechaty, options: WechatyOptions) {
+  constructor (
+    wechaty: Wechaty,
+    options: WechatyOptions,
+    setReady?: (state: 'active' | 'inactive') => void,
+  ) {
     this.#wechaty = wechaty
     this.#options = options
+    this.#setReady = setReady
+    if (options.puppet && typeof options.puppet === 'object') {
+      this.#bindPuppet(options.puppet)
+    }
   }
 
   get hasPuppet (): boolean {
@@ -70,42 +77,11 @@ export class PuppetManager {
     return this.#initialized
   }
 
-  /**
-   * Retrieves the current puppet instance or awaits its initialization.
-   * If a signal is provided and aborts before initialization completes,
-   * the returned promise rejects with the abort reason and unregisters the waiter.
-   *
-   * @param signal - Optional AbortSignal to cancel waiting.
-   * @returns Promise resolving to the initialized Puppet.
-   */
-  getPuppetOrWait (signal?: AbortSignal): Promise<PUPPET.Puppet> {
-    if (this.#puppet) {
-      return Promise.resolve(this.#puppet)
-    }
-    return new Promise<PUPPET.Puppet>((resolve, reject) => {
-      if (signal?.aborted) {
-        return reject(signal.reason)
-      }
-      const resolver = (puppet: PUPPET.Puppet) => {
-        signal?.removeEventListener('abort', onAbort)
-        resolve(puppet)
-      }
-      const onAbort = () => {
-        const idx = this.#puppetInitResolvers.indexOf(resolver)
-        if (idx >= 0) {
-          this.#puppetInitResolvers.splice(idx, 1)
-        }
-        reject(signal!.reason)
-      }
-      signal?.addEventListener('abort', onAbort, { once: true })
-      this.#puppetInitResolvers.push(resolver)
-    })
-  }
-
-  async ready (options?: LifecycleWaitOptions): Promise<void> {
-    log.verbose('PuppetManager', 'ready()')
-    const puppet = await this.getPuppetOrWait(options?.signal)
-    return puppet.ready(options)
+  #bindPuppet (puppetInstance: PUPPET.Puppet): void {
+    this.#puppet = puppetInstance
+    log.verbose('PuppetManager', 'setting up events ...')
+    this.#setupPuppetEvents(puppetInstance)
+    log.verbose('PuppetManager', 'setting up events ... done')
   }
 
   async init (): Promise<void> {
@@ -115,40 +91,37 @@ export class PuppetManager {
       return
     }
 
-    const puppet = this.#options.puppet || config.systemPuppetName()
-    if (!puppet) {
-      throw new Error(NO_PUPPET_MESSAGE)
+    if (!this.#puppet) {
+      const puppet = this.#options.puppet || config.systemPuppetName()
+      if (!puppet) {
+        throw new Error(NO_PUPPET_MESSAGE)
+      }
+
+      log.verbose('PuppetManager', 'init() instantiating puppet instance ...')
+      const puppetInstance = await PUPPET.helpers.resolvePuppet({
+        puppet,
+        puppetOptions: 'puppetOptions' in this.#options
+          ? this.#options.puppetOptions
+          : undefined,
+      })
+      log.verbose('PuppetManager', 'init() instantiating puppet instance ... done')
+      this.#bindPuppet(puppetInstance)
     }
 
-    log.verbose('PuppetManager', 'init() instantiating puppet instance ...')
-    const puppetInstance = await PUPPET.helpers.resolvePuppet({
-      puppet,
-      puppetOptions: 'puppetOptions' in this.#options
-        ? this.#options.puppetOptions
-        : undefined,
-    })
-    log.verbose('PuppetManager', 'init() instantiating puppet instance ... done')
-
-    // Multiplex memory card for puppet
-    log.verbose('PuppetManager', 'init() setting memory ...')
-    const puppetMemory = this.#wechaty.memory.multiplex(PUPPET_MEMORY_NAME)
-    puppetInstance.setMemory(puppetMemory)
-    log.verbose('PuppetManager', 'init() setting memory ... done')
-
-    // Register event bridge
-    log.verbose('PuppetManager', 'init() setting up events ...')
-    this.#setupPuppetEvents(puppetInstance)
-    log.verbose('PuppetManager', 'init() setting up events ... done')
+    if (!this.#memoryBound) {
+      log.verbose('PuppetManager', 'init() setting memory ...')
+      const puppetMemory = this.#wechaty.memory.multiplex(PUPPET_MEMORY_NAME)
+      this.#puppet!.setMemory(puppetMemory)
+      this.#memoryBound = true
+      log.verbose('PuppetManager', 'init() setting memory ... done')
+    }
 
     // Dispatch puppet event
     log.verbose('PuppetManager', 'init() emitting "puppet" event ...')
-    this.#wechaty.dispatchEvent(new WechatyEvent('puppet', { detail: puppetInstance }))
+    this.#wechaty.dispatchEvent(new WechatyEvent('puppet', { detail: this.#puppet! }))
     log.verbose('PuppetManager', 'init() emitting "puppet" event ... done')
 
-    this.#puppet = puppetInstance
     this.#initialized = true
-    this.#puppetInitResolvers.forEach(resolve => resolve(puppetInstance))
-    this.#puppetInitResolvers.length = 0
   }
 
   async start (): Promise<void> {
@@ -163,37 +136,6 @@ export class PuppetManager {
       return
     }
     await this.#puppet.stop()
-  }
-
-  recordPuppetError (error: unknown): void {
-    this.#lastPuppetErrors.add(error)
-    if (error && typeof error === 'object') {
-      if ('cause' in error && (error as any).cause) {
-        this.#lastPuppetErrors.add((error as any).cause)
-      }
-      if ('message' in error && (error as Error).message) {
-        this.#lastPuppetErrors.add((error as Error).message)
-      }
-    }
-    while (this.#lastPuppetErrors.size > 20) {
-      const first = this.#lastPuppetErrors.values().next().value
-      this.#lastPuppetErrors.delete(first)
-    }
-  }
-
-  hasEmittedPuppetError (error: unknown): boolean {
-    if (this.#lastPuppetErrors.has(error)) {
-      return true
-    }
-    if (error && typeof error === 'object') {
-      if ('cause' in error && this.#lastPuppetErrors.has((error as any).cause)) {
-        return true
-      }
-      if ('message' in error && this.#lastPuppetErrors.has((error as Error).message)) {
-        return true
-      }
-    }
-    return false
   }
 
   #setupPuppetEvents (puppet: PUPPET.Puppet): void {
@@ -213,9 +155,9 @@ export class PuppetManager {
         const room = await this.#wechaty.Room.find({ id }) as unknown as undefined | RoomImpl
         await room?.ready(true)
       },
+      setReady: this.#setReady,
       dispatchEvent: this.#wechaty.dispatchEvent.bind(this.#wechaty),
       emitError: error => this.#wechaty.emitError(error),
-      recordPuppetError: error => this.recordPuppetError(error),
     })
   }
 

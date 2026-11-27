@@ -129,11 +129,13 @@ test('ProtectedProperties', async _t => {
 })
 
 test('options.puppet initialization', async _t => {
+  const unconfigured = new WechatyImpl()
+  assert.throws(() => unconfigured.puppet, /NOPUPPET/, 'should throw when accessing puppet getter without injected puppet')
+
   const puppet  = new PuppetMock()
   const wechaty = new WechatyImpl({ puppet })
-  assert.throws(() => wechaty.puppet, 'should throw when access puppet getter before init()')
+  assert.strictEqual(wechaty.puppet, puppet, 'should bind injected puppet at construction')
 
   await wechaty.init()
-  assert.doesNotThrow(() => wechaty.puppet, 'should not throw when access puppet getter after init()')
-  assert.ok(wechaty.puppet, 'should exist puppet instance by setting the options.puppet')
+  assert.strictEqual(wechaty.puppet, puppet, 'should keep bound puppet instance after init()')
 })

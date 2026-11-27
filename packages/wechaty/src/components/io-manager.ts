@@ -56,14 +56,14 @@ export class IoManager {
     return !!this.#ioToken
   }
 
-  async start (scope?: LifecycleScope): Promise<void> {
-    log.verbose('IoManager', 'start()')
+  async prepare (scope?: LifecycleScope): Promise<Io | undefined> {
+    log.verbose('IoManager', 'prepare()')
     if (!this.#ioToken) {
-      return
+      return undefined
     }
 
     if (this.#io) {
-      log.error('IoManager', 'start() found existing io instance: stopping...')
+      log.error('IoManager', 'prepare() found existing io instance: stopping...')
       try {
         await this.#io.stop()
       } catch (e) {
@@ -73,21 +73,37 @@ export class IoManager {
       }
     }
 
-    log.verbose('IoManager', 'start() starting io ...')
     const { Io } = await import('../io.ts')
+    scope?.signal.throwIfAborted()
     const io = new Io({
       token: this.#ioToken,
       wechaty: this.#wechaty,
     })
+    this.#io = io
+    io.armCapture()
+    if (scope) {
+      scope.defer(() => {
+        if (io.isStopped || io.isFailed) {
+          io.disarmCapture()
+        }
+        if (this.#io === io) {
+          this.#io = undefined
+        }
+      })
+    }
+    return io
+  }
 
+  async start (scope?: LifecycleScope): Promise<void> {
+    log.verbose('IoManager', 'start()')
+    const io = this.#io ?? await this.prepare(scope)
+    if (!io) {
+      return
+    }
+
+    log.verbose('IoManager', 'start() starting io ...')
     try {
-      this.#io = io
       if (scope) {
-        scope.defer(() => {
-          if (this.#io === io) {
-            this.#io = undefined
-          }
-        })
         await scope.start(io)
       } else {
         await io.start()
