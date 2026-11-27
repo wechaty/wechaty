@@ -12,7 +12,6 @@ import crypto from 'node:crypto'
 import {
   createLifecycle,
   type Lifecycle,
-  type LifecycleController,
   type LifecycleScope,
   type LifecycleState,
   type LifecycleStop,
@@ -93,7 +92,20 @@ export interface GrpcReconnectOptions {
 
 class GrpcManager extends EventEmitter implements Lifecycle {
 
-  private readonly lifecycle: LifecycleController
+  declare readonly state: LifecycleState
+  declare readonly isRunning: boolean
+  declare readonly isActive: boolean
+  declare readonly isStarting: boolean
+  declare readonly isStopping: boolean
+  declare readonly isStopped: boolean
+  declare readonly isFailed: boolean
+  declare start: (options?: LifecycleWaitOptions) => Promise<void>
+  declare stop: (options?: LifecycleWaitOptions) => Promise<void>
+  declare restart: (options?: LifecycleWaitOptions) => Promise<void>
+  declare whenState: (predicate: (state: LifecycleState) => boolean, options?: LifecycleWaitOptions) => Promise<LifecycleState>
+  declare whenRunning: (options?: LifecycleWaitOptions) => Promise<void>
+  declare whenStopped: (options?: LifecycleWaitOptions) => Promise<void>
+  declare [Symbol.asyncDispose]: () => Promise<void>
 
   protected _client?: Client<typeof Puppet>
   protected sessionManager?: Http2SessionManager
@@ -135,10 +147,17 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       maxAttempts: options.reconnect?.maxAttempts,
     }
 
-    this.lifecycle = createLifecycle(
+    createLifecycle.attach(
+      this,
       {
         onStart: (scope) => this.onStart(scope),
         onStop: (stop) => this.onStop(stop),
+        onStateChange: (state) => {
+          if (state.kind === 'stopped' || state.kind === 'failed') {
+            this.reconnectAttempt = 0
+            this.recovering = false
+          }
+        },
       },
       {
         name: 'GrpcManager',
@@ -187,95 +206,6 @@ class GrpcManager extends EventEmitter implements Lifecycle {
 
     this.serverName = serverNameIndication
     log.verbose('GrpcManager', 'constructor() serverName(SNI): "%s"', this.serverName)
-  }
-
-  /** Current ScopeLet lifecycle snapshot. */
-  get state (): LifecycleState {
-    return this.lifecycle.state
-  }
-
-  /** Whether the gRPC connection is currently running. */
-  get isRunning (): boolean {
-    return this.lifecycle.isRunning
-  }
-
-  /** Whether the gRPC connection is starting or running. */
-  get isActive (): boolean {
-    return this.lifecycle.isActive
-  }
-
-  /** Whether the gRPC connection is currently starting or reconnecting. */
-  get isStarting (): boolean {
-    return this.lifecycle.isStarting
-  }
-
-  /** Whether the gRPC connection is currently stopping. */
-  get isStopping (): boolean {
-    return this.lifecycle.isStopping
-  }
-
-  /** Whether the gRPC connection is stopped. */
-  get isStopped (): boolean {
-    return this.lifecycle.isStopped
-  }
-
-  /** Whether the gRPC connection is in a failed state. */
-  get isFailed (): boolean {
-    return this.lifecycle.isFailed
-  }
-
-  /**
-   * Start the gRPC connection and event stream.
-   *
-   * If `options.signal` aborts, only the caller's wait rejects with `signal.reason`;
-   * call `stop()` explicitly to release the lifecycle.
-   */
-  start (options?: LifecycleWaitOptions): Promise<void> {
-    return this.lifecycle.start(options)
-  }
-
-  /** Stop the remote session (bounded by `stopTimeoutMs`) and dispose local transport. */
-  stop (options?: LifecycleWaitOptions): Promise<void> {
-    if (!options?.signal?.aborted) {
-      this.reconnectAttempt = 0
-      this.recovering = false
-    }
-    return this.lifecycle.stop(options)
-  }
-
-  /** Stop the current connection and start a fresh one. */
-  restart (options?: LifecycleWaitOptions): Promise<void> {
-    const isDirty = this.state.kind === 'failed' && !this.state.cleanupComplete
-    if (!options?.signal?.aborted && !isDirty) {
-      this.reconnectAttempt = 0
-      this.recovering = false
-    }
-    return this.lifecycle.restart(options)
-  }
-
-  /** Wait until the lifecycle state satisfies `predicate`. */
-  whenState (
-    predicate: (state: LifecycleState) => boolean,
-    options?: LifecycleWaitOptions,
-  ): Promise<LifecycleState> {
-    return this.lifecycle.whenState(predicate, options)
-  }
-
-  /** Wait until the lifecycle enters `running`. */
-  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
-    return this.lifecycle.whenRunning(options)
-  }
-
-  /** Wait until the lifecycle enters `stopped`. */
-  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
-    return this.lifecycle.whenStopped(options)
-  }
-
-  /** Dispose the gRPC lifecycle asynchronously. */
-  [Symbol.asyncDispose] (): Promise<void> {
-    this.reconnectAttempt = 0
-    this.recovering = false
-    return this.lifecycle[Symbol.asyncDispose]()
   }
 
   /** Compute exponential backoff delay in milliseconds for `attempt` (1-based). */

@@ -739,4 +739,34 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       await backend.stop().catch(() => {})
     }
   })
+
+  await t.test('PuppetService transitions to failed when child GrpcManager fails', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const service = new PuppetService({
+      endpoint,
+      token,
+      reconnect: { enabled: false },
+    } as PuppetServiceOptions)
+    service.on('error', () => {})
+
+    try {
+      await server.start()
+      await service.start()
+      assert.equal(service.isRunning, true)
+
+      await server.stop()
+      await service.whenState(s => s.kind === 'failed')
+      assert.equal(service.isFailed, true)
+      assert.equal(service.isRunning, false)
+    } finally {
+      await service.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
 })

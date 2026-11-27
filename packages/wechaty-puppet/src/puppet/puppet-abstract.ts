@@ -549,10 +549,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   /**
    * Start the provider after Puppet's infrastructure is ready. Use the lifecycle
-   * signal to cancel asynchronous startup before allocating further resources.
-   * The signal is available when Puppet starts the provider.
+   * signal to cancel asynchronous startup before allocating further resources,
+   * and optionally attach child lifecycles to `scope`.
    */
-  abstract onStart (signal?: AbortSignal): Promise<void>
+  abstract onStart (signal?: AbortSignal, scope?: LifecycleScope): Promise<void>
 
   /**
    * Release the provider's resources. During pending startup this can run early
@@ -747,7 +747,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
         await super.start()
         signal.throwIfAborted()
         enteredProvider = true
-        await this.onStart(signal)
+        await this.onStart(signal, scope)
       },
       stop: () => enteredProvider ? this.onStop() : undefined,
     })
