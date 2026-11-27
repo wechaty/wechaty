@@ -305,7 +305,14 @@ class LifecycleEngine {
    */
   #idleBefore: LifecycleState | undefined = undefined
   #reconciling = false
-  readonly #admittedSignals = new WeakMap<AbortSignal, number>()
+  /**
+   * Ref-counted active operation signals mapped to their owning generation.
+   * Ref-counting is required because all operations within one generation share
+   * the same `AbortSignal`, so an inner `finally` must not evict an enclosing
+   * outer operation's admission. Storing `generation` allows unawaited nested
+   * operations to join the generation's ledger before retirement completes.
+   */
+  readonly #admittedSignals = new WeakMap<AbortSignal, { count: number, generation: Generation }>()
 
   constructor (hooks: LifecycleHooks, options?: LifecycleOptions) {
     this.#hooks = hooks
@@ -376,8 +383,12 @@ class LifecycleEngine {
     work: (signal: AbortSignal) => T | PromiseLike<T>,
     options?: LifecycleOperationOptions,
   ): Promise<T> {
-    if (options?.signal && (this.#admittedSignals.get(options.signal) ?? 0) > 0) {
-      return (async () => work(options.signal!))()
+    const entry = options?.signal ? this.#admittedSignals.get(options.signal) : undefined
+    if (entry && entry.count > 0) {
+      const { promise, resolve, reject } = Promise.withResolvers<T>()
+      const done = (async () => work(options!.signal!))().then(resolve, reject)
+      entry.generation.ledger.addJoin(done)
+      return promise
     }
     const current = this.#current
     const allowed = this.#state.kind === 'running'
@@ -388,15 +399,21 @@ class LifecycleEngine {
       ))
     }
     return current.scope.operation(async signal => {
-      this.#admittedSignals.set(signal, (this.#admittedSignals.get(signal) ?? 0) + 1)
+      const existing = this.#admittedSignals.get(signal)
+      if (existing && existing.generation === current) {
+        existing.count += 1
+      } else {
+        this.#admittedSignals.set(signal, { count: 1, generation: current })
+      }
       try {
         return await work(signal)
       } finally {
-        const remaining = (this.#admittedSignals.get(signal) ?? 1) - 1
-        if (remaining <= 0) {
-          this.#admittedSignals.delete(signal)
-        } else {
-          this.#admittedSignals.set(signal, remaining)
+        const active = this.#admittedSignals.get(signal)
+        if (active) {
+          active.count -= 1
+          if (active.count <= 0) {
+            this.#admittedSignals.delete(signal)
+          }
         }
       }
     })

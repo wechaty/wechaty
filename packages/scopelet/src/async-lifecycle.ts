@@ -127,6 +127,11 @@ abstract class AsyncLifecycle implements Lifecycle {
         writable: false,
         value: (callOptions?: LifecycleWaitOptions) => this.#engine.whenStopped(callOptions),
       },
+      whenSettled: {
+        configurable: false,
+        writable: false,
+        value: (callOptions?: LifecycleWaitOptions) => this.#engine.whenSettled(callOptions),
+      },
       operation: {
         configurable: false,
         writable: false,
@@ -164,6 +169,11 @@ abstract class AsyncLifecycle implements Lifecycle {
         configurable: false,
         enumerable: true,
         get: () => this.#engine.isFailed,
+      },
+      isSettled: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isSettled,
       },
       [Symbol.asyncDispose]: {
         configurable: false,

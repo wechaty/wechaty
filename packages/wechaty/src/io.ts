@@ -243,8 +243,11 @@ export class Io extends AsyncLifecycle {
     const ws = await this.connect(scope, retry)
 
     scope.spawn(async signal => {
-      while (!signal.aborted) {
+      while (!scope.isSealed && !signal.aborted) {
         await scope.sleep(10 * 1000)
+        if (scope.isSealed || signal.aborted) {
+          return
+        }
         // Stable for a whole keepalive interval: back off from scratch next
         // time. A server that accepts and drops at once keeps backing off.
         this.#failures = 0
