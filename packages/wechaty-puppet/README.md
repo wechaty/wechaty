@@ -71,16 +71,17 @@ if that generation retires before readiness.
 
 ## Wechaty Puppet Toolsets
 
-### 1. Using SwitchState
+### 1. Using `puppet.state` (ScopeLet `LifecycleState`)
 
-You can get to know the puppet start/stop state from the `state` property:
+You can inspect the puppet lifecycle state from the `state` property (`LifecycleState`):
 
-1. `puppet.state.on() === 'pending'` will be true when the puppet is starting
-2. `puppet.state.on() === true` will be true when the puppet is started
-3. `puppet.state.off() === 'pending'` will be true when the puppet is stoping
-4. `puppet.state.off() === true' will be true when the puppet is stopped
+1. `puppet.state.kind === 'starting'` when the puppet is starting
+2. `puppet.state.kind === 'running'` when the puppet is running
+3. `puppet.state.kind === 'stopping'` when the puppet is stopping
+4. `puppet.state.kind === 'stopped'` when the puppet is stopped
+5. `puppet.state.kind === 'failed'` when startup or retirement failed
 
-Learn more about the puppet.state at <https://github.com/huan/state-switch>
+Use `await puppet.whenState(...)` or `await puppet.ready()` to await lifecycle transitions. Learn more in [`packages/scopelet/README.md`](../scopelet/README.md).
 
 ### 2. Using Brolog
 

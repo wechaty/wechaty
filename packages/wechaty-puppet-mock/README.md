@@ -91,18 +91,9 @@ contact.say('World').to(user)
 
 ## HELPER UTILITIES
 
-### StateSwitch
+### Lifecycle (`scopelet`)
 
-```ts
-this.state.on('pending')
-this.state.on(true)
-this.state.off('pending')
-this.state.off(true)
-
-await this.state.ready('on')
-await this.state.ready('off')
-
-```
+Mock puppets inherit ScopeLet lifecycle management (`start()`, `stop()`, `restart()`, `state`, `whenState()`) from `wechaty-puppet`.
 
 ### Watchdog
 
