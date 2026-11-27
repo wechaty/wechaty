@@ -344,6 +344,14 @@ export class Io extends AsyncLifecycle {
   }
 
   /**
+   * Release bot event listeners if capture was armed before Io started.
+   */
+  disarmCapture (): void {
+    this.#unhookWechaty?.()
+    this.#unhookWechaty = undefined
+  }
+
+  /**
    * Forward the bot's events into the buffer, which sends them whenever a
    * socket is connected. Returns the function that removes these listeners.
    * Not scoped to a run: between a retired run and its replacement the bot

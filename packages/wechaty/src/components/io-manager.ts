@@ -74,6 +74,7 @@ export class IoManager {
     }
 
     const { Io } = await import('../io.ts')
+    scope?.signal.throwIfAborted()
     const io = new Io({
       token: this.#ioToken,
       wechaty: this.#wechaty,
@@ -82,6 +83,9 @@ export class IoManager {
     io.armCapture()
     if (scope) {
       scope.defer(() => {
+        if (io.isStopped || io.isFailed) {
+          io.disarmCapture()
+        }
         if (this.#io === io) {
           this.#io = undefined
         }

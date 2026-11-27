@@ -746,6 +746,94 @@ test('Wechaty bot-bound Contact classes and pools are isolated', async () => {
   assert.notStrictEqual(bot1.Message, bot2.Message)
 })
 
+test('Wechaty readiness invalidates on Puppet reset and independent puppet.restart()', async () => {
+  const puppet = new PuppetMock()
+  await using bot = new Wechaty({ puppet })
+
+  await bot.start()
+  puppet.emit('ready')
+  await bot.ready()
+
+  // Puppet reset event clears bot readiness
+  puppet.emit('reset', { data: 'reset' })
+  let readyAfterReset = false
+  const waitAfterReset = bot.ready().then(() => { readyAfterReset = true })
+  await Promise.resolve()
+  assert.equal(readyAfterReset, false, 'bot.ready() must wait after puppet reset')
+  puppet.emit('ready')
+  await waitAfterReset
+  assert.equal(readyAfterReset, true)
+
+  // Independent puppet.restart() clears bot readiness until new generation emits ready
+  class GatedPuppet extends PuppetMock {
+    gate = Promise.withResolvers<void>()
+    entered = Promise.withResolvers<void>()
+    override async onStart (): Promise<void> {
+      this.entered.resolve()
+      await this.gate.promise
+    }
+  }
+  const gp = new GatedPuppet()
+  await using bot2 = new Wechaty({ puppet: gp })
+  const startP = bot2.start()
+  await gp.entered.promise
+  gp.emit('ready')
+  gp.gate.resolve()
+  await startP
+  await bot2.ready()
+
+  gp.gate = Promise.withResolvers<void>()
+  gp.entered = Promise.withResolvers<void>()
+  const restartP = gp.restart()
+  await gp.entered.promise
+  let readyAfterRestart = false
+  const waitAfterRestart = bot2.ready().then(() => { readyAfterRestart = true })
+  await Promise.resolve()
+  assert.equal(readyAfterRestart, false, 'bot.ready() must not resolve while puppet is restarting')
+  gp.emit('ready')
+  gp.gate.resolve()
+  await restartP
+  await waitAfterRestart
+  assert.equal(readyAfterRestart, true)
+})
+
+test('IoManager.prepare() disarms capture when scope retires before Io starts', async () => {
+  if (typeof (globalThis as any).process?.cwd !== 'function') {
+    return
+  }
+  const { IoManager } = await import('../components/io-manager.ts')
+  const { createLifecycle } = await import('scopelet')
+
+  const bot = new Wechaty({ puppet: new PuppetMock(), ioToken: 'test-token' })
+  const ioManager = new IoManager(bot, { ioToken: 'test-token' })
+  let capturedIo: any
+
+  const lc = createLifecycle({
+    onStart: async scope => {
+      capturedIo = await ioManager.prepare(scope)
+      throw new Error('abort before io.start')
+    },
+  })
+
+  await assert.rejects(lc.start(), /abort before io\.start/)
+  assert.ok(capturedIo)
+  // After scope retires without starting Io, dispatchEvent('scan') should no longer buffer into capturedIo
+  const beforeLen = capturedIo.eventBuffer.length
+  const { WechatyEvent } = await import('wechaty-puppet')
+  bot.dispatchEvent(new WechatyEvent('scan', { detail: { qrcode: 'after-abort', status: 2 } }))
+  assert.equal(capturedIo.eventBuffer.length, beforeLen, 'disarmed Io must not buffer events after cancelled startup')
+})
+
+test('Wechaty init() rethrows non-"already loaded" memory load errors', async () => {
+  const { MemoryCard } = await import('memory-card')
+  const memory = new MemoryCard()
+  memory.load = async () => {
+    throw new Error('disk failure')
+  }
+  const bot = new Wechaty({ puppet: new PuppetMock(), memory })
+  await assert.rejects(bot.init(), /disk failure/)
+})
+
 
 
 

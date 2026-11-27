@@ -290,6 +290,32 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
       await this.#ioManager.prepare(scope)
     }
 
+    // Keep bot readiness synchronized with Puppet resets, readyIndicator, and independent restarts.
+    scope.listen(this.puppet, 'reset', () => this.#setReady('inactive'))
+    scope.spawn(async signal => {
+      while (!signal.aborted) {
+        try {
+          await this.puppet.ready({ signal })
+          if (!signal.aborted) {
+            this.#setReady('active')
+          }
+        } catch {
+          if (signal.aborted) {
+            return
+          }
+        }
+        const readyGen = this.puppet.state.generation
+        const next = await this.puppet.whenState(
+          s => s.generation !== readyGen || s.kind === 'stopping' || s.kind === 'stopped' || s.kind === 'failed',
+          { signal },
+        )
+        this.#setReady('inactive')
+        if (next.kind === 'stopping') {
+          await this.puppet.whenState(s => s.kind !== 'stopping', { signal })
+        }
+      }
+    })
+
     await Promise.all([
       this.#ioManager.hasIo ? this.#ioManager.start(scope) : Promise.resolve(),
       scope.start(this.puppet),

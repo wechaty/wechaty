@@ -1,8 +1,8 @@
 /**
  * Translates puppet events into Wechaty events through the dependencies supplied
- * by `puppet-mixin.ts`. Provider setup, memory, lifecycle timeouts, and the
- * `puppet` event remain owned by the mixin; this module registers
- * persistent event listeners and forwards hydrated single-payload CustomEvents.
+ * by `PuppetManager`. Provider setup, memory, and lifecycle supervision remain
+ * owned by `PuppetManager` / `Wechaty`; this module registers persistent event
+ * listeners and forwards hydrated single-payload CustomEvents.
  */
 import * as PUPPET from 'wechaty-puppet'
 import {
