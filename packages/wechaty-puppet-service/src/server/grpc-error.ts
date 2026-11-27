@@ -6,7 +6,8 @@
 import type { Interceptor } from '@connectrpc/connect'
 import { ConnectError, Code } from '@connectrpc/connect'
 import { log } from 'wechaty-puppet'
-import { GError } from 'gerror'
+import { Code as GErrorCode, GError } from 'gerror'
+import { toConnectError as gerrorToConnectError } from 'gerror-connect'
 
 function mapGrpcCode (code: unknown): Code {
   if (typeof code === 'number' && code >= 1 && code <= 16 && code !== 2) {
@@ -33,8 +34,13 @@ export function toConnectError (
   )
 
   const rawCode = (error as any)?.code ?? gerr.code
-  const code = mapGrpcCode(rawCode)
-  return new ConnectError(gerr.message, code)
+  const code = mapGrpcCode(rawCode) as unknown as GErrorCode
+  const normalized = new GError(gerr.message, {
+    code,
+    details: gerr.details,
+    ...('cause' in gerr ? { cause: gerr.cause } : {}),
+  })
+  return gerrorToConnectError(normalized)
 }
 
 export const grpcError = toConnectError

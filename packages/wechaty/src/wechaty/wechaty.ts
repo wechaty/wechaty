@@ -41,9 +41,11 @@ import {
 import type { Loggable } from 'brolog'
 import {
   GError,
+} from 'gerror'
+import {
   type WrapAsync,
   wrapAsyncError,
-} from 'gerror'
+} from 'wechaty-puppet/helpers'
 import type {
   Lifecycle,
   LifecycleConditionHandle,

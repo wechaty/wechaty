@@ -30,11 +30,12 @@ import {
 
 import {
   GError,
+}                     from 'gerror'
+
+import {
+  type WrapAsync,
   wrapAsyncError,
-}                     from 'gerror'
-import type {
-  WrapAsync,
-}                     from 'gerror'
+}                     from '../pure-functions/async-error.ts'
 
 import type { EventErrorPayload } from '../schemas/event.ts'
 
@@ -57,10 +58,19 @@ import {
 function normalizeErrorPayload (error: unknown): EventErrorPayload {
   let gerr: GError
 
-  if (error instanceof GError) {
+  if (GError.isGError(error)) {
     gerr = error
   } else if (error && typeof error === 'object' && 'gerror' in error) {
-    gerr = GError.from((error as any).gerror)
+    const raw = (error as { gerror?: unknown }).gerror
+    if (typeof raw === 'string') {
+      try {
+        gerr = GError.parse(raw)
+      } catch {
+        gerr = GError.from(raw)
+      }
+    } else {
+      gerr = GError.from(raw)
+    }
   } else {
     gerr = GError.from(error)
   }

@@ -26,7 +26,7 @@ import {
 import {
   timeoutPromise,
   TimeoutPromiseGError,
-} from 'gerror'
+} from 'wechaty-puppet/helpers'
 import {
   WechatyToken,
 } from 'wechaty-token'

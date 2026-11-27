@@ -14,7 +14,7 @@ import {
   type FileBoxInterface,
 } from 'file-box'
 import * as PUPPET from 'wechaty-puppet'
-import { timeoutPromise } from 'gerror'
+import { timeoutPromise } from 'wechaty-puppet/helpers'
 import {
   ConnectError,
   Code,

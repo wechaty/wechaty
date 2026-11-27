@@ -11,6 +11,12 @@
 import '../puppet/interface-of.ts'
 
 import {
+  timeoutPromise,
+  TimeoutPromiseGError,
+  type WrapAsync,
+  wrapAsyncError,
+}                   from '../pure-functions/async-error.ts'
+import {
   resolvePuppet,
 }                   from '../puppet/puppet-resolver.ts'
 import {
@@ -19,5 +25,9 @@ import {
 
 export {
   resolvePuppet,
+  timeoutPromise,
+  TimeoutPromiseGError,
   typeName,
+  type WrapAsync,
+  wrapAsyncError,
 }

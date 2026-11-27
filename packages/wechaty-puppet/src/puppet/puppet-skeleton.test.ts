@@ -57,7 +57,7 @@ test('emit(error, ...) with GError', async _t => {
     puppet.emit('error', data)
     await Promise.resolve()
     assert.equal(typeof payload.gerror, 'string', `should be an error payload for ${typeof data} "${JSON.stringify(data)}"`)
-    assert.doesNotThrow(() => GError.fromJSON(payload.gerror), 'should be successfully deserialized to GError')
+    assert.doesNotThrow(() => GError.parse(payload.gerror!), 'should be successfully deserialized to GError')
   }
 })
 
