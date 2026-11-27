@@ -847,6 +847,12 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
   const sayPromise = c1.say('hello')
   await sendEntered.promise
   const stopPromise = bot1.stop()
+  await p1.whenState(s => s.kind === 'stopping')
+
+  // Unrelated operations started during 'stopping' must still reject immediately
+  await assert.rejects(() => c1.say('unrelated'), err => err instanceof LifecycleUnsafeStateError)
+  await assert.rejects(() => p1.operation(async () => 'unrelated'), err => err instanceof LifecycleUnsafeStateError)
+
   sendGate.resolve()
   const msg = await sayPromise
   await stopPromise

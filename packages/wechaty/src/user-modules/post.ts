@@ -25,6 +25,15 @@
  */
 
 /**
+ * Wechaty `Post` user module for Moments, Channels, Feeds, and replies.
+ *
+ * Why this module exists:
+ * Encapsulates post payloads, media/text sayables, counters, and hierarchical
+ * root/parent navigation on top of `wechaty-puppet`'s post SPI.
+ *
+ * Architectural boundaries:
+ * Bound to a `Wechaty` instance via `bindUserModule` and `UserModuleManager`.
+ *
  * Issue #2245 - New Wechaty User Module (WUM):
  *  `Post` for supporting Moments, Channel, Tweet, Weibo, Facebook feeds, etc.
  *
@@ -284,12 +293,17 @@ class PostMixin extends wechatifyMixinBase() {
 
   /**
    * Sync post payload from puppet, fenced against the active lifecycle generation.
+   *
+   * @throws {Error} If this post has no `id`.
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    */
   async sync (): Promise<void> {
     log.silly('Post', 'sync()')
     return this.wechaty.puppet.operation(() => this.#sync())
   }
 
+  /** Fetch and store the post payload without opening a new `operation()` fence. */
   async #sync (): Promise<void> {
     if (!this.id) {
       throw new Error('no post id found')

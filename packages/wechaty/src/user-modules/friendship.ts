@@ -257,6 +257,8 @@ class FriendshipMixin extends MixinBase implements Accepter {
    *   }
    * }
    * .start()
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    */
   async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')

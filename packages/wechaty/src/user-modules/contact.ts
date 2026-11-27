@@ -332,6 +332,8 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * })
    * await contact.say(location)
    * const msg = await contact.say(location)
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    */
   async say (
     sayable: Sayable,
@@ -674,7 +676,9 @@ class ContactMixin extends MixinBase implements SayableSayer {
   /**
    * Force reload data for Contact, Sync data from low-level API again.
    *
-   * @returns {Promise<this>}
+   * @returns {Promise<void>}
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    * @example
    * await contact.sync()
    */
