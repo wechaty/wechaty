@@ -718,6 +718,124 @@ test('AsyncLifecycle.operation() forwards allowStarting option during onStart()'
   await service.stop()
 })
 
+test('isSettled and whenSettled() resolve on both stopped and failed-settled lifecycles', async () => {
+  const stopGate = Promise.withResolvers<void>()
+  const failing = createLifecycle({
+    onStart () {
+      throw new Error('boom')
+    },
+    async onStop () {
+      await stopGate.promise
+    },
+  })
+  assert.equal(failing.isSettled, true)
+
+  const startPromise = assert.rejects(() => failing.start(), /boom/)
+  await failing.whenState(s => s.kind === 'stopping')
+  assert.equal(failing.isSettled, false)
+
+  const ac = new AbortController()
+  const abortedWait = assert.rejects(() => failing.whenSettled({ signal: ac.signal }), /aborted-wait/)
+  ac.abort(new Error('aborted-wait'))
+  await abortedWait
+
+  const settledPromise = failing.whenSettled()
+  stopGate.resolve()
+  await startPromise
+  await settledPromise
+  assert.equal(failing.state.kind, 'failed')
+  assert.equal(failing.isSettled, true)
+
+  // Dirty failure (cleanupComplete: false) remains unsettled until stop() finishes cleanup
+  let failCleanup = true
+  const dirty = createLifecycle({
+    onStart (scope) {
+      scope.defer(() => {
+        if (failCleanup) {
+          throw new Error('cleanup boom')
+        }
+      })
+    },
+  })
+  await dirty.start()
+  await assert.rejects(() => dirty.stop(), /cleanup boom/)
+  assert.equal(dirty.state.kind, 'failed')
+  assert.equal(dirty.isSettled, false)
+
+  let dirtySettled = false
+  const waitDirty = dirty.whenSettled().then(() => { dirtySettled = true })
+  await Promise.resolve()
+  assert.equal(dirtySettled, false)
+
+  failCleanup = false
+  await dirty.stop()
+  await waitDirty
+  assert.equal(dirty.isSettled, true)
+})
+
+test('AsyncLifecycle exposes sealed isSettled and bound whenSettled()', async () => {
+  class SettledService extends AsyncLifecycle {
+
+    public constructor () {
+      super()
+    }
+
+    protected override onStart (): void {}
+
+  }
+
+  const service = new SettledService()
+  assert.equal(service.isSettled, true)
+  const { whenSettled } = service
+  await whenSettled()
+  await service.start()
+  assert.equal(service.isSettled, false)
+  const settled = whenSettled()
+  await service.stop()
+  await settled
+  assert.equal(service.isSettled, true)
+})
+
+test('controller.operation() supports re-entrancy via admitted outer signal during stopping and joins unawaited nested work', async () => {
+  let releaseOuter!: () => void
+  const outerGate = new Promise<void>(resolve => { releaseOuter = resolve })
+  const enteredOuter = Promise.withResolvers<void>()
+  let releaseNested!: () => void
+  const nestedGate = new Promise<void>(resolve => { releaseNested = resolve })
+  let nestedDone = false
+
+  const lc = createLifecycle({ onStart () {} })
+  await lc.start()
+
+  let nestedPromise!: Promise<string>
+  const outer = lc.operation(async signal => {
+    enteredOuter.resolve()
+    await outerGate
+    nestedPromise = lc.operation(async innerSignal => {
+      assert.strictEqual(innerSignal, signal)
+      await nestedGate
+      nestedDone = true
+      return 'nested-ok'
+    }, { signal })
+    return 'outer-ok'
+  })
+
+  await enteredOuter.promise
+  const stopping = lc.stop()
+  releaseOuter()
+  assert.equal(await outer, 'outer-ok')
+
+  // Outer finished, but unawaited nested operation must keep stop() waiting
+  assert.equal(lc.isStopped, false)
+  assert.equal(nestedDone, false)
+
+  releaseNested()
+  assert.equal(await nestedPromise, 'nested-ok')
+  await stopping
+  assert.equal(nestedDone, true)
+  assert.equal(lc.isStopped, true)
+})
+
 test('Semantic state awaiters: whenRunning() and whenStopped()', async () => {
   const lifecycle = createLifecycle({
     onStart: async () => {},

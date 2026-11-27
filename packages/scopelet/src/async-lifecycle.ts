@@ -66,6 +66,8 @@ const SEALED_MEMBERS: readonly (string | symbol)[] = [
   'isStopping',
   'isStopped',
   'isFailed',
+  'isSettled',
+  'whenSettled',
   Symbol.asyncDispose,
   CANONICAL_LIFECYCLE,
 ]
@@ -125,6 +127,11 @@ abstract class AsyncLifecycle implements Lifecycle {
         writable: false,
         value: (callOptions?: LifecycleWaitOptions) => this.#engine.whenStopped(callOptions),
       },
+      whenSettled: {
+        configurable: false,
+        writable: false,
+        value: (callOptions?: LifecycleWaitOptions) => this.#engine.whenSettled(callOptions),
+      },
       operation: {
         configurable: false,
         writable: false,
@@ -162,6 +169,11 @@ abstract class AsyncLifecycle implements Lifecycle {
         configurable: false,
         enumerable: true,
         get: () => this.#engine.isFailed,
+      },
+      isSettled: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isSettled,
       },
       [Symbol.asyncDispose]: {
         configurable: false,
@@ -259,6 +271,11 @@ abstract class AsyncLifecycle implements Lifecycle {
     return this.#engine.isFailed
   }
 
+  /** See {@link Lifecycle.isSettled}. */
+  get isSettled (): boolean {
+    return this.#engine.isSettled
+  }
+
   /** See {@link Lifecycle.whenRunning}. */
   whenRunning (options?: LifecycleWaitOptions): Promise<void> {
     return this.#engine.whenRunning(options)
@@ -267,6 +284,11 @@ abstract class AsyncLifecycle implements Lifecycle {
   /** See {@link Lifecycle.whenStopped}. */
   whenStopped (options?: LifecycleWaitOptions): Promise<void> {
     return this.#engine.whenStopped(options)
+  }
+
+  /** See {@link Lifecycle.whenSettled}. */
+  whenSettled (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#engine.whenSettled(options)
   }
 
   /** See {@link LifecycleController.operation}. */

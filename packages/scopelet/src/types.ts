@@ -181,6 +181,9 @@ interface Lifecycle extends AsyncDisposable {
   /** Whether the lifecycle is currently failed (kind === 'failed'). */
   readonly isFailed: boolean
 
+  /** Whether the lifecycle is settled (stopped, or failed with cleanupComplete). */
+  readonly isSettled: boolean
+
   /**
    * Wait for a `running` snapshot, including the current snapshot (ADR-06).
    * Follows {@link Lifecycle.whenState} across generations and rejects on caller abort.
@@ -192,6 +195,12 @@ interface Lifecycle extends AsyncDisposable {
    * Follows {@link Lifecycle.whenState} across generations and rejects on caller abort.
    */
   whenStopped (options?: LifecycleWaitOptions): Promise<void>
+
+  /**
+   * Wait for a settled snapshot (`stopped`, or `failed` with `cleanupComplete === true`).
+   * Follows {@link Lifecycle.whenState} across generations and rejects on caller abort.
+   */
+  whenSettled (options?: LifecycleWaitOptions): Promise<void>
 
   /** Same as {@link Lifecycle.stop}; the instance can start again (C-CMD-15). */
   [Symbol.asyncDispose] (): Promise<void>
@@ -567,6 +576,12 @@ interface LifecycleOperationOptions {
    * as `'running'` (defaults to `false`).
    */
   readonly allowStarting?: boolean
+  /**
+   * Optional `AbortSignal` from an enclosing active `operation()` on this
+   * lifecycle. When recognized, the nested work reuses that signal directly
+   * so multi-step domain calls drain cleanly during `'stopping'`.
+   */
+  readonly signal?: AbortSignal
 }
 
 /**

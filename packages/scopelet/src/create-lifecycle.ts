@@ -63,12 +63,14 @@ function createLifecycle (
     get isStopping () { return engine.isStopping },
     get isStopped () { return engine.isStopped },
     get isFailed () { return engine.isFailed },
+    get isSettled () { return engine.isSettled },
     start       : callOptions => engine.start(callOptions),
     stop        : callOptions => engine.stop(callOptions),
     restart     : callOptions => engine.restart(callOptions),
     whenState   : (predicate, callOptions) => engine.whenState(predicate, callOptions),
     whenRunning : callOptions => engine.whenRunning(callOptions),
     whenStopped : callOptions => engine.whenStopped(callOptions),
+    whenSettled : callOptions => engine.whenSettled(callOptions),
     operation   : (work, callOptions) => engine.operation(work, callOptions),
     condition   : name => engine.condition(name),
     [Symbol.asyncDispose]: () => engine[Symbol.asyncDispose](),
@@ -97,8 +99,8 @@ function attach<T extends object> (
     throw new TypeError('createLifecycle.attach() needs an extensible object or function target')
   }
   const members = [
-    'state', 'isRunning', 'isActive', 'isStarting', 'isStopping', 'isStopped', 'isFailed',
-    'start', 'stop', 'restart', 'whenState', 'whenRunning', 'whenStopped',
+    'state', 'isRunning', 'isActive', 'isStarting', 'isStopping', 'isStopped', 'isFailed', 'isSettled',
+    'start', 'stop', 'restart', 'whenState', 'whenRunning', 'whenStopped', 'whenSettled',
     Symbol.asyncDispose,
     CANONICAL_LIFECYCLE,
   ]
@@ -148,6 +150,11 @@ function attach<T extends object> (
       enumerable: true,
       get: () => controller.isFailed,
     },
+    isSettled: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.isSettled,
+    },
     start: {
       configurable: false,
       writable: false,
@@ -177,6 +184,11 @@ function attach<T extends object> (
       configurable: false,
       writable: false,
       value: (callOptions?: any) => controller.whenStopped(callOptions),
+    },
+    whenSettled: {
+      configurable: false,
+      writable: false,
+      value: (callOptions?: any) => controller.whenSettled(callOptions),
     },
     [Symbol.asyncDispose]: {
       configurable: false,

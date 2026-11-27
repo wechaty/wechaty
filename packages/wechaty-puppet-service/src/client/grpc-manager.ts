@@ -110,12 +110,14 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   declare readonly isStopping: boolean
   declare readonly isStopped: boolean
   declare readonly isFailed: boolean
+  declare readonly isSettled: boolean
   declare start: (options?: LifecycleWaitOptions) => Promise<void>
   declare stop: (options?: LifecycleWaitOptions) => Promise<void>
   declare restart: (options?: LifecycleWaitOptions) => Promise<void>
   declare whenState: (predicate: (state: LifecycleState) => boolean, options?: LifecycleWaitOptions) => Promise<LifecycleState>
   declare whenRunning: (options?: LifecycleWaitOptions) => Promise<void>
   declare whenStopped: (options?: LifecycleWaitOptions) => Promise<void>
+  declare whenSettled: (options?: LifecycleWaitOptions) => Promise<void>
   declare [Symbol.asyncDispose]: () => Promise<void>
 
   protected _client?: Client<typeof Puppet>

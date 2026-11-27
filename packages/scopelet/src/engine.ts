@@ -305,6 +305,14 @@ class LifecycleEngine {
    */
   #idleBefore: LifecycleState | undefined = undefined
   #reconciling = false
+  /**
+   * Ref-counted active operation signals mapped to their owning generation.
+   * Ref-counting is required because all operations within one generation share
+   * the same `AbortSignal`, so an inner `finally` must not evict an enclosing
+   * outer operation's admission. Storing `generation` allows unawaited nested
+   * operations to join the generation's ledger before retirement completes.
+   */
+  readonly #admittedSignals = new WeakMap<AbortSignal, { count: number, generation: Generation }>()
 
   constructor (hooks: LifecycleHooks, options?: LifecycleOptions) {
     this.#hooks = hooks
@@ -355,6 +363,10 @@ class LifecycleEngine {
     return this.#state.kind === 'failed'
   }
 
+  get isSettled (): boolean {
+    return this.#state.kind === 'stopped' || (this.#state.kind === 'failed' && this.#state.cleanupComplete)
+  }
+
   whenRunning (options?: LifecycleWaitOptions): Promise<void> {
     return this.whenState(s => s.kind === 'running', options).then(() => {})
   }
@@ -363,10 +375,21 @@ class LifecycleEngine {
     return this.whenState(s => s.kind === 'stopped', options).then(() => {})
   }
 
+  whenSettled (options?: LifecycleWaitOptions): Promise<void> {
+    return this.whenState(s => s.kind === 'stopped' || (s.kind === 'failed' && s.cleanupComplete), options).then(() => {})
+  }
+
   operation<T> (
     work: (signal: AbortSignal) => T | PromiseLike<T>,
     options?: LifecycleOperationOptions,
   ): Promise<T> {
+    const entry = options?.signal ? this.#admittedSignals.get(options.signal) : undefined
+    if (entry && entry.count > 0) {
+      const { promise, resolve, reject } = Promise.withResolvers<T>()
+      const done = (async () => work(options!.signal!))().then(resolve, reject)
+      entry.generation.ledger.addJoin(done)
+      return promise
+    }
     const current = this.#current
     const allowed = this.#state.kind === 'running'
       || (options?.allowStarting === true && this.#state.kind === 'starting')
@@ -375,7 +398,25 @@ class LifecycleEngine {
         `Cannot run operation: lifecycle is in state '${this.#state.kind}', expected 'running'`,
       ))
     }
-    return current.scope.operation(work)
+    return current.scope.operation(async signal => {
+      const existing = this.#admittedSignals.get(signal)
+      if (existing && existing.generation === current) {
+        existing.count += 1
+      } else {
+        this.#admittedSignals.set(signal, { count: 1, generation: current })
+      }
+      try {
+        return await work(signal)
+      } finally {
+        const active = this.#admittedSignals.get(signal)
+        if (active) {
+          active.count -= 1
+          if (active.count <= 0) {
+            this.#admittedSignals.delete(signal)
+          }
+        }
+      }
+    })
   }
 
   /** See {@link Lifecycle.start}. */

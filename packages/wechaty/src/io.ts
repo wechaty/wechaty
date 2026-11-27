@@ -130,30 +130,6 @@ const AsyncFunction = Object.getPrototypeOf(async () => null).constructor
 //   return fn(...Object.values(args))
 // }
 
-/**
- * Resolve after `ms`; reject with `signal.reason` when `signal` aborts, at once
- * if it already has. No timer is left behind either way.
- */
-function delay (ms: number, signal: AbortSignal): Promise<void> {
-  if (signal.aborted) {
-    return Promise.reject(signal.reason)
-  }
-  if (ms <= 0) {
-    return Promise.resolve()
-  }
-  return new Promise((resolve, reject) => {
-    const onAbort = () => {
-      clearTimeout(timer)
-      reject(signal.reason)
-    }
-    const timer = setTimeout(() => {
-      signal.removeEventListener('abort', onAbort)
-      resolve()
-    }, ms)
-    signal.addEventListener('abort', onAbort, { once: true })
-  })
-}
-
 /** The WebSocket client a run connects with. See {@link Io.createWebSocket}. */
 export type IoWebSocket = WebSocket
 
@@ -267,8 +243,11 @@ export class Io extends AsyncLifecycle {
     const ws = await this.connect(scope, retry)
 
     scope.spawn(async signal => {
-      while (!signal.aborted) {
-        await delay(10 * 1000, signal)
+      while (!scope.isSealed && !signal.aborted) {
+        await scope.sleep(10 * 1000)
+        if (scope.isSealed || signal.aborted) {
+          return
+        }
         // Stable for a whole keepalive interval: back off from scratch next
         // time. A server that accepts and drops at once keeps backing off.
         this.#failures = 0
@@ -423,8 +402,10 @@ export class Io extends AsyncLifecycle {
       const wait = this.reconnectDelayMs(this.#failures)
       if (wait > 0) {
         log.warn('Io', 'connect() will reconnect after %d s', Math.floor(wait / 1000))
+        await scope.sleep(wait)
+      } else {
+        scope.signal.throwIfAborted()
       }
-      await delay(wait, scope.signal)
       try {
         return await scope.acquire(
           async signal => {

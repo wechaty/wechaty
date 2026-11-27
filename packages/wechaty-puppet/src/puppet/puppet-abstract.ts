@@ -124,12 +124,14 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   declare readonly isStopping: boolean
   declare readonly isStopped: boolean
   declare readonly isFailed: boolean
+  declare readonly isSettled: boolean
   declare start: Lifecycle['start']
   declare stop: Lifecycle['stop']
   declare restart: Lifecycle['restart']
   declare whenState: Lifecycle['whenState']
   declare whenRunning: Lifecycle['whenRunning']
   declare whenStopped: Lifecycle['whenStopped']
+  declare whenSettled: Lifecycle['whenSettled']
   declare [Symbol.asyncDispose]: Lifecycle[typeof Symbol.asyncDispose]
 
   // --- ECMAScript Hard Private Brands (Node 26+ / TS 7+) ---
@@ -470,14 +472,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   abstract onStop (): Promise<void>
 
   /**
-   * Active operation signals currently executing inside `operation()`.
-   * Used as a WinterTC-portable re-entrancy token for multi-step domain methods
-   * so nested `operation()` / `executeOperation()` calls drain cleanly during
-   * `'stopping'` without `AsyncLocalStorage` or `process` dependencies.
-   */
-  readonly #admittedSignals = new WeakSet<AbortSignal>()
-
-  /**
    * Executes a Puppet domain operation for the bot against the active generation (C-COMP-03).
    * Retirement waits for all active operations to finish under stop timeout.
    *
@@ -496,35 +490,22 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     work: (signal: AbortSignal) => Promise<T>,
     admittedSignal?: AbortSignal,
   ): Promise<T> {
-    if (admittedSignal && this.#admittedSignals.has(admittedSignal)) {
-      return (async () => work(admittedSignal))()
-    }
-    return this.#lifecycle.operation(async signal => {
-      this.#admittedSignals.add(signal)
-      try {
-        return await work(signal)
-      } finally {
-        this.#admittedSignals.delete(signal)
-      }
-    })
+    return this.#lifecycle.operation(work, { signal: admittedSignal })
   }
 
   /**
-   * Run a compatibility operation. Running calls use the controller, provider
-   * startup calls use their startup scope, and idle calls receive no signal.
-   * When `admittedSignal` belongs to an enclosing active `operation()`, work
-   * reuses that signal so multi-step domain methods drain cleanly before `onStop()`.
+   * Run a compatibility operation. Running and startup calls use the controller,
+   * and idle calls receive no signal. When `admittedSignal` belongs to an enclosing
+   * active `operation()`, work reuses that signal so multi-step domain methods drain
+   * cleanly before `onStop()`.
    */
   async executeOperation<T> (
     work: (signal?: AbortSignal) => T | PromiseLike<T>,
     admittedSignal?: AbortSignal,
   ): Promise<T> {
-    if (admittedSignal && this.#admittedSignals.has(admittedSignal)) {
-      return work(admittedSignal)
-    }
     const state = this.#lifecycle.state
     if (state.kind === 'starting' || state.kind === 'running' || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
-      return this.#lifecycle.operation(work, { allowStarting: true })
+      return this.#lifecycle.operation(work, { allowStarting: true, signal: admittedSignal })
     }
     return work()
   }
