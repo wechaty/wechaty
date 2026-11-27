@@ -108,22 +108,24 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
   async accept (): Promise<void> {
     log.verbose('RoomInvitation', 'accept()')
 
-    try {
-      await this.wechaty.puppet.roomInvitationAccept(this.id)
+    return this.wechaty.puppet.operation(async () => {
+      try {
+        await this.wechaty.puppet.roomInvitationAccept(this.id)
 
-      const inviter = await this.inviter()
-      const topic   = await this.topic()
+        const inviter = await this.inviter()
+        const topic   = await this.topic()
 
-      log.verbose('RoomInvitation', 'accept() with room(%s) & inviter(%s) ready()',
-        topic,
-        inviter,
-      )
-    } catch (e) {
-      this.wechaty.emitError(e)
-      log.warn('RoomInvitation', 'accept() rejection: %s',
-        (e && (e as Error).message) || e,
-      )
-    }
+        log.verbose('RoomInvitation', 'accept() with room(%s) & inviter(%s) ready()',
+          topic,
+          inviter,
+        )
+      } catch (e) {
+        this.wechaty.emitError(e)
+        log.warn('RoomInvitation', 'accept() rejection: %s',
+          (e && (e as Error).message) || e,
+        )
+      }
+    })
   }
 
   /**

@@ -784,6 +784,13 @@ test('Wechaty bot-bound Contact classes and pools are isolated', async () => {
   } finally {
     await bot1.stop()
   }
+
+  // Stopped bot entity domain methods reject immediately with LifecycleUnsafeStateError
+  await assert.rejects(() => c1.say('hi'), /LifecycleUnsafeStateError|not running/i)
+  await assert.rejects(() => c1.sync(), /LifecycleUnsafeStateError|not running/i)
+  const room = (bot1.Room as any).load('room-1')
+  await assert.rejects(() => room.say('hi'), /LifecycleUnsafeStateError|not running/i)
+  await assert.rejects(() => room.sync(), /LifecycleUnsafeStateError|not running/i)
 })
 
 test('Wechaty readiness invalidates on Puppet reset and independent puppet.restart()', async () => {

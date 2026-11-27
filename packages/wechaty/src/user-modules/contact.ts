@@ -338,14 +338,17 @@ class ContactMixin extends MixinBase implements SayableSayer {
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayable)
 
-    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
+    return this.wechaty.puppet.operation(async () => {
+      const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
 
-    if (msgId) {
-      const msg = await this.wechaty.Message.find({ id: msgId })
-      if (msg) {
-        return msg
+      if (msgId) {
+        const msg = await this.wechaty.Message.find({ id: msgId })
+        if (msg) {
+          return msg
+        }
       }
-    }
+      return undefined
+    })
   }
 
   /**
@@ -676,8 +679,10 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * await contact.sync()
    */
   async sync (): Promise<void> {
-    await this.wechaty.puppet.contactPayloadDirty(this.id)
-    await this.ready(true)
+    return this.wechaty.puppet.operation(async () => {
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
+      await this.ready(true)
+    })
   }
 
   /**

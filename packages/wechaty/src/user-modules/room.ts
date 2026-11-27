@@ -297,9 +297,11 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * await room.sync()
    */
   async sync (): Promise<void> {
-    await this.wechaty.puppet.roomPayloadDirty(this.id)
-    await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
-    await this.ready(true)
+    return this.wechaty.puppet.operation(async () => {
+      await this.wechaty.puppet.roomPayloadDirty(this.id)
+      await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
+      await this.ready(true)
+    })
   }
 
   /**
@@ -450,55 +452,54 @@ class RoomMixin extends MixinBase implements SayableSayer {
       varList.join(', '),
     )
 
-    let msgId
-    let text: string
+    return this.wechaty.puppet.operation(async () => {
+      let msgId
+      let text: string
 
-    if (isTemplateStringArray(sayable)) {
-      msgId = await this.sayTemplateStringsArray(
-        sayable as TemplateStringsArray,
-        ...varList,
-      )
-    } else if (typeof sayable === 'string') {
-      /**
-       * 1. string
-       */
-      let mentionList: Contact[] = []
+      if (isTemplateStringArray(sayable)) {
+        msgId = await this.sayTemplateStringsArray(
+          sayable as TemplateStringsArray,
+          ...varList,
+        )
+      } else if (typeof sayable === 'string') {
+        /**
+         * 1. string
+         */
+        let mentionList: Contact[] = []
 
-      if (varList.length > 0) {
-        const allIsContact = varList.every(c => ContactImpl.valid(c))
-        if (!allIsContact) {
-          throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
+        if (varList.length > 0) {
+          const allIsContact = varList.every(c => ContactImpl.valid(c))
+          if (!allIsContact) {
+            throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
+          }
+
+          mentionList = [ ...varList as any ]
+
+          const AT_SEPARATOR = FOUR_PER_EM_SPACE
+          const mentionAlias = await Promise.all(mentionList.map(async contact =>
+            '@' + (await this.alias(contact) || contact.name()),
+          ))
+          const mentionText = mentionAlias.join(AT_SEPARATOR)
+
+          text = mentionText + ' ' + sayable
+        } else {
+          text = sayable
         }
-
-        mentionList = [ ...varList as any ]
-
-        const AT_SEPARATOR = FOUR_PER_EM_SPACE
-        const mentionAlias = await Promise.all(mentionList.map(async contact =>
-          '@' + (await this.alias(contact) || contact.name()),
-        ))
-        const mentionText = mentionAlias.join(AT_SEPARATOR)
-
-        text = mentionText + ' ' + sayable
+        msgId = await this.wechaty.puppet.messageSendText(
+          this.id,
+          text,
+          mentionList.map(c => c.id),
+        )
       } else {
-        text = sayable
+        msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
       }
-      // const receiver = {
-      //   contactId : (mentionList.length && mentionList[0].id) || undefined,
-      //   roomId    : this.id,
-      // }
-      msgId = await this.wechaty.puppet.messageSendText(
-        this.id,
-        text,
-        mentionList.map(c => c.id),
-      )
-    } else {
-      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
-    }
 
-    if (msgId) {
-      const msg = await this.wechaty.Message.find({ id: msgId })
-      return msg
-    }
+      if (msgId) {
+        const msg = await this.wechaty.Message.find({ id: msgId })
+        return msg
+      }
+      return undefined
+    })
   }
 
   private async sayTemplateStringsArray (

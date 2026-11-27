@@ -261,39 +261,41 @@ class FriendshipMixin extends MixinBase implements Accepter {
   async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
-    if (!this.payload) {
-      throw new Error('no payload')
-    }
-
-    if (this.payload.type !== PUPPET.types.Friendship.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + PUPPET.helpers.typeName(FriendshipImpl.Type, this.payload.type))
-    }
-
-    log.silly('Friendship', 'accept() to %s', this.payload.contactId)
-
-    await this.wechaty.puppet.friendshipAccept(this.id)
-
-    const contact = this.contact()
-
-    try {
-      const doSync = async () => {
-        await (contact as ContactImpl).ready()
-        if (!contact.isReady()) {
-          throw new Error('Friendship.accept() contact.ready() not ready')
-        }
-        log.verbose('Friendship', 'accept() with contact %s ready()', contact.name())
+    return this.wechaty.puppet.operation(async () => {
+      if (!this.payload) {
+        throw new Error('no payload')
       }
 
-      await retryPolicy.execute(doSync)
+      if (this.payload.type !== PUPPET.types.Friendship.Receive) {
+        throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + PUPPET.helpers.typeName(FriendshipImpl.Type, this.payload.type))
+      }
 
-    } catch (e) {
-      this.wechaty.emitError(e)
-      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && (e as Error).message) || e)
-      // console.error(e)
-    }
+      log.silly('Friendship', 'accept() to %s', this.payload.contactId)
 
-    // try to fix issue #293 - https://github.com/wechaty/wechaty/issues/293
-    await contact.sync()
+      await this.wechaty.puppet.friendshipAccept(this.id)
+
+      const contact = this.contact()
+
+      try {
+        const doSync = async () => {
+          await (contact as ContactImpl).ready()
+          if (!contact.isReady()) {
+            throw new Error('Friendship.accept() contact.ready() not ready')
+          }
+          log.verbose('Friendship', 'accept() with contact %s ready()', contact.name())
+        }
+
+        await retryPolicy.execute(doSync)
+
+      } catch (e) {
+        this.wechaty.emitError(e)
+        log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && (e as Error).message) || e)
+        // console.error(e)
+      }
+
+      // try to fix issue #293 - https://github.com/wechaty/wechaty/issues/293
+      await contact.sync()
+    })
   }
 
   /**

@@ -285,11 +285,13 @@ class PostMixin extends wechatifyMixinBase() {
   async sync (): Promise<void> {
     log.silly('Post', 'sync()')
 
-    if (!this.id) {
-      throw new Error('no post id found')
-    }
+    return this.wechaty.puppet.operation(async () => {
+      if (!this.id) {
+        throw new Error('no post id found')
+      }
 
-    this._payload = await this.wechaty.puppet.postPayload(this.id)
+      this._payload = await this.wechaty.puppet.postPayload(this.id)
+    })
   }
 
   async ready (): Promise<void> {
