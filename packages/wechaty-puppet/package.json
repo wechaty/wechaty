@@ -22,12 +22,6 @@
       "node": "./src/mods/helpers.ts",
       "default": "./src/mods/helpers.ts"
     },
-    "./impls": {
-      "types": "./src/mods/impls.ts",
-      "browser": "./src/mods/impls.ts",
-      "node": "./src/mods/impls.ts",
-      "default": "./src/mods/impls.ts"
-    },
     "./payloads": {
       "types": "./src/mods/payloads.ts",
       "browser": "./src/mods/payloads.ts",
