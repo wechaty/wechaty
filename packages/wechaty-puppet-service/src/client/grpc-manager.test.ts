@@ -76,3 +76,37 @@ test('GrpcManager wechaty:// token discovery success connects to discovered host
   assert.ok(manager.client, 'client should be created')
   ;(manager as any).destroyClient()
 })
+
+test('GrpcManager does not allocate a client when discovery completes after stop', async t => {
+  const token = 'insecure_00000000-0000-0000-0000-000000000000'
+  const discovered = Promise.withResolvers<{ host: string, port: number }>()
+  const discovering = Promise.withResolvers<void>()
+  t.mock.method(WechatyToken.prototype, 'discover', async () => {
+    discovering.resolve()
+    return discovered.promise
+  })
+
+  class DiscoveryManager extends GrpcManager {
+    /** A cancelled discovery must never open a stream. */
+    protected override async startStream (): Promise<void> {
+      assert.fail('cancelled discovery must not start a stream')
+    }
+  }
+
+  const manager = new DiscoveryManager({
+    endpoint: `wechaty://discovery.example.com/${token}`,
+    token,
+    tls: { disable: true },
+  })
+  const controller = new AbortController()
+  const reason = new Error('Puppet stopped during discovery')
+  const starting = assert.rejects(manager.start(controller.signal), error => error === reason)
+  await discovering.promise
+  controller.abort(reason)
+  await manager.stop()
+  // Discovery cancellation must reject start() immediately without waiting for discover() to settle.
+  await starting
+  discovered.resolve({ host: '192.0.2.1', port: 9999 })
+  await Promise.resolve()
+  assert.throws(() => manager.client, /NO CLIENT/)
+})

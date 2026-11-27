@@ -78,13 +78,14 @@ class PuppetMock extends PUPPET.Puppet {
   override name ()    { return `${NAME}<${super.name()}>` }
   override version () { return `${VERSION}<${super.version()}>` }
 
-  override async onStart (): Promise<void> {
+  /** Start the mock environment after Puppet reaches running. */
+  override async onStart (signal?: AbortSignal): Promise<void> {
     log.verbose('PuppetMock', 'onStart()')
-
-    /**
-     * Start mocker after the puppet fully turned ON.
-     */
-    setTimeout(() => this.mocker.start(), 0)
+    setTimeout(() => {
+      if (!signal?.aborted) {
+        this.mocker.start()
+      }
+    }, 0)
   }
 
   override async onStop (): Promise<void> {

@@ -1046,13 +1046,29 @@ test('void puppet.logout() followed by await puppet.restart() clears login state
   await puppet.start()
   puppet.login('user-fast-restart')
 
-  void puppet.logout('fast restart')
+  const oldLogout = puppet.logout('fast restart')
   await puppet.restart()
 
   assert.equal(puppet.isLoggedIn, false, 'puppet must be logged out after restart')
   assert.equal(puppet.__currentUserId, undefined, '__currentUserId must be cleared after restart')
   assert.doesNotThrow(() => puppet.login('user-restarted'), 'restarted puppet allows clean login')
-  assert.equal(puppet.isLoggedIn, true)
+  puppet.readyIndicator.value(true)
+  await oldLogout
+  assert.equal(puppet.currentUserId, 'user-restarted')
+  assert.equal(puppet.readyIndicator.value(), true)
+  await puppet.stop()
+})
+
+test('an idle logout settles when start adopts the same login', async () => {
+  const puppet = new PuppetTest()
+  puppet.login('idle-user')
+  puppet.readyIndicator.value(true)
+
+  const logout = puppet.logout()
+  await puppet.start()
+  await logout
+  assert.equal(puppet.isLoggedIn, false)
+  assert.equal(puppet.readyIndicator.value(), false)
   await puppet.stop()
 })
 
@@ -1084,16 +1100,17 @@ test('provider-emitted logout event followed by re-login does not wipe login or 
 })
 
 test('stop-while-starting (padlocal#116) triggers onStop and settles start cleanly', async _t => {
-  let onStopCalled = false
+  let stopCalls = 0
+  const entered = Promise.withResolvers<void>()
   const stopped = Promise.withResolvers<void>()
 
   class HangingStartPuppet extends PuppetTest {
     override async onStart (): Promise<void> {
-      // Hangs until onStop is called (padlocal#116 pattern)
+      entered.resolve()
       await stopped.promise
     }
     override async onStop (): Promise<void> {
-      onStopCalled = true
+      stopCalls++
       stopped.resolve()
     }
   }
@@ -1102,16 +1119,36 @@ test('stop-while-starting (padlocal#116) triggers onStop and settles start clean
   const startPromise = puppet.start()
   const startRejection = assert.rejects(startPromise, /LifecycleSupersededError/)
 
-  // Give start a microtick to enter onStart
-  await new Promise<void>(resolve => setTimeout(resolve, 50))
+  await entered.promise
   assert.equal(puppet.state.kind, 'starting')
 
   // Stop while starting
   await puppet.stop()
   await startRejection
 
-  assert.equal(onStopCalled, true, 'onStop must be called when stopped during startup')
+  assert.equal(stopCalls, 1)
   assert.equal(puppet.state.inactive(), true, 'puppet must be inactive after stop')
+})
+
+test('stop during memory loading never enters provider hooks', async t => {
+  const puppet = new PuppetTest()
+  const loading = Promise.withResolvers<void>()
+  const loaded = Promise.withResolvers<void>()
+  t.mock.method(puppet.memory, 'load', async () => {
+    loading.resolve()
+    await loaded.promise
+  })
+  const startProvider = t.mock.method(puppet, 'onStart')
+  const stopProvider = t.mock.method(puppet, 'onStop')
+
+  const startup = assert.rejects(puppet.start(), { name: 'LifecycleSupersededError' })
+  await loading.promise
+  const stop = puppet.stop()
+  loaded.resolve()
+  await Promise.all([startup, stop])
+  assert.equal(startProvider.mock.callCount(), 0)
+  assert.equal(stopProvider.mock.callCount(), 0)
+  assert.equal(puppet.isStopped, true)
 })
 
 test('inactive reset does not start puppet', async _t => {
@@ -1188,6 +1225,28 @@ test('operation() returns a rejected promise when puppet is idle', async () => {
 
   await p
   assert.equal(rejected, true, 'operation() promise must reject with LifecycleUnsafeStateError when idle')
+})
+
+test('executeOperation() succeeds in the handoff window between onStart() settling and running commit', async () => {
+  const puppet = new PuppetTest()
+  let handoffPromise: Promise<string> | undefined
+
+  mock.method(puppet, 'onStart', async () => {
+    // Queue an operation in a microtask right as onStart settles, before ScopeLet commits 'running'.
+    queueMicrotask(() => {
+      if (puppet.isStarting) {
+        handoffPromise = (puppet as any).executeOperation(async (signal?: AbortSignal) => {
+          assert.ok(signal, 'startup handoff operation should receive scope signal')
+          return 'handoff-ok'
+        })
+      }
+    })
+  })
+
+  await puppet.start()
+  assert.ok(handoffPromise, 'microtask should have executed while state was still starting')
+  assert.equal(await handoffPromise, 'handoff-ok')
+  await puppet.stop()
 })
 
 
