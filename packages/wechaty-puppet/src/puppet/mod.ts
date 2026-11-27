@@ -11,7 +11,6 @@ import type {
   PuppetConstructor,
   PuppetInterface,
   PuppetProtectedProperty,
-  PuppetState,
 }                         from './puppet-interface.ts'
 import type {
   PuppetCustomEvent,
@@ -34,7 +33,6 @@ export type {
   PuppetConstructor,
   PuppetInterface,
   PuppetProtectedProperty,
-  PuppetState,
   PuppetCustomEvent,
   PuppetEventDetail,
   PuppetEventDetailMap,

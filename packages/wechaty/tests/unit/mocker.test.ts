@@ -113,5 +113,5 @@ test('a mock bot starts, becomes ready, replies, and stops', { timeout: 10_000 }
   assert.equal(received.talker().id, bot.id)
 
   await wechaty.stop()
-  assert.ok(puppet.state.inactive())
+  assert.ok(puppet.isStopped)
 })

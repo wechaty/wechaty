@@ -302,6 +302,7 @@ test('useScoped() restart, mid-run uninstall, batch throw, re-entrancy & retirin
   let rolledBack = false
   bot3.useScoped(() => () => { rolledBack = true })
   await assert.rejects(() => bot3.start(), /puppet start boom/)
+  await bot3.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
   assert.equal(rolledBack, true, 'scoped plugin should roll back when start() fails')
 
   // 7. Re-entrant self-uninstall during installScoped, re-entrant handle inside cleanup,

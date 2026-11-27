@@ -80,7 +80,6 @@ test('Wechaty interface', async _t => {
     abstract isStarting  : WechatyInterface['isStarting']
     abstract isStopped   : WechatyInterface['isStopped']
     abstract isStopping  : WechatyInterface['isStopping']
-    abstract legacyState : WechatyInterface['legacyState']
     abstract log         : WechatyInterface['log']
     abstract logout      : WechatyInterface['logout']
     abstract memory      : WechatyInterface['memory']

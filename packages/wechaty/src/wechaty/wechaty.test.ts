@@ -238,11 +238,9 @@ test('Wechaty Symbol.asyncDispose via Wechaty.start() and await using', async ()
     await using bot = await Wechaty.start({ puppet: new PuppetMock() })
     assert.equal(bot.isLoggedIn, false)
     assert.equal(typeof bot[Symbol.asyncDispose], 'function', 'bot must implement Symbol.asyncDispose')
-    const originalStop = bot.stop.bind(bot)
-    bot.stop = async () => {
+    bot.addEventListener('stop', () => {
       stopped = true
-      await originalStop()
-    }
+    })
   }
   assert.equal(stopped, true, 'bot must be automatically disposed and stopped via Symbol.asyncDispose')
 })
@@ -304,61 +302,26 @@ test('Wechaty lifecycle: legacy events follow state transitions across start, re
   bot.addEventListener('start', () => events.push('start'))
   bot.addEventListener('stop', () => events.push('stop'))
 
-  assert.equal(bot.state.active(), false)
   assert.equal(bot.isStopped, true)
   assert.equal(bot.isActive, false)
-  assert.equal(bot.state.inactive(), true)
-  assert.equal(bot.legacyState.active(), false)
-  assert.equal(bot.legacyState.inactive(), true)
 
   const running = bot.whenRunning()
   await bot.start()
   await running
   assert.equal(bot.isRunning, true)
   assert.deepEqual(events, [ 'start' ])
-  assert.equal(bot.state.active(), true)
-  assert.equal(bot.state.inactive(), false)
   assert.equal(bot.state.generation, 1)
 
   await bot.reset()
   assert.deepEqual(events, [ 'start', 'start' ], "'start' fires on every generation that commits running")
   assert.equal(bot.state.generation, 2)
-  assert.equal(bot.state.active(), true)
-  assert.equal(bot.state.inactive(), false)
+  assert.equal(bot.isRunning, true)
 
   const stopped = bot.whenStopped()
   await bot.stop()
   await stopped
   assert.equal(bot.isStopped, true)
   assert.deepEqual(events, [ 'start', 'start', 'stop' ])
-  assert.equal(bot.state.active(), false)
-  assert.equal(bot.state.inactive(), true)
-})
-
-test('Wechaty state-switch view: active, inactive, on, off, and stable()', async () => {
-  const puppet = new PuppetMock()
-  const bot = new Wechaty({ puppet })
-
-  assert.equal(bot.state.active(), false)
-  assert.equal(bot.state.inactive(), true)
-  assert.equal(bot.state.on(), false)
-  assert.equal(bot.state.off(), true)
-
-  await bot.start()
-  assert.equal(bot.state.active(), true)
-  assert.equal(bot.state.inactive(), false)
-  assert.equal(bot.state.on(), true)
-  assert.equal(bot.state.off(), false)
-
-  await bot.state.stable('active')
-
-  await bot.stop()
-  assert.equal(bot.state.active(), false)
-  assert.equal(bot.state.inactive(), true)
-  assert.equal(bot.state.on(), false)
-  assert.equal(bot.state.off(), true)
-
-  await bot.state.stable('inactive')
 })
 
 test('Wechaty ready(): delegates to puppet ready condition and rejects on early stop', async () => {
@@ -403,6 +366,7 @@ test('Wechaty startup failure: emits single error event and rejects ready() wait
 
   const readyPromise = bot.ready()
   await assert.rejects(bot.start(), /deliberate startup failure/)
+  await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
 
   assert.equal(errors.length, 1, 'should emit startup error exactly once')
   assert.match(String(errors[0]), /deliberate startup failure/)
@@ -424,7 +388,7 @@ test('Wechaty ready({ signal }): aborting before init removes resolver without l
 
   // Starting subsequently should succeed cleanly without leaking aborted waiter
   await bot.start()
-  assert.equal(bot.state.active(), true)
+  assert.equal(bot.isRunning, true)
   await bot.stop()
 })
 
@@ -441,7 +405,7 @@ test('Wechaty ready(): resolves across restart() / reset()', async () => {
   const readyPromise2 = bot.ready()
   puppet.emit('ready', { data: 'test-2' })
   await readyPromise2
-  assert.equal(bot.state.active(), true)
+  assert.equal(bot.isRunning, true)
 
   await bot.stop()
 })
@@ -619,6 +583,7 @@ test('Wechaty concurrent start() calls on failure emit error exactly once', asyn
   })
 
   await Promise.allSettled([ bot.start(), bot.start() ])
+  await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
   assert.equal(errors.length, 1, 'concurrent start() failures must emit error exactly once')
 })
 

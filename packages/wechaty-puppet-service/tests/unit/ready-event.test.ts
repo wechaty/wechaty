@@ -29,9 +29,6 @@ test('ready event test', async t => {
    */
   const puppet = new PuppetMock()
 
-  // set ready to true before service starts
-  puppet.readyIndicator.value(true)
-  ;(puppet as any).__currentUserId = 'logged in'
   const serverOptions = {
     endpoint: ENDPOINT,
     puppet,
@@ -40,7 +37,12 @@ test('ready event test', async t => {
 
   const puppetServer = new PuppetServer(serverOptions)
 
+  await puppet.start()
   await puppetServer.start()
+  // Mark puppet logged-in and ready before the service client connects
+  puppet.login('logged in')
+  puppet.emit('ready')
+  await puppet.ready()
 
   /**
    * Puppet Service Client

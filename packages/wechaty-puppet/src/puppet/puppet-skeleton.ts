@@ -161,21 +161,6 @@ abstract class PuppetSkeleton extends PuppetEventEmitter {
   }
 
   /**
-   * Huan(202110): Issue #156 - https://github.com/wechaty/puppet/issues/156
-   *
-   *  All mixins should implemente both `start()` and `stop()`,
-   *  and they must call `super.start()` and `super.stop()`
-   *  so that all start()/stop() calls can be chained through all mixins.
-   */
-  async start (): Promise<void> {
-    log.verbose('PuppetSkeleton', 'start()')
-  }
-
-  async stop (): Promise<void> {
-    log.verbose('PuppetSkeleton', 'stop()')
-  }
-
-  /**
    * Dispatches an event, normalizing any error payloads to standard GError JSON structure
    * while preserving event cancellation flags and propagating cancellation state.
    */
