@@ -31,9 +31,6 @@
       "ESNext",
       "DOM"
     ],
-    "verbatimModuleSyntax": true,
-    "customConditions": [
-      "wechaty-source"
-    ]
+    "verbatimModuleSyntax": true
   }
 }

@@ -126,13 +126,21 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
 
       } catch (e) {
         const gerror = GError.from(e)
-        gerror.cause = e
+        if (gerror !== e && gerror.cause === undefined) {
+          gerror.cause = e
+        }
         throw gerror
       }
     }
 
     override async stop (): Promise<void> {
       log.verbose('WechatyPuppetMixin', 'stop()')
+
+      if (!this.__puppet) {
+        log.verbose('WechatyPuppetMixin', 'stop() skipped: no puppet initialized')
+        await super.stop()
+        return
+      }
 
       try {
         log.verbose('WechatyPuppetMixin', 'stop() stopping puppet ...')
@@ -260,7 +268,7 @@ const puppetMixin = <MixinBase extends WechatifyUserModuleMixin & GErrorMixin & 
           set.add((error as Error).message)
         }
       }
-      if (set.size > 20) {
+      while (set.size > 20) {
         const first = set.values().next().value
         set.delete(first)
       }

@@ -19,7 +19,7 @@ function gateway (args: string[]) {
   // An empty working directory, so bin/cli.ts loads no .env file.
   const cwd = mkdtempSync(join(tmpdir(), 'wechaty-gateway-'))
   try {
-    return spawnSync(nodeExecutable, [ '--conditions=wechaty-source', CLI, 'gateway', '--port', '8788', ...args ], {
+    return spawnSync(nodeExecutable, [ CLI, 'gateway', '--port', '8788', ...args ], {
       cwd,
       encoding: 'utf8',
       env: {

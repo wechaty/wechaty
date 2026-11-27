@@ -11,14 +11,39 @@
 set -e
 
 PACKAGE_DIR=$(pwd)
-TMPDIR="/tmp/npm-pack-testing.$$"
+TMPDIR=$(mktemp -d "/tmp/npm-pack-testing.XXXXXX")
 DEPS_DIR="$TMPDIR/deps"
 mkdir -p "$DEPS_DIR"
+
+RESTORE_LIST="$TMPDIR/restore.tsv"
+: > "$RESTORE_LIST"
+
+backup_file () {
+  local file=$1
+  if [ -f "$file" ]; then
+    local backup="$TMPDIR/$(echo "$file" | tr '/.' '__')"
+    cp "$file" "$backup"
+    printf "%s\t%s\n" "$file" "$backup" >> "$RESTORE_LIST"
+  fi
+}
+
+cleanup () {
+  while IFS=$'\t' read -r file backup; do
+    [ -f "$backup" ] && cp "$backup" "$file"
+  done < "$RESTORE_LIST"
+  rm -rf "$TMPDIR"
+}
+trap cleanup EXIT INT TERM
+
 # The smoke test requires a real VERSION, which generate-package-json.sh embeds
 # in src/package-json.ts; put back exactly what was there, including
 # uncommitted edits.
-cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
-trap '[ -f "$TMPDIR/package-json.ts.orig" ] && cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; rm -rf "$TMPDIR"' EXIT
+backup_file "$PACKAGE_DIR/src/package-json.ts"
+backup_file "$PACKAGE_DIR/package.json"
+
+for workspace in scopelet wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-service wechaty-puppet-mock; do
+  backup_file "$PACKAGE_DIR/../$workspace/package.json"
+done
 
 ./scripts/generate-package-json.sh
 npm run dist

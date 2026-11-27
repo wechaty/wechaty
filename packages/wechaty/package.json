@@ -5,36 +5,44 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/esm/src/mods/mod.d.ts",
-      "import": "./dist/esm/src/mods/mod.js"
+      "types": "./src/mods/mod.ts",
+      "browser": "./src/mods/browser.ts",
+      "node": "./src/mods/mod.ts",
+      "default": "./src/mods/browser.ts"
     },
     "./browser": {
-      "types": "./dist/esm/src/mods/browser.d.ts",
-      "default": "./dist/esm/src/mods/browser.js"
+      "types": "./src/mods/browser.ts",
+      "browser": "./src/mods/browser.ts",
+      "node": "./src/mods/browser.ts",
+      "default": "./src/mods/browser.ts"
     },
     "./impls": {
-      "types": "./dist/esm/src/mods/impls.d.ts",
-      "import": "./dist/esm/src/mods/impls.js"
+      "types": "./src/mods/impls.ts",
+      "browser": "./src/mods/impls.ts",
+      "node": "./src/mods/impls.ts",
+      "default": "./src/mods/impls.ts"
     },
     "./users": {
-      "types": "./dist/esm/src/mods/users.d.ts",
-      "import": "./dist/esm/src/mods/users.js"
+      "types": "./src/mods/users.ts",
+      "browser": "./src/mods/users.ts",
+      "node": "./src/mods/users.ts",
+      "default": "./src/mods/users.ts"
     }
   },
   "typesVersions": {
     "*": {
       "browser": [
-        "./dist/esm/src/mods/browser.d.ts"
+        "./src/mods/browser.ts"
       ],
       "users": [
-        "./dist/esm/src/mods/users.d.ts"
+        "./src/mods/users.ts"
       ],
       "impls": [
-        "./dist/esm/src/mods/impls.d.ts"
+        "./src/mods/impls.ts"
       ]
     }
   },
-  "types": "./dist/esm/src/mods/mod.d.ts",
+  "types": "./src/mods/mod.ts",
   "engines": {
     "node": ">=26",
     "npm": ">=10"
@@ -51,27 +59,29 @@
     "coverage": "npm run coverage:node",
     "coverage:node": "node ../../scripts/coverage.ts node",
     "coverage:deno": "node ../../scripts/coverage.ts deno",
-    "cli": "node --conditions=wechaty-source bin/cli.ts",
-    "demo": "node --conditions=wechaty-source examples/ding-dong-bot.ts",
+    "cli": "node bin/cli.ts",
+    "demo": "node examples/ding-dong-bot.ts",
     "dist": "npm run clean && npm run build",
     "docs": "bash -x scripts/generate-docs.sh",
-    "doctor": "node --conditions=wechaty-source bin/doctor.ts",
-    "io-client": "node --conditions=wechaty-source bin/io-client.ts",
+    "doctor": "node bin/doctor.ts",
+    "io-client": "node bin/io-client.ts",
     "lint:biome": "biome lint bin examples src scripts tests",
     "lint:sh": "bash -n bin/*.sh",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint": "npm run lint:biome && npm run lint:ts && npm run lint:sh && npm run lint:md",
-    "puppet-install": "node --conditions=wechaty-source bin/puppet-install.ts",
+    "prepack": "node ../../scripts/pack-exports.ts prepare",
+    "postpack": "node ../../scripts/pack-exports.ts restore",
+    "puppet-install": "node bin/puppet-install.ts",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "start": "npm run demo",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh scripts/*.sh",
-    "test:unit": "node --conditions=wechaty-source --test src scripts tests/unit",
-    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" NODE_BINARY=\"${NODE_BINARY:-$(command -v node)}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/tmp,/etc/alpine-release,/usr/bin/ldd --allow-write=/tmp --allow-run=git,node,deno --allow-env --allow-sys=hostname --allow-ffi=../../node_modules/@lmdb --conditions=wechaty-source src scripts tests/unit",
-    "test:unit:file": "node --conditions=wechaty-source --test",
-    "test:unit:deno:file": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" NODE_BINARY=\"${NODE_BINARY:-$(command -v node)}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/tmp,/etc/alpine-release,/usr/bin/ldd --allow-write=/tmp --allow-run=git,node,deno --allow-env --allow-sys=hostname --allow-ffi=../../node_modules/@lmdb --conditions=wechaty-source",
-    "test:integration": "node --conditions=wechaty-source --test --test-timeout=180000 tests/integration",
-    "test:e2e": "node --conditions=wechaty-source --test --test-timeout=180000 tests/e2e",
+    "test:unit": "node --test src scripts tests/unit",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" NODE_BINARY=\"${NODE_BINARY:-$(command -v node)}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/tmp,/etc/alpine-release,/usr/bin/ldd --allow-write=/tmp --allow-run=git,node,deno --allow-env --allow-sys=hostname --allow-ffi=../../node_modules/@lmdb src scripts tests/unit",
+    "test:unit:file": "node --test",
+    "test:unit:deno:file": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" NODE_BINARY=\"${NODE_BINARY:-$(command -v node)}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/tmp,/etc/alpine-release,/usr/bin/ldd --allow-write=/tmp --allow-run=git,node,deno --allow-env --allow-sys=hostname --allow-ffi=../../node_modules/@lmdb",
+    "test:integration": "node --test --test-timeout=180000 tests/integration",
+    "test:e2e": "node --test --test-timeout=180000 tests/e2e",
     "test": "npm run lint && npm run test:unit",
     "typedoc": "bash scripts/typedoc.sh",
     "lint:md": "markdownlint --config ../../.markdownlint.json README.md"

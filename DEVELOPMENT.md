@@ -26,16 +26,14 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
   script downloads the `buf` CLI that `wechaty-grpc` generates its stubs with.
   `wechaty-grpc`'s own `prepare` script generates them during `npm ci`, so
   packages that import it from source (`wechaty-puppet-service`) find them.
-- A package's `exports` may add a `wechaty-source` condition that points at
-  `src/`, for workspace development only. `tsconfig.base.json` sets it as a
-  `customConditions` entry, and test commands, the coverage runner and the
-  `wechaty` scripts that run sources (`cli`, `demo`, `doctor`, `io-client`,
-  `puppet-install`) pass `--conditions=wechaty-source`, so a package that depends on another
-  workspace package uses its sources without building `dist/`. This is for
-  workspace use only: Node.js refuses to strip types from
-  files under `node_modules`, so an installed package must never be loaded
-  through it. Published packages still ship `src/` (and `bin/`) so their
-  source and declaration maps resolve.
+- All workspace packages follow pure WinterTC "source-first" exports:
+  `exports["."]` maps `types`, `browser`, `node`, and `default` directly to
+  TypeScript sources in `src/`. Node.js 26+ and Deno execute these sources
+  natively with zero custom conditions or CLI flags (the custom `--conditions=wechaty-source`
+  flag was historically used during early modularization and has now been completely retired
+  monorepo-wide). Packaging (`npm pack` / `scripts/pack-release.sh`) compiles to
+  `dist/` and rewrites export maps in tarballs for external consumers via
+  `scripts/pack-exports.ts`.
 - Dependencies install once at the root (`npm ci`). Run a package script from
   its folder, or from the root with `--workspace`, for example
   `npm run test:unit:file --workspace wechaty -- src/plugin.test.ts`.

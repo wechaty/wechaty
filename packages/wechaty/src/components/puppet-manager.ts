@@ -175,7 +175,7 @@ export class PuppetManager {
         this.#lastPuppetErrors.add((error as Error).message)
       }
     }
-    if (this.#lastPuppetErrors.size > 20) {
+    while (this.#lastPuppetErrors.size > 20) {
       const first = this.#lastPuppetErrors.values().next().value
       this.#lastPuppetErrors.delete(first)
     }

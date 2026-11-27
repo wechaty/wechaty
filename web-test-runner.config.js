@@ -71,7 +71,7 @@ export default {
   files: browserTestFiles,
 
   nodeResolve: {
-    exportConditions: ['wechaty-source', 'browser', 'development'],
+    exportConditions: ['browser', 'development'],
   },
 
   plugins: [

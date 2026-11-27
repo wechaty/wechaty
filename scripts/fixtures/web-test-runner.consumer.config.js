@@ -5,7 +5,7 @@
  * Configures Modern Web Test Runner to execute the packed consumer smoke suite inside
  * headless Chromium. It ensures that the browser runner resolves bare imports strictly
  * from the consumer's installed `node_modules` under standard export conditions, with
- * workspace-only source mappings (`wechaty-source`) and Node polyfills deliberately absent.
+ * workspace-only source mappings and Node polyfills deliberately absent.
  *
  * Architectural boundaries:
  * Loaded by Modern Web Test Runner (`wtr`). Configures the test server root directory,

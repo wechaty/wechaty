@@ -13,11 +13,10 @@ fixtures=tests/fixtures/docker
   [ "$output" = "file:///wechaty/packages/wechaty/dist/esm/src/mods/mod.js" ]
 }
 
-@test "should fail when using require to load ESM-only Wechaty" {
+@test "should succ when using require in CommonJS (Node 26 require(esm))" {
   cd "$fixtures"
   run dockerRun cjs/js-bot.js
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"ERR_PACKAGE_PATH_NOT_EXPORTED"* ]]
+  [ "$status" -eq 0 ]
 }
 
 @test "should fail when javascript syntax error" {

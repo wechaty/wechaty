@@ -5,24 +5,20 @@
   "type": "module",
   "exports": {
     ".": {
-      "wechaty-source": "./src/mod.ts",
-      "types": "./dist/esm/src/mod.d.ts",
-      "import": "./dist/esm/src/mod.js"
+      "types": "./src/mod.ts",
+      "browser": "./src/mod.ts",
+      "node": "./src/mod.ts",
+      "default": "./src/mod.ts"
     }
   },
   "imports": {
     "#payload-storage": {
-      "wechaty-source": {
-        "browser": "./src/client/payload-storage.ts",
-        "node": "./src/node/payload-storage.ts",
-        "default": "./src/client/payload-storage.ts"
-      },
-      "browser": "./dist/esm/src/client/payload-storage.js",
-      "node": "./dist/esm/src/node/payload-storage.js",
-      "default": "./dist/esm/src/client/payload-storage.js"
+      "browser": "./src/client/payload-storage.ts",
+      "node": "./src/node/payload-storage.ts",
+      "default": "./src/client/payload-storage.ts"
     }
   },
-  "types": "./dist/esm/src/mod.d.ts",
+  "types": "./src/mod.ts",
   "engines": {
     "node": ">=26",
     "npm": ">=10"
@@ -31,13 +27,15 @@
     "build": "tsc",
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && npm run build",
-    "start": "node --conditions=wechaty-source examples/ding-dong-bot.ts",
+    "prepack": "node ../../scripts/pack-exports.ts prepare",
+    "postpack": "node ../../scripts/pack-exports.ts restore",
+    "start": "node examples/ding-dong-bot.ts",
     "lint": "npm run lint:biome && npm run lint:ts && npm run lint:md",
     "lint:biome": "biome lint src tests examples",
     "lint:ts": "tsc --isolatedModules --noEmit",
     "lint:md": "markdownlint --config ../../.markdownlint.json README.md",
-    "test:unit": "node --conditions=wechaty-source --test --test-timeout=60000 src tests/unit",
-    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/etc/alpine-release,/usr/bin/ldd,/tmp --allow-write=/tmp --allow-env --allow-net=127.0.0.1,localhost,0.0.0.0 --allow-sys=hostname --allow-ffi=../../node_modules/@lmdb --conditions=wechaty-source src tests/unit",
+    "test:unit": "node --test --test-timeout=60000 src tests/unit",
+    "test:unit:deno": "env -i PATH=\"$PATH\" HOME=\"$HOME\" CI=\"${CI:-}\" deno test --no-check --allow-read=.,../../node_modules,../wechaty-grpc,/etc/alpine-release,/usr/bin/ldd,/tmp --allow-write=/tmp --allow-env --allow-net=127.0.0.1,localhost,0.0.0.0 --allow-sys=hostname --allow-ffi=../../node_modules/@lmdb src tests/unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "coverage:node": "node ../../scripts/coverage.ts node",
     "coverage:deno": "node ../../scripts/coverage.ts deno",
