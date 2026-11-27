@@ -62,7 +62,8 @@ type ListenTarget = EmitterLike | EventTargetLike
  * retirement reason is thrown, as for any late registration (C-SCOPE-02).
  *
  * The target holds a wrapper made for this registration, not `listener`
- * itself, and only this registration's removal detaches it. So a stale
+ * itself, and only this registration's removal detaches it. An EventTarget
+ * registration uses the same capture flag when added and removed. So a stale
  * registration never removes the same handler a newer generation added, and
  * `target.off(event, listener)` does not remove it either. The wrapper keeps
  * the target's `this` and every argument.
@@ -81,8 +82,12 @@ function listen (
     return listener.apply(this, args)
   }
   if ('addEventListener' in target) {
-    scope.defer(() => target.removeEventListener(event, forward, options))
-    target.addEventListener(event, forward, options)
+    const registration = typeof options === 'boolean'
+      ? { capture: options }
+      : options && { capture: options.capture, once: options.once, passive: options.passive, signal: options.signal }
+    const capture = registration?.capture
+    scope.defer(() => target.removeEventListener(event, forward, { capture }))
+    target.addEventListener(event, forward, registration)
     return
   }
   const remove = target.off ?? target.removeListener

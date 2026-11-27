@@ -548,10 +548,12 @@ interface LifecycleScope {
   readonly generation: number
   readonly signal: AbortSignal
   acquire<T> (create, release: (resource: T) => unknown, options?: { interrupt? }): Promise<T>
+  acquireService<T> (service: { start: (signal: AbortSignal) => T | PromiseLike<T>, stop: () => unknown, abort?: () => unknown }): Promise<T>
   use<T extends AsyncDisposable | Disposable> (resource: T): T
   defer (cleanup: () => unknown): void
   spawn (task: (signal: AbortSignal) => Promise<void>): void
   start (child: Lifecycle): Promise<void>
+  condition (name: string): LifecycleConditionHandle
   set (condition): void
   clear (condition): void
   fail (error: unknown): void
@@ -567,7 +569,7 @@ function createLifecycle (hooks: LifecycleHooks, options?: LifecycleOptions): Li
 abstract class AsyncLifecycle implements Lifecycle { /* protected onStart, onStop, onStateChange, condition, operation */ }
 
 // Companions (companions/, §15)
-function listen (scope: LifecycleScope, target: EmitterLike | EventTargetLike, event: string, listener: (...args: any[]) => void): void
+function listen (scope: LifecycleScope, target: EmitterLike | EventTargetLike, event: string, listener: (...args: any[]) => void, options?: boolean | AddEventListenerOptions): void
 function operation<T> (scope: LifecycleScope, work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
 function watchdog (scope: LifecycleScope, options: { timeoutMs: number, onTimeout: 'fail' | 'recover', clock?: LifecycleClock }): { feed (): void, disarm (): void }
 ```
@@ -674,6 +676,13 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
   - If it fails while a generation is retiring, that retirement reports it as a cleanup error.
   - A `stop()`, `restart()` or recovery of a live generation waits for late releases that are running, under its stop deadline; one that fails after the retirement was requested, even from the run's own abort listeners, is reported, not retried in the same pass (C-CMD-10). A failure's retirement does not wait for them: it commits `failed { cleanupComplete: false }` and, when they end, publishes the outcome itself, the same failure with `cleanupComplete: true`, or still dirty with their error as `cleanupError`. A `stop()`, `start()` or `restart()` accepted while that retirement runs makes it wait for them, so the command gets a real outcome.
 
+### Paired services (ADR-03)
+
+`scope.acquireService({ start, stop, abort? })` records ownership before calling `start(signal)`. Startup failure rolls back any partial allocation. During retirement, the ledger joins a rollback already in progress and reports a failed stop once. A later lifecycle `stop()` may retry that failure. A startup that completes after sealing cannot return its result to the caller.
+
+- Supply `abort()` to interrupt pending startup. The engine calls it once and joins both startup and the abort hook before final disposal. A service that finished startup goes directly to its normal ledger release.
+- In the two-hook form, retirement may call `stop()` while startup is pending. The hook must unblock startup and prevent it from making further allocations once `stop()` succeeds. This form supports providers whose startup settles only after shutdown is invoked. The successful early stop also satisfies the final release.
+
 ## 7. Retirement
 
 - **C-RET-01** A generation retires in this order (D9):
@@ -723,12 +732,14 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 
 ## 11. Conditions
 
-- **C-COND-01** Conditions are declared per instance by name; the same name returns the same condition. `set` and `clear` with a condition declared on another instance throw `TypeError`.
-- **C-COND-02** A wait binds to the generation that is `starting` or `running` and not retiring. Otherwise it binds to the next generation to start, so a wait created before `start()` works.
+- **C-COND-01** Controller conditions are declared per instance by name. A scope returns its own stable handle for the same declaration. `set` and `clear` with a condition declared on another instance throw `TypeError`.
+- **C-COND-02** A controller's set wait binds to the live generation or the next generation to start, so a wait created before `start()` works. A scope-issued wait always binds to its originating generation.
 - **C-COND-03** A wait resolves when its bound generation sets the condition, or at once if it already has.
 - **C-COND-04** A wait rejects with `LifecycleSupersededError` when its bound generation retires first (the generation's failure, if any, is the `cause`), or when `stop()` is accepted before the wait is bound to a generation. It rejects with the caller's abort reason on abort (D28).
-- **C-COND-05** Results never cross generations. A `set` from a stale scope does nothing, and a new generation starts with every condition clear.
-- **C-COND-06** `isSet` is `true` only while the current live generation has the condition set (D23).
+- **C-COND-05** Results never cross generations. A stale scope or scope-issued handle cannot update a newer generation, and a new generation starts with every condition clear.
+- **C-COND-06** `isSet` is `true` only while the live generation has the condition set (D23). A scope handle reads only its own generation.
+- **C-COND-07** `when(timeoutMs?)` and `whenClear(timeoutMs?)` wait for the requested flag. A controller clear wait resolves immediately when there is no live generation. Once bound, either wait rejects if its generation retires first. A wait made on an already retired scope rejects with `LifecycleSupersededError`.
+- **C-COND-08** Condition deadlines use the lifecycle clock and follow C-TIME-01 and C-TIME-05. Invalid durations reject with `RangeError`. At or beyond the deadline a pending wait rejects with `TimeoutError`, even if the timer has not fired. The timer is cleared when the wait settles.
 
 Usage notes, not rules:
 
@@ -771,7 +782,7 @@ The module also passes through, without wrapping: hook errors as reported (falsy
 
 Helpers built only on the public scope; they need nothing private (D17). Their signatures landed with their implementation in S4 (D26). They import no `node:` module, so they also run in the browser.
 
-- **C-COMP-01** `listen(scope, target, event, listener)` adds `listener` to an EventEmitter-like target (`on`, with `off` or `removeListener`) or an `EventTarget`, and registers its removal on the scope before adding it. Retirement removes it, so re-adding it on every start never accumulates duplicates. On a sealed scope it adds nothing and throws the retirement reason (C-SCOPE-02). The target holds a wrapper made for that registration, which keeps the target's `this` and every argument; only that registration's removal detaches it, so a stale registration never removes the same handler a newer generation added. A target with both APIs (a `ws` WebSocket, say) is used as an `EventTarget`, so its listener gets one event object, not the emitter's arguments. An EventEmitter-like target with neither `off` nor `removeListener` is refused with `TypeError`. It replaces the repeated `on` plus `defer(off)` pairs.
+- **C-COMP-01** `listen(scope, target, event, listener)` adds `listener` to an EventEmitter-like target (`on`, with `off` or `removeListener`) or an `EventTarget`, and registers its removal on the scope before adding it. For an `EventTarget`, its capture flag is fixed at registration. Retirement removes it, so re-adding it on every start never accumulates duplicates. On a sealed scope it adds nothing and throws the retirement reason (C-SCOPE-02). The target holds a wrapper made for that registration, which keeps the target's `this` and every argument; only that registration's removal detaches it, so a stale registration never removes the same handler a newer generation added. A target with both APIs (a `ws` WebSocket, say) is used as an `EventTarget`, so its listener gets one event object, not the emitter's arguments. An EventEmitter-like target with neither `off` nor `removeListener` is refused with `TypeError`. It replaces the repeated `on` plus `defer(off)` pairs.
 - **C-COMP-02** `watchdog(scope, { timeoutMs, onTimeout, clock? })` arms a timer for the generation and returns `{ feed, disarm }`. Unless fed within `timeoutMs`, it calls `scope.fail(error)` (`onTimeout: 'fail'`) or `scope.recover(error)` (`'recover'`) once, with a `LifecycleTimeoutError` whose `phase` is `'watchdog'`. `feed()` restarts the countdown; `disarm()` stops it until the next `feed()`. Once it fired or its generation began retiring, nothing arms it again, and the generation's retirement clears its timer. `timeoutMs` is required and follows C-TIME-01 (`RangeError` otherwise). `onTimeout` is required; any other value is refused with `TypeError`. On a sealed scope it arms nothing and throws the retirement reason. `clock` defaults to the global timers, because the scope does not expose the lifecycle's clock.
 - **C-COMP-03** `operation(scope, work)` runs `work(signal)` as an operation of the generation and returns its result (D24). It runs as a spawned task, so `stop()`, `restart()` and a recovery wait for it: retirement joins it with the tasks, before any resource is released, under the stop deadline. `signal` is `scope.signal`, which aborts when the generation starts retiring; an operation that should finish anyway may ignore it. Its result and its error, a synchronous throw included, go only to its caller: a failed operation never fails the generation. On a sealed scope it rejects at once with the retirement reason and does not call `work`. An owner can run domain work in the current running generation through `LifecycleController.operation()` or protected `AsyncLifecycle.operation()`. These entry points reject outside a live running generation. Work that belongs to a particular scope, including initialization, can use `scope.operation()` or the companion.
 

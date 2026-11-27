@@ -66,8 +66,8 @@ import {
   validTimeout,
 }                           from './clock.ts'
 import {
+  Condition,
   ConditionBoard,
-  type Condition,
 }                           from './condition.ts'
 import {
   diagnosticState,
@@ -246,7 +246,9 @@ class LifecycleEngine {
   readonly #stopTimeoutMs: number | undefined
   readonly #clock: LifecycleClock
   readonly #host: ScopeHost
-  readonly #board = new ConditionBoard()
+  readonly #board: ConditionBoard
+  /** Translate scope-issued handles through their immutable generation binding. */
+  readonly #conditionBindings = new WeakMap<LifecycleCondition, { condition: Condition, generation: Generation }>()
 
   #state: LifecycleState = Object.freeze({ kind: 'stopped', generation: 0 })
   readonly #stateWaiters = new Set<{
@@ -309,12 +311,13 @@ class LifecycleEngine {
     this.#startTimeoutMs = validTimeout('startTimeoutMs', options?.startTimeoutMs)
     this.#stopTimeoutMs = validTimeout('stopTimeoutMs', options?.stopTimeoutMs)
     this.#clock = options?.clock ?? defaultClock
+    this.#board = new ConditionBoard(this.#clock)
     this.#host = {
       fail              : (generation, error) => this.#fail(generation, error),
       recover           : (generation, reason) => this.#recover(generation, reason),
       lateRelease       : (generation, run) => this.#lateRelease(generation, run),
       setCondition      : (generation, condition, value) => this.#setCondition(generation, condition, value),
-      condition         : name => this.condition(name),
+      condition         : (generation, name) => this.#scopedCondition(generation, name),
       clock             : this.#clock,
     }
   }
@@ -519,86 +522,74 @@ class LifecycleEngine {
   // ===========================================================================
 
   /** See {@link LifecycleController.condition}. */
-  condition (name: string): LifecycleConditionHandle {
-    return this.#board.declare(
+  condition (name: string): Condition {
+    return this.#board.declare(name, () => new Condition(
       name,
-      (condition, options) => this.#waitCondition(condition, options),
+      (condition, expected, options, timeoutMs) => this.#waitCondition(condition, expected, options, timeoutMs),
       condition => {
         const current = this.#current
-        if (!current || current.sealed) {
-          throw new LifecycleUnsafeStateError(`cannot set condition '${name}' while lifecycle is in state '${this.#state.kind}'`)
-        }
-        this.#setCondition(current, condition, true)
+        return !!current && !current.sealed && this.#board.isSet(condition, current.number)
       },
-      condition => {
+      (condition, value) => {
         const current = this.#current
         if (!current || current.sealed) {
-          throw new LifecycleUnsafeStateError(`cannot clear condition '${name}' while lifecycle is in state '${this.#state.kind}'`)
+          const action = value ? 'set' : 'clear'
+          throw new LifecycleUnsafeStateError(`cannot ${action} condition '${name}' while lifecycle is in state '${this.#state.kind}'`)
         }
-        this.#setCondition(current, condition, false)
+        this.#setCondition(current, condition, value)
       },
-      (condition, timeoutMs) => this.#whenCondition(condition, timeoutMs),
-      (condition, timeoutMs) => this.#whenClearCondition(condition, timeoutMs),
+    ))
+  }
+
+  /** Create a handle that can only read, wait for, or update its own generation. */
+  #scopedCondition (generation: Generation, name: string): LifecycleConditionHandle {
+    const condition = this.condition(name)
+    const handle = Object.freeze(new Condition(
+      name,
+      (_handle, expected, options, timeoutMs) => this.#waitCondition(condition, expected, options, timeoutMs, generation),
+      () => this.#board.isSet(condition, generation.number),
+      (_handle, value) => this.#setCondition(generation, condition, value),
+    ))
+    this.#conditionBindings.set(handle, { condition, generation })
+    return handle
+  }
+
+  /** Bind controller waits to the live or next run, and scope waits to their own run. */
+  #waitCondition (
+    condition: Condition,
+    expected: boolean,
+    options?: LifecycleWaitOptions,
+    timeoutMs?: number,
+    generation?: Generation,
+  ): Promise<void> {
+    if (generation?.sealed) {
+      const signal = options?.signal
+      return Promise.reject(signal?.aborted ? signal.reason : this.#conditionRetired(generation))
+    }
+    const current = generation ?? this.#current
+    const target = current && !current.sealed ? current.number : 'next'
+    return this.#board.wait(condition, target, expected, options, timeoutMs)
+  }
+
+  /** Supersede a wait while preserving the generation's failure as its cause. */
+  #conditionRetired (generation: Generation): LifecycleSupersededError {
+    return new LifecycleSupersededError(
+      'the generation retired before the condition wait settled',
+      generation.failure ? { cause: generation.failure.error } : undefined,
     )
   }
 
-  #whenCondition (condition: Condition, timeoutMs?: number): Promise<void> {
-    validTimeout('condition.when timeoutMs', timeoutMs)
-    if (timeoutMs === undefined) {
-      return this.#waitCondition(condition)
-    }
-    const controller = new AbortController()
-    const timer = this.#clock.setTimeout(() => {
-      controller.abort(
-        typeof globalThis.DOMException === 'function'
-          ? new globalThis.DOMException('The operation was aborted due to timeout', 'TimeoutError')
-          : Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }),
-      )
-    }, timeoutMs)
-    return this.#waitCondition(condition, { signal: controller.signal }).finally(() => {
-      this.#clock.clearTimeout(timer)
-    })
-  }
-
-  #whenClearCondition (condition: Condition, timeoutMs?: number): Promise<void> {
-    validTimeout('condition.whenClear timeoutMs', timeoutMs)
-    const current = this.#current
-    const target = current && !current.sealed ? current.number : 'next'
-    if (timeoutMs === undefined) {
-      return this.#board.waitClear(condition, target)
-    }
-    const controller = new AbortController()
-    const timer = this.#clock.setTimeout(() => {
-      controller.abort(
-        typeof globalThis.DOMException === 'function'
-          ? new globalThis.DOMException('The operation was aborted due to timeout', 'TimeoutError')
-          : Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }),
-      )
-    }, timeoutMs)
-    return this.#board.waitClear(condition, target, { signal: controller.signal }).finally(() => {
-      this.#clock.clearTimeout(timer)
-    })
-  }
-
-  #waitCondition (condition: Condition, options?: LifecycleWaitOptions): Promise<void> {
-    const current = this.#current
-    const target = current && !current.sealed ? current.number : 'next'
-    return this.#board.wait(condition, target, options)
-  }
-
+  /** Update a condition owned by this engine, fencing scope handles to their run. */
   #setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void {
-    const canonical = (condition as any)?.canonical ?? condition
+    const binding = this.#conditionBindings.get(condition)
+    const canonical = binding?.condition ?? condition
     if (!this.#board.owns(canonical)) {
       throw new TypeError(`condition '${condition.name}' was not declared on this lifecycle`)
     }
-    if (generation.sealed) {
+    if (generation.sealed || (binding && binding.generation !== generation)) {
       return
     }
-    if (value) {
-      this.#board.set(generation.number, canonical)
-    } else {
-      this.#board.clear(generation.number, canonical)
-    }
+    this.#board.set(generation.number, canonical, value)
   }
 
   // ===========================================================================
@@ -700,10 +691,7 @@ class LifecycleEngine {
       // Its condition waits reject with one error type, whatever ended the run;
       // a failure is the cause (C-COND-04, D28). Late registrations still throw
       // the seal reason itself (C-SCOPE-02).
-      this.#board.retire(generation.number, new LifecycleSupersededError(
-        'the generation retired before the condition was set',
-        generation.failure ? { cause: generation.failure.error } : undefined,
-      ))
+      this.#board.retire(generation.number, this.#conditionRetired(generation))
     }
     if (!generation.reachedRunning) {
       this.#abort(generation)

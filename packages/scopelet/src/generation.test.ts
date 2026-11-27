@@ -44,7 +44,7 @@ const host: ScopeHost = {
   recover: () => 'superseded',
   lateRelease: (_generation, start) => { start().catch(() => {}) },
   setCondition: () => {},
-  condition: (name: string) => ({
+  condition: (_generation, name) => ({
     name,
     isSet: false,
     wait: () => Promise.resolve(),
