@@ -594,9 +594,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * Retirement waits for all active operations to finish under stop timeout.
    *
    * Re-entrant calls made while an owning operation on this Puppet is still active
-   * reuse that operation's `AbortSignal` (even during `'stopping'` drain). Once the
-   * owning operation finishes (`active = false`), any detached continuations fall back
-   * to `this.#lifecycle.operation()` and reject if stopped or stopping.
+   * reuse that operation's `AbortSignal` (even during `'stopping'` drain) in runtimes
+   * providing `node:async_hooks` (`AsyncLocalStorage`). Once the owning operation finishes
+   * (`active = false`), detached continuations fall back to `this.#lifecycle.operation()`
+   * and reject if stopped or stopping. In browser/WinterTC runtimes without `AsyncLocalStorage`,
+   * re-entrancy is not inherited and nested calls during `'stopping'` are rejected.
    *
    * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
    * @returns Promise resolving to the result of `work`, or rejected with `LifecycleUnsafeStateError`
@@ -605,7 +607,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
     const entry = this.#operationContext?.getStore()
     if (entry?.active) {
-      return work(entry.signal)
+      return (async () => work(entry.signal))()
     }
     return this.#lifecycle.operation(async signal => {
       if (!this.#operationContext) {
