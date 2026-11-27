@@ -114,15 +114,29 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
       })
 
       if (createHangingPuppet) {
-        test('C-DEADLOCK-01: stop() unblocks a hanging onStart() without deadlocking', async (t) => {
+        test('C-DEADLOCK-01: stop() unblocks a hanging onStart() without deadlocking', { timeout: 5_000 }, async (t) => {
           const puppet = createHangingPuppet()
+          const withWatchdog = async <T>(promise: Promise<T>, label: string): Promise<T> => {
+            let timer: ReturnType<typeof setTimeout> | undefined
+            try {
+              return await Promise.race([
+                promise,
+                new Promise<never>((_, reject) => {
+                  timer = setTimeout(() => reject(new Error(`${label} timed out after 3000ms`)), 3_000)
+                }),
+              ])
+            } finally {
+              if (timer !== undefined) clearTimeout(timer)
+            }
+          }
+
           t.after(async () => {
-            await puppet.stop().catch(() => undefined)
+            await withWatchdog(puppet.stop().catch(() => undefined), 'C-DEADLOCK-01 cleanup')
           })
 
           const startPromise = puppet.start().catch((err: unknown) => err)
-          await puppet.stop()
-          const result = await startPromise
+          await withWatchdog(puppet.stop(), 'puppet.stop()')
+          const result = await withWatchdog(startPromise, 'puppet.start()')
 
           assert.ok(result instanceof Error || result === undefined, 'start() settles on stop()')
           assert.equal(puppet.isStopped, true, 'puppet reaches stopped state without deadlocking')

@@ -404,9 +404,13 @@ class PuppetMock extends PUPPET.Puppet {
       case PUPPET.types.Sayable.Attachment:
       case PUPPET.types.Sayable.Image:
       case PUPPET.types.Sayable.Audio:
-      case PUPPET.types.Sayable.Video:
+      case PUPPET.types.Sayable.Video: {
         base.type = PUPPET.types.Message.Attachment
+        const rawBox = sayable.payload.filebox
+        const box = typeof rawBox === 'string' ? FileBox.fromUrl(rawBox) : rawBox
+        this.mocker.cacheFileBoxPayload.set(id, box.toJSON())
         break
+      }
       default:
         break
     }

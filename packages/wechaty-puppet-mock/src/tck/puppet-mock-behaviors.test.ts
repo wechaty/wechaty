@@ -193,6 +193,7 @@ describe('PuppetMock Full-Domain Behaviors', () => {
         { payload: { accuracy: 10, address: '1 Main', latitude: 1, longitude: 2, name: 'HQ' }, type: PUPPET.types.Sayable.Location },
         { payload: { appid: 'wx1', title: 'MP' }, type: PUPPET.types.Sayable.MiniProgram },
         { payload: { contactId: alice.id }, type: PUPPET.types.Sayable.Contact },
+        { payload: { filebox: FileBox.fromBase64(btoa('img-bytes'), 'pic.png') }, type: PUPPET.types.Sayable.Image },
       ],
       type: PUPPET.types.Post.Moment,
     })
@@ -205,9 +206,11 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     assert.equal((await postFuture).postId, postId1)
 
     const storedPost1 = await puppet.postRawPayload(postId1)
-    assert.equal(storedPost1.sayableList.length, 5)
+    assert.equal(storedPost1.sayableList.length, 6)
     const sayableMsg = await puppet.messagePayload(storedPost1.sayableList[0] as string)
     assert.equal(sayableMsg.text, 'hello post')
+    const sayableFile = await puppet.messageFile(storedPost1.sayableList[5] as string)
+    assert.equal(sayableFile.name, 'pic.png')
 
     assert.deepEqual((await puppet.postSearch({ id: postId1 })).response, [postId1])
     assert.deepEqual((await puppet.postSearch({ contactId: 'nobody' })).response, [])
