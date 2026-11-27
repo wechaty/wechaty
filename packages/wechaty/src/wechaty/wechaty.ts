@@ -91,7 +91,6 @@ import type {
   SayableSayer,
 } from '../sayable/mod.ts'
 import type {
-  WechatyPlugin,
   WechatyPluginUninstaller,
   WechatyScopedPlugin,
 } from '../plugin.ts'
@@ -214,7 +213,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   async #lifecycleStart (scope: LifecycleScope): Promise<void> {
     log.verbose('Wechaty', 'lifecycle onStart()')
 
-    await this.init()
+    await this.#init()
 
     // Arm Io event capture and scoped plugins before either child starts.
     this.#pluginManager.installScoped(scope)
@@ -325,8 +324,8 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   get UrlLink (): UrlLinkConstructor { return this.#userModuleManager.UrlLink }
 
   // --- Bot Lifecycle ---
-  async init (): Promise<void> {
-    log.verbose('Wechaty', 'init()')
+  async #init (): Promise<void> {
+    log.verbose('Wechaty', '#init()')
     if (!this.#memory) {
       const isBrowser = typeof (globalThis as any).process?.cwd !== 'function'
       if (isBrowser) {
@@ -417,15 +416,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
 
   async logout (): Promise<void> {
     await this.#authManager.logout()
-  }
-
-  use (
-    ...plugins: (
-      | WechatyPlugin
-      | WechatyPlugin[]
-    )[]
-  ): WechatyPluginUninstaller {
-    return this.#pluginManager.use(...plugins)
   }
 
   /**

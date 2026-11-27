@@ -18,12 +18,11 @@
  */
 
 /**
- * Plugin type contracts for {@link Wechaty.use} and {@link Wechaty.useScoped}.
+ * Plugin type contracts for {@link Wechaty.useScoped}.
  *
  * Why this module exists:
- * Defines the legacy bot-lifetime {@link WechatyPlugin} contract alongside the
- * generation-scoped {@link WechatyScopedPlugin} contract bound to `scopelet`'s
- * {@link LifecycleScope}.
+ * Defines the generation-scoped {@link WechatyScopedPlugin} contract bound to
+ * `scopelet`'s {@link LifecycleScope}.
  */
 import type { LifecycleScope } from 'scopelet'
 import type { Wechaty } from './wechaty/mod.ts'
@@ -33,11 +32,6 @@ export type WechatyPluginUninstaller = () => void
 
 /** Return type of a plugin installer: either nothing or an uninstaller callback. */
 export type WechatyPluginReturn = void | WechatyPluginUninstaller
-
-/** Legacy plugin installed once for the bot instance via {@link Wechaty.use}. */
-export interface WechatyPlugin {
-  (bot: Wechaty): WechatyPluginReturn
-}
 
 /** A plugin bound to a {@link Wechaty} generation's {@link LifecycleScope}. */
 export interface WechatyScopedPlugin {

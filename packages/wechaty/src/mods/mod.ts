@@ -63,7 +63,6 @@ export type {
   PuppetModuleName, // DEPRECATED
 }                             from '../puppet-config.ts'
 export type {
-  WechatyPlugin,
   WechatyPluginReturn,
   WechatyPluginUninstaller,
   WechatyScopedPlugin,

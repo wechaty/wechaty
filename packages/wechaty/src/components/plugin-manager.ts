@@ -33,7 +33,6 @@
 import type { LifecycleScope } from 'scopelet'
 import { log } from 'wechaty-puppet'
 import type {
-  WechatyPlugin,
   WechatyPluginUninstaller,
   WechatyScopedPlugin,
 } from '../plugin.ts'
@@ -53,28 +52,6 @@ export class PluginManager {
 
   constructor (wechaty: Wechaty) {
     this.#wechaty = wechaty
-  }
-
-  use (
-    ...plugins: (
-      | WechatyPlugin
-      | WechatyPlugin[]
-    )[]
-  ): WechatyPluginUninstaller {
-    const pluginList = plugins.flat()
-    const uninstallerList: WechatyPluginUninstaller[] = []
-
-    for (const plugin of pluginList) {
-      log.verbose('PluginManager', 'use(%s)', plugin.name)
-      const uninstaller = plugin(this.#wechaty)
-      if (isWechatyPluginUninstaller(uninstaller)) {
-        uninstallerList.push(uninstaller)
-      }
-    }
-
-    return () => {
-      uninstallerList.forEach(u => u())
-    }
   }
 
   /**
