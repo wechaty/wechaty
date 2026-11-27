@@ -32,6 +32,12 @@ test('toConnectError() preserves valid gRPC status codes from GError', () => {
     const err = Object.assign(new Error(`code-${codeVal}`), { code: codeVal })
     assert.equal(toConnectError('testAll', err).code, expected)
   }
+
+  // Oversized error messages (> 8192B) must fall back to truncated ConnectError without throwing
+  const hugeErr = new Error('x'.repeat(10_000))
+  const hugeConnectErr = toConnectError('testHuge', hugeErr)
+  assert.equal(hugeConnectErr.code, Code.Internal)
+  assert.equal(hugeConnectErr.rawMessage.length, 4096)
 })
 
 test('serverErrorInterceptor() converts unary thrown error to Code.Internal', async () => {

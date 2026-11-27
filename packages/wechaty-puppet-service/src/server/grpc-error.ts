@@ -45,6 +45,14 @@ export function toConnectError (
   method : string,
   error  : unknown,
 ): ConnectError {
+  if (error instanceof ConnectError) {
+    log.error('PuppetServiceImpl', `toConnectError() ${method}() rejection: %s\n%s`,
+      error.rawMessage,
+      error.stack,
+    )
+    return error
+  }
+
   const gerr = GError.from(error)
 
   log.error('PuppetServiceImpl', `toConnectError() ${method}() rejection: %s\n%s`,
@@ -54,12 +62,21 @@ export function toConnectError (
 
   const rawCode = (error as any)?.code ?? gerr.code
   const connectCode = mapGrpcCode(rawCode)
-  const normalized = new GError(gerr.message, {
-    code: CONNECT_TO_GERROR_CODE[connectCode],
-    details: gerr.details,
-    ...('cause' in gerr ? { cause: gerr.cause } : {}),
-  })
-  return gerrorToConnectError(normalized)
+  const targetCode = CONNECT_TO_GERROR_CODE[connectCode]
+  const normalized =
+    GError.isGError(error) && error.code === targetCode
+      ? error
+      : new GError(gerr.message, {
+          code: targetCode,
+          details: gerr.details,
+          ...('cause' in gerr ? { cause: gerr.cause } : {}),
+        })
+
+  try {
+    return gerrorToConnectError(normalized)
+  } catch {
+    return new ConnectError(gerr.message.slice(0, 4096), connectCode)
+  }
 }
 
 export const grpcError = toConnectError

@@ -643,7 +643,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   }
 
   emitError (e: unknown): void {
-    const gerror = e instanceof GError ? e : GError.from(e)
+    const gerror = GError.isGError(e) ? e : GError.from(e)
     this.dispatchEvent(new WechatyEvent('error', { detail: gerror }))
   }
 

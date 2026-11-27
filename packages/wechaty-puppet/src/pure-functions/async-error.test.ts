@@ -77,5 +77,10 @@ describe('async-error helpers', () => {
     const plain = parseGErrorPayload('plain message')
     assert.equal(plain.code, Code.Unknown)
     assert.equal(plain.message, 'plain message')
+
+    const dataObj = new GError('from data obj', { code: Code.PermissionDenied }).toData()
+    const fromDataObj = parseGErrorPayload(dataObj)
+    assert.equal(fromDataObj.code, Code.PermissionDenied)
+    assert.equal(fromDataObj.message, 'from data obj')
   })
 })

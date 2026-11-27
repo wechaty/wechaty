@@ -87,8 +87,8 @@ export function timeoutPromise<T> (
 }
 
 /**
- * Parses a serialized `GErrorData` JSON string or normalizes an arbitrary
- * runtime value into a `GError`.
+ * Parses a serialized `GErrorData` JSON string, plain `GErrorData` object, or
+ * normalizes an arbitrary runtime value into a `GError`.
  */
 export function parseGErrorPayload (raw: unknown): GError {
   if (GError.isGError(raw)) {
@@ -97,6 +97,13 @@ export function parseGErrorPayload (raw: unknown): GError {
   if (typeof raw === 'string') {
     try {
       return GError.parse(raw)
+    } catch {
+      return GError.from(raw)
+    }
+  }
+  if (typeof raw === 'object' && raw !== null && 'version' in raw) {
+    try {
+      return GError.fromData(raw)
     } catch {
       return GError.from(raw)
     }

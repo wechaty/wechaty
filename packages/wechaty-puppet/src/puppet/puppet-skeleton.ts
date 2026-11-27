@@ -67,8 +67,14 @@ function normalizeErrorPayload (error: unknown): EventErrorPayload {
     gerr = GError.from(error)
   }
 
-  return {
-    gerror: JSON.stringify(gerr),
+  try {
+    return {
+      gerror: JSON.stringify(gerr),
+    }
+  } catch {
+    return {
+      gerror: JSON.stringify(new GError(gerr.message.slice(0, 4096), { code: gerr.code })),
+    }
   }
 }
 
