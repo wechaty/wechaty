@@ -49,8 +49,8 @@ type Sayable =
   | UrlLink
 
 type SayableStream =
-  | ReadableStream<Sayable>
-  | AsyncIterable<Sayable>
+  | ReadableStream<string>
+  | AsyncIterable<string>
 
 type SayableStreamMode =
   | 'sentence'

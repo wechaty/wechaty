@@ -389,7 +389,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
 
   /**
    * Sends a message to a conversation, sends a Sayable directly to bot itself,
-   * or streams a `ReadableStream<Sayable> | AsyncIterable<Sayable>` (ADR-29).
+   * or streams a `ReadableStream<string> | AsyncIterable<string>` (ADR-29).
    * Execution is bound to the puppet's active lifecycle generation and drains on stop.
    *
    * When streaming, resolves to the last delivered message ID (if `to` is a string

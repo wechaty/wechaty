@@ -21,11 +21,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { FileBox } from 'file-box'
 import { mock, PuppetMock } from 'wechaty-puppet-mock'
 
 import { Wechaty } from '../wechaty/wechaty-impl.ts'
-import type { Sayable } from './types.ts'
 import { TokenCoalescer, TokenCoalescerTransform } from './token-coalescer.ts'
 import { isSayableStream } from './deliver-sayable.ts'
 
@@ -126,19 +124,14 @@ test('isSayableStream distinguishes streams from strings, primitives, and Post',
   }
 })
 
-test('Contact.say(), Room.say(), Message.say(), and Wechaty.say() stream ReadableStream<Sayable> and AsyncIterable<Sayable>', async t => {
+test('Contact.say(), Room.say(), Message.say(), and Wechaty.say() stream ReadableStream<string> and AsyncIterable<string>', async t => {
   const mocker = new mock.Mocker()
   const puppet = new PuppetMock({ mocker })
   const sentTexts: Array<{ conversationId: string, text: string }> = []
-  const sentFiles: Array<{ conversationId: string, name: string }> = []
 
   t.mock.method(puppet, 'messageSendText', async (conversationId: string, text: string) => {
     sentTexts.push({ conversationId, text })
     return `msg-${sentTexts.length}`
-  })
-  t.mock.method(puppet, 'messageSendFile', async (conversationId: string, file: FileBox) => {
-    sentFiles.push({ conversationId, name: file.name })
-    return `file-${sentFiles.length}`
   })
 
   const bot = new Wechaty({ puppet })
@@ -149,35 +142,31 @@ test('Contact.say(), Room.say(), Message.say(), and Wechaty.say() stream Readabl
   const mockRoom = mocker.createRoom({ memberIdList: [botUser.id, peer.id] })
 
   try {
-    // 1. Contact.say() with mixed ReadableStream<Sayable> (tokens + number + FileBox + trailing text)
+    // 1. Contact.say() with ReadableStream<string>
     const contact = await bot.Contact.find({ id: peer.id })
     assert.ok(contact, 'Contact should exist in PuppetMock')
 
-    const mixedStream = new ReadableStream<Sayable>({
+    const textStream = new ReadableStream<string>({
       start (controller) {
         controller.enqueue('Hello ')
-        controller.enqueue(42)
-        controller.enqueue(FileBox.fromBase64('Y2hhcnQtZGF0YQ==', 'chart.txt'))
+        controller.enqueue('world.\n\n')
         controller.enqueue('Done!')
         controller.close()
       },
     })
 
-    await contact.say(mixedStream, { flushIntervalMs: 0 })
+    await contact.say(textStream, { mode: 'paragraph' })
     assert.deepEqual(sentTexts, [
-      { conversationId: contact.id, text: 'Hello 42' },
+      { conversationId: contact.id, text: 'Hello world.' },
       { conversationId: contact.id, text: 'Done!' },
     ])
-    assert.deepEqual(sentFiles, [
-      { conversationId: contact.id, name: 'chart.txt' },
-    ])
 
-    // 2. Room.say() with AsyncIterable<Sayable>
+    // 2. Room.say() with AsyncIterable<string>
     sentTexts.length = 0
     const room = await bot.Room.find({ id: mockRoom.id })
     assert.ok(room, 'Room should exist in PuppetMock')
 
-    async function * generateRoomTokens (): AsyncIterable<Sayable> {
+    async function * generateRoomTokens (): AsyncIterable<string> {
       yield 'First paragraph.\n\n'
       yield 'Second paragraph.'
     }
@@ -202,7 +191,7 @@ test('Contact.say(), Room.say(), Message.say(), and Wechaty.say() stream Readabl
 
     // 4. Wechaty.say(stream, { to })
     sentTexts.length = 0
-    async function * generateBotTokens (): AsyncIterable<Sayable> {
+    async function * generateBotTokens (): AsyncIterable<string> {
       yield 'Streamed via bot.say.'
     }
     await bot.say(generateBotTokens(), { to: contact, flushIntervalMs: 0 })
@@ -236,7 +225,7 @@ test('say(stream, { signal }) cancels stream consumption on AbortSignal', async 
     const controller = new AbortController()
     let returned = false
 
-    async function * slowTokens (): AsyncIterable<Sayable> {
+    async function * slowTokens (): AsyncIterable<string> {
       try {
         yield 'First chunk.\n\n'
         controller.abort(new Error('user cancelled'))
@@ -265,7 +254,7 @@ test('say(stream, { signal }) cancels stream consumption on AbortSignal', async 
     const readableController = new AbortController()
     let readableCancelled = false
     let pullCount = 0
-    const readable = new ReadableStream<Sayable>({
+    const readable = new ReadableStream<string>({
       pull (streamCtrl) {
         pullCount += 1
         if (pullCount === 1) {
@@ -286,7 +275,7 @@ test('say(stream, { signal }) cancels stream consumption on AbortSignal', async 
     assert.deepEqual(sentTexts, ['Readable chunk.'])
 
     const syncAbort = new AbortController()
-    const rejectingIterable: AsyncIterable<Sayable> = {
+    const rejectingIterable: AsyncIterable<string> = {
       [Symbol.asyncIterator] () {
         return {
           next () {

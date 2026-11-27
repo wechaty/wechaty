@@ -559,7 +559,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    *
-   * Also accepts a `SayableStream` (`ReadableStream<Sayable> | AsyncIterable<Sayable>`)
+   * Also accepts a `SayableStream` (`ReadableStream<string> | AsyncIterable<string>`)
    * with optional `SayableStreamOptions` (ADR-29), resolving to the last delivered `Message` (or `undefined`).
    */
   say (sayable: Sayable): Promise<void | Message>

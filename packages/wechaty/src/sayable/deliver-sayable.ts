@@ -15,7 +15,7 @@ import type { Sayable, SayableStream, SayableStreamOptions } from './types.ts'
 import { TokenCoalescer } from './token-coalescer.ts'
 
 /**
- * Type guard for `ReadableStream<Sayable>` and `AsyncIterable<Sayable>`.
+ * Type guard for `ReadableStream<string>` and `AsyncIterable<string>`.
  * Excludes `Post` instances (which implement `[Symbol.asyncIterator]`) so they
  * continue to be delivered as `Post` payloads.
  */
@@ -73,7 +73,7 @@ function raceWithAbort<T> (promise: Promise<T>, signal?: AbortSignal): Promise<T
 }
 
 /**
- * Normalize `ReadableStream<Sayable>` and `AsyncIterable<Sayable>` into a
+ * Normalize `ReadableStream<string>` and `AsyncIterable<string>` into a
  * single cancellable async generator.
  *
  * Trade-off on abort: when `signal.aborted` is already true, `reader.cancel()`
@@ -84,7 +84,7 @@ function raceWithAbort<T> (promise: Promise<T>, signal?: AbortSignal): Promise<T
 async function * iterateSayableStream (
   stream: SayableStream,
   signal?: AbortSignal,
-): AsyncGenerator<Sayable> {
+): AsyncGenerator<string> {
   if (stream instanceof ReadableStream) {
     const reader = stream.getReader()
     let completed = false
@@ -233,9 +233,9 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.Puppet) => (conversatio
 }
 
 /**
- * Consume a `ReadableStream<Sayable>` or `AsyncIterable<Sayable>`, coalescing
- * streaming text/number tokens (ADR-29) and flushing before non-text `Sayable`
- * chunks or stream completion.
+ * Consume a `ReadableStream<string>` or `AsyncIterable<string>`, coalescing
+ * streaming LLM text tokens (ADR-29) via `TokenCoalescer` before delivering
+ * each chunk via `puppet.messageSendText()`.
  */
 const deliverSayableStreamConversationPuppet = (puppet: PUPPET.Puppet) => (conversationId: string) => async (
   stream: SayableStream,
@@ -253,30 +253,19 @@ const deliverSayableStreamConversationPuppet = (puppet: PUPPET.Puppet) => (conve
     }
   }
 
-  const flushCoalescer = async () => {
-    signal?.throwIfAborted()
-    const remaining = coalescer.flush()
-    if (remaining !== undefined) {
-      await sendText(remaining)
-    }
-  }
-
   for await (const chunk of iterateSayableStream(stream, signal)) {
-    if (typeof chunk === 'string' || typeof chunk === 'number') {
-      for (const text of coalescer.push(String(chunk))) {
-        await sendText(text)
-      }
-    } else {
-      await flushCoalescer()
-      signal?.throwIfAborted()
-      const msgId = await deliverSayableConversationPuppet(puppet)(conversationId)(chunk)
-      if (msgId) {
-        lastMsgId = msgId
-      }
+    if (typeof chunk !== 'string') {
+      throw new TypeError(`SayableStream chunks must be strings, got ${typeof chunk}`)
+    }
+    for (const text of coalescer.push(chunk)) {
+      await sendText(text)
     }
   }
 
-  await flushCoalescer()
+  const remaining = coalescer.flush()
+  if (remaining !== undefined) {
+    await sendText(remaining)
+  }
   return lastMsgId
 }
 
