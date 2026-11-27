@@ -6,7 +6,7 @@ export type WechatyPluginUninstaller = () => void
 export type WechatyPluginReturn = void | WechatyPluginUninstaller
 
 export interface WechatyPlugin {
-  (bot: Wechaty, scope?: LifecycleScope): WechatyPluginReturn
+  (bot: Wechaty): WechatyPluginReturn
 }
 
 /** A plugin bound to a {@link Wechaty} generation's {@link LifecycleScope}. */

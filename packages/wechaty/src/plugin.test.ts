@@ -210,3 +210,97 @@ test('Wechaty.useScoped() snapshots installs, rolls back partial failures, and a
     await bot2.stop().catch(() => {})
   }
 })
+
+test('useScoped() restart, mid-run uninstall, batch throw, re-entrancy & retiring guard', async _t => {
+  const bot = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const logEvents: string[] = []
+
+  const unsubA = bot.useScoped(() => {
+    logEvents.push('A-install')
+    return () => { logEvents.push('A-uninstall') }
+  })
+
+  try {
+    // 1. Direct restart() uninstalls and re-installs on the new generation
+    await bot.start()
+    assert.deepEqual(logEvents, ['A-install'])
+
+    await bot.restart()
+    assert.deepEqual(logEvents, ['A-install', 'A-uninstall', 'A-install'])
+
+    // 2. Manual uninstaller while running cleans up immediately, idempotently, and stays uninstalled
+    unsubA()
+    unsubA()
+    assert.deepEqual(logEvents, ['A-install', 'A-uninstall', 'A-install', 'A-uninstall'])
+
+    await bot.stop()
+    assert.deepEqual(logEvents, ['A-install', 'A-uninstall', 'A-install', 'A-uninstall'])
+
+    await bot.start()
+    assert.deepEqual(logEvents, ['A-install', 'A-uninstall', 'A-install', 'A-uninstall'])
+
+    // 3. Batch uninstaller where first throws still cleans up and unregisters second
+    let firstAttempts = 0
+    let secondUninstalled = false
+    let secondInstalls = 0
+    const unsubBatch = bot.useScoped(
+      () => () => {
+        firstAttempts += 1
+        if (firstAttempts === 1) {
+          throw new Error('first uninstaller boom')
+        }
+      },
+      () => {
+        secondInstalls += 1
+        return () => { secondUninstalled = true }
+      },
+    )
+    assert.equal(secondInstalls, 1)
+    unsubBatch()
+    assert.equal(secondUninstalled, true)
+    await bot.restart()
+    assert.equal(secondInstalls, 1, 'second plugin should not re-install after batch uninstall')
+
+    // 4. useScoped() called right after stop() begins retiring does not run on sealed scope
+    let lateInstalls = 0
+    const stopPromise = bot.stop()
+    bot.useScoped(() => {
+      lateInstalls += 1
+    })
+    assert.equal(lateInstalls, 0, 'should not install onto retiring generation')
+    await stopPromise
+    await bot.start()
+    assert.equal(lateInstalls, 1, 'should install on next generation')
+  } finally {
+    await bot.stop().catch(() => {})
+  }
+
+  // 5. Entry uninstalled by earlier plugin during installScoped is skipped
+  const bot2 = WechatyBuilder.build({ puppet: new PuppetMock() })
+  let victimInstalled = false
+  let unsubVictim: (() => void) | undefined
+  bot2.useScoped(() => {
+    unsubVictim?.()
+  })
+  unsubVictim = bot2.useScoped(() => {
+    victimInstalled = true
+  })
+
+  try {
+    await bot2.start()
+    assert.equal(victimInstalled, false, 'entry uninstalled during installScoped should be skipped')
+  } finally {
+    await bot2.stop().catch(() => {})
+  }
+
+  // 6. Scoped plugins installed before puppet start failure are rolled back
+  const failingPuppet = new PuppetMock()
+  failingPuppet.onStart = async () => {
+    throw new Error('puppet start boom')
+  }
+  const bot3 = WechatyBuilder.build({ puppet: failingPuppet })
+  let rolledBack = false
+  bot3.useScoped(() => () => { rolledBack = true })
+  await assert.rejects(() => bot3.start(), /puppet start boom/)
+  assert.equal(rolledBack, true, 'scoped plugin should roll back when start() fails')
+})

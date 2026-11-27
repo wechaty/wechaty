@@ -103,7 +103,9 @@ export class PluginManager {
     } catch (err) {
       for (const entry of entries.reverse()) {
         this.#scopedEntries.delete(entry)
-        void Promise.resolve(entry.currentUninstall?.()).catch(() => {})
+        if (entry.currentUninstall) {
+          this.#invokeUninstaller(entry.currentUninstall, entry.plugin.name, 'rollback')
+        }
       }
       throw err
     }
@@ -111,9 +113,19 @@ export class PluginManager {
     return () => {
       for (const entry of entries) {
         this.#scopedEntries.delete(entry)
-        void Promise.resolve(entry.currentUninstall?.()).catch(() => {})
+        if (entry.currentUninstall) {
+          this.#invokeUninstaller(entry.currentUninstall, entry.plugin.name, 'uninstall')
+        }
       }
     }
+  }
+
+  /**
+   * Clear the active scope synchronously when generation retirement begins
+   * so `useScoped()` does not install onto a sealing generation.
+   */
+  clearActiveScope (): void {
+    this.#activeScope = undefined
   }
 
   /** Install all registered scoped plugins onto `scope` and bind cleanup via `scope.defer`. */
@@ -125,12 +137,30 @@ export class PluginManager {
       }
     })
     for (const entry of [...this.#scopedEntries]) {
+      if (!this.#scopedEntries.has(entry)) {
+        continue
+      }
       this.#installEntry(entry, scope)
     }
   }
 
+  /**
+   * Install a single scoped plugin onto `scope` and wire idempotent, retryable cleanup.
+   *
+   * - If the plugin uninstalls itself re-entrantly during setup, its returned cleanup runs
+   *   immediately and is not bound to `scope.defer`.
+   * - Concurrent cleanup calls coalesce on `inFlight` so the plugin uninstaller runs once.
+   * - `uninstalled` is marked only after cleanup resolves; rejected cleanups clear `inFlight`
+   *   and rethrow so generation teardown (`scope.defer`) can retry or surface the error.
+   */
   #installEntry (entry: ScopedEntry, scope: LifecycleScope): void {
     const ret = entry.plugin(this.#wechaty, scope)
+    if (!this.#scopedEntries.has(entry)) {
+      if (isWechatyPluginUninstaller(ret)) {
+        this.#invokeUninstaller(ret, entry.plugin.name, 're-entrant uninstall')
+      }
+      return
+    }
     let uninstalled = false
     let inFlight: Promise<void> | undefined
     const runUninstall = (): Promise<void> | void => {
@@ -165,6 +195,20 @@ export class PluginManager {
     }
     entry.currentUninstall = runUninstall
     scope.defer(runUninstall)
+  }
+
+  #invokeUninstaller (
+    fn: () => unknown,
+    pluginName: string,
+    context: string,
+  ): void {
+    try {
+      void Promise.resolve(fn()).catch((err) => {
+        log.error('PluginManager', '%s %s failed: %s', context, pluginName, err)
+      })
+    } catch (err) {
+      log.error('PluginManager', '%s %s failed: %s', context, pluginName, err)
+    }
   }
 
 }
