@@ -10,6 +10,7 @@
 - Use node:diagnostics_channel for lightweight, privacy-safe internal observability without third-party runtime dependencies. Preserve existing public events and logging; validate diagnostic and tracing channel behavior under both Node.js and Deno before relying on cross-runtime compatibility.
 - Release titles: always use `v<semver> — <1–2 word theme>` (≤ 32 chars so it fits on one sidebar line, or `v<semver>` for patches); never include "Wechaty" or "Released!".
 - Release banners: use an 8:1 dark-mode visual ribbon (e.g., 1600×200) expressing the release's changes with 3–4 short keywords only; never repeat the release title or version number.
+- **Bound and recover async tasks:** Never run or await a background task, test, or subprocess without a finite timeout or watchdog; if it stalls, inspect its output, terminate it, fix the root cause, and retry without waiting for the user.
 
 ## Source Code Documentation (AI-First)
 

@@ -34,10 +34,25 @@ class Mocker {
 
   id: string
 
-  cacheContactPayload : Map<string, PUPPET.payloads.Contact>
-  cacheRoomPayload    : Map<string, PUPPET.payloads.Room>
-  cacheMessagePayload : Map<string, PUPPET.payloads.Message>
-  cacheFileBoxPayload : Map<string, FileBoxJsonObject>
+  cacheContactPayload            : Map<string, PUPPET.payloads.Contact>
+  cacheContactAvatar             : Map<string, { base64: string, name: string }>
+  cacheRoomPayload               : Map<string, PUPPET.payloads.Room>
+  cacheRoomAnnounce              : Map<string, string>
+  cacheRoomMemberPayload         : Map<string, PUPPET.payloads.RoomMember>
+  cacheRoomInvitationPayload     : Map<string, PUPPET.payloads.RoomInvitation>
+  cacheRoomInvitationRoomId      : Map<string, string>
+  cacheMessagePayload            : Map<string, PUPPET.payloads.Message>
+  cacheMessageContactId          : Map<string, string>
+  cacheMessageUrlPayload         : Map<string, PUPPET.payloads.UrlLink>
+  cacheMessageLocationPayload    : Map<string, PUPPET.payloads.Location>
+  cacheMessageMiniProgramPayload : Map<string, PUPPET.payloads.MiniProgram>
+  cacheMessagePostPayload        : Map<string, PUPPET.payloads.Post>
+  cacheFileBoxPayload            : Map<string, FileBoxJsonObject>
+  cacheFriendshipPayload         : Map<string, PUPPET.payloads.Friendship>
+  cacheTagContacts               : Map<string, Set<string>>
+  cachePostPayload               : Map<string, PUPPET.payloads.PostServer>
+  cacheTapPayload                : Map<string, PUPPET.payloads.Tap>
+  cacheConversationRead          : Map<string, boolean>
 
   protected mockerifiedContactMock? : typeof ContactMock
   protected mockerifiedMessageMock? : typeof MessageMock
@@ -74,10 +89,25 @@ class Mocker {
     this.environmentList          = []
     this.cleanupFns = []
 
-    this.cacheContactPayload = new Map()
-    this.cacheMessagePayload = new Map()
-    this.cacheRoomPayload    = new Map()
-    this.cacheFileBoxPayload = new Map()
+    this.cacheContactPayload            = new Map()
+    this.cacheContactAvatar             = new Map()
+    this.cacheMessagePayload            = new Map()
+    this.cacheMessageContactId          = new Map()
+    this.cacheMessageUrlPayload         = new Map()
+    this.cacheMessageLocationPayload    = new Map()
+    this.cacheMessageMiniProgramPayload = new Map()
+    this.cacheMessagePostPayload        = new Map()
+    this.cacheRoomPayload               = new Map()
+    this.cacheRoomAnnounce              = new Map()
+    this.cacheRoomMemberPayload         = new Map()
+    this.cacheRoomInvitationPayload     = new Map()
+    this.cacheRoomInvitationRoomId      = new Map()
+    this.cacheFileBoxPayload            = new Map()
+    this.cacheFriendshipPayload         = new Map()
+    this.cacheTagContacts               = new Map()
+    this.cachePostPayload               = new Map()
+    this.cacheTapPayload                = new Map()
+    this.cacheConversationRead          = new Map()
 
     this.mockerifiedContactMock = mockerifyContactMock(this)
     this.mockerifiedMessageMock = mockerifyMessageMock(this)
@@ -324,6 +354,89 @@ class Mocker {
     payload = this.cacheMessagePayload.get(id)
     if (!payload) {
       throw new Error('no payload found for id ' + id)
+    }
+    return payload
+  }
+
+  /**
+   * Create a message payload targeting a contact or room, store it, invoke
+   * `onBeforeEmit` before dispatching so attachment caches are populated,
+   * and emit a `message` event on the attached puppet.
+   */
+  createAndEmitMessage (
+    partial: Omit<PUPPET.payloads.MessageBase, 'id' | 'timestamp'> & { id?: string } & (
+      { listenerId: string } | { roomId: string, mentionIdList?: string[] }
+    ),
+    onBeforeEmit?: (id: string) => void,
+  ): string {
+    const id = partial.id ?? crypto.randomUUID()
+    const payload = {
+      ...partial,
+      id,
+      timestamp: Date.now(),
+    } as PUPPET.payloads.Message
+    onBeforeEmit?.(id)
+    this.MessageMock.create(payload)
+    if (this._puppet) {
+      this._puppet.dispatchEvent(new PUPPET.WechatyEvent('message', {
+        detail: { messageId: id },
+      }))
+    }
+    return id
+  }
+
+  /**
+   * Simulate receiving or sending a room invitation and emit `room-invite`.
+   */
+  receiveRoomInvitation (
+    room: RoomMock,
+    inviter: ContactMock,
+    receiverId?: string,
+  ): PUPPET.payloads.RoomInvitation {
+    const id = crypto.randomUUID()
+    const payload: PUPPET.payloads.RoomInvitation = {
+      avatar       : room.payload.avatar ?? '',
+      id,
+      invitation   : `${inviter.payload.name} invited you to join ${room.payload.topic}`,
+      inviterId    : inviter.id,
+      memberCount  : room.payload.memberIdList.length,
+      memberIdList : [...room.payload.memberIdList],
+      receiverId   : receiverId ?? (this._puppet?.isLoggedIn ? this._puppet.currentUserId : ''),
+      timestamp    : Date.now(),
+      topic        : room.payload.topic,
+    }
+    this.cacheRoomInvitationPayload.set(id, payload)
+    this.cacheRoomInvitationRoomId.set(id, room.id)
+    if (this._puppet) {
+      this._puppet.dispatchEvent(new PUPPET.WechatyEvent('room-invite', {
+        detail: { roomInvitationId: id },
+      }))
+    }
+    return payload
+  }
+
+  /**
+   * Simulate receiving or updating a friendship request and emit `friendship`.
+   */
+  receiveFriendship (
+    contact: ContactMock,
+    hello: string,
+    type: PUPPET.types.Friendship = PUPPET.types.Friendship.Receive,
+  ): PUPPET.payloads.Friendship {
+    const id = crypto.randomUUID()
+    const payload: PUPPET.payloads.Friendship = {
+      contactId : contact.id,
+      hello,
+      id,
+      ...(type === PUPPET.types.Friendship.Receive ? { ticket: id } : {}),
+      timestamp : Date.now(),
+      type,
+    } as PUPPET.payloads.Friendship
+    this.cacheFriendshipPayload.set(id, payload)
+    if (this._puppet) {
+      this._puppet.dispatchEvent(new PUPPET.WechatyEvent('friendship', {
+        detail: { friendshipId: id },
+      }))
     }
     return payload
   }

@@ -22,7 +22,7 @@ const extname = (filename: string): string => {
 
 /* eslint no-use-before-define: 0 */
 interface To {
-  to: (conversation?: ContactMock | RoomMock) => void
+  to: (conversation?: ContactMock | RoomMock) => string
 }
 
 class ContactMock extends ContactEventEmitter {
@@ -196,6 +196,7 @@ class ContactMock extends ContactEventEmitter {
       that.mocker.puppet.dispatchEvent(new PUPPET.WechatyEvent('message', {
         detail: { messageId: msg.id },
       }))
+      return msg.id
     }
 
     return { to }
