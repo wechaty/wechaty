@@ -667,6 +667,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   async #lifecycleStart (scope: LifecycleScope): Promise<void> {
     scope.defer(() => {
       this.#run = undefined
+      this.#startupOperation = undefined
     })
 
     // The shell stops after the generation has released its resources.
@@ -742,15 +743,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     let enteredProvider = false
     await scope.acquireService({
       start: async signal => {
-        try {
-          await this.#prepareProvider(scope, cleanAuthQrCode)
-          await super.start()
-          signal.throwIfAborted()
-          enteredProvider = true
-          await this.onStart(signal)
-        } finally {
-          this.#startupOperation = undefined
-        }
+        await this.#prepareProvider(scope, cleanAuthQrCode)
+        await super.start()
+        signal.throwIfAborted()
+        enteredProvider = true
+        await this.onStart(signal)
       },
       stop: () => enteredProvider ? this.onStop() : undefined,
     })
@@ -829,6 +826,9 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   }
 
   #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {
+    if (state.kind !== 'starting') {
+      this.#startupOperation = undefined
+    }
     if (state.kind === 'running' && previous.kind !== 'running') {
       this.dispatchEvent(new WechatyEvent('start'))
     } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {

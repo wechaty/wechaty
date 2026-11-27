@@ -43,6 +43,32 @@ import {
 
 import type { PuppetServiceOptions } from './puppet-service.ts'
 
+/** Reject immediately with `signal.reason` if `signal` aborts before `promise` settles. */
+function raceAbort<T> (promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) {
+    return promise
+  }
+  if (signal.aborted) {
+    // Prevent unhandled rejection if `promise` later rejects.
+    promise.catch(() => {})
+    return Promise.reject(signal.reason)
+  }
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason)
+    signal.addEventListener('abort', onAbort, { once: true })
+    promise.then(
+      value => {
+        signal.removeEventListener('abort', onAbort)
+        resolve(value)
+      },
+      error => {
+        signal.removeEventListener('abort', onAbort)
+        reject(error)
+      },
+    )
+  })
+}
+
 class GrpcManager extends EventEmitter {
 
   protected _client?: Client<typeof Puppet>
@@ -192,11 +218,17 @@ class GrpcManager extends EventEmitter {
       const authority = parsed.host || parsed.hostname || undefined
       let address
       try {
-        address = await new WechatyToken({
-          authority,
-          token: tokenStr,
-        }).discover()
+        address = await raceAbort(
+          new WechatyToken({
+            authority,
+            token: tokenStr,
+          }).discover(signal),
+          signal,
+        )
       } catch (e) {
+        if (signal?.aborted) {
+          throw e
+        }
         log.warn('GrpcManager', 'initClient() token discovery failed: %s', (e as Error).message)
         throw new Error(`Token discovery failed for ${target}: ${(e as Error).message}`)
       }

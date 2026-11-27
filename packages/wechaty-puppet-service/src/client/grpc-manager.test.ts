@@ -104,7 +104,9 @@ test('GrpcManager does not allocate a client when discovery completes after stop
   await discovering.promise
   controller.abort(reason)
   await manager.stop()
-  discovered.resolve({ host: '192.0.2.1', port: 9999 })
+  // Discovery cancellation must reject start() immediately without waiting for discover() to settle.
   await starting
+  discovered.resolve({ host: '192.0.2.1', port: 9999 })
+  await Promise.resolve()
   assert.throws(() => manager.client, /NO CLIENT/)
 })

@@ -91,12 +91,13 @@ class WechatyToken {
   toString () { return this.token }
 
   /** Reads the discovery response, treating 4xx responses as terminal misses. */
-  private async discoverApi (url: string): Promise<undefined | string> {
+  private async discoverApi (url: string, signal?: AbortSignal): Promise<undefined | string> {
     // Each lookup goes to the named authority without cookies, redirects, or cached addresses.
     const response = await fetch(url, {
       cache       : 'no-store',
       credentials : 'omit',
       redirect    : 'manual',
+      signal,
     })
 
     if (response.ok) {
@@ -115,8 +116,9 @@ class WechatyToken {
   }
 
   /** Resolves the service address when discovery returns a usable response. */
-  async discover (): Promise<undefined | PuppetServiceAddress> {
+  async discover (signal?: AbortSignal): Promise<undefined | PuppetServiceAddress> {
     log.verbose('WechatyToken', 'discover() for "%s"', this.token)
+    signal?.throwIfAborted()
 
     const url = `https://${this.authority}/v0/hosties/${this.token}`
 
@@ -124,9 +126,13 @@ class WechatyToken {
 
     try {
       jsonStr = await retryPolicy.execute(
-        () => this.discoverApi(url),
+        context => this.discoverApi(url, context.signal),
+        signal,
       )
     } catch (e) {
+      if (signal?.aborted) {
+        throw signal.reason
+      }
       log.warn('WechatyToken', 'discover() retry.execute(discoverApi) fail: %s', (e as Error).message)
       // console.error(e)
       return undefined

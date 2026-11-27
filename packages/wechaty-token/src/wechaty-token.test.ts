@@ -99,3 +99,19 @@ test('WechatyToken.discover() returns undefined for a malformed address', async 
   assert.equal(await new WechatyToken(TOKEN).discover(), undefined)
   assert.equal(request.mock.callCount(), 1)
 })
+
+test('WechatyToken.discover() aborts immediately when signal aborts', async t => {
+  const controller = new AbortController()
+  const reason = new Error('cancelled discovery')
+  const request = t.mock.method(globalThis, 'fetch', async (_url: unknown, init?: RequestInit) => {
+    assert.ok(init?.signal, 'fetch should receive an AbortSignal')
+    controller.abort(reason)
+    throw init.signal.reason
+  })
+
+  await assert.rejects(
+    new WechatyToken(TOKEN).discover(controller.signal),
+    error => error === reason,
+  )
+  assert.equal(request.mock.callCount(), 1)
+})

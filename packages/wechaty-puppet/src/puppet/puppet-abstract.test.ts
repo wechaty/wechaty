@@ -1227,6 +1227,28 @@ test('operation() returns a rejected promise when puppet is idle', async () => {
   assert.equal(rejected, true, 'operation() promise must reject with LifecycleUnsafeStateError when idle')
 })
 
+test('executeOperation() succeeds in the handoff window between onStart() settling and running commit', async () => {
+  const puppet = new PuppetTest()
+  let handoffPromise: Promise<string> | undefined
+
+  mock.method(puppet, 'onStart', async () => {
+    // Queue an operation in a microtask right as onStart settles, before ScopeLet commits 'running'.
+    queueMicrotask(() => {
+      if (puppet.isStarting) {
+        handoffPromise = (puppet as any).executeOperation(async (signal?: AbortSignal) => {
+          assert.ok(signal, 'startup handoff operation should receive scope signal')
+          return 'handoff-ok'
+        })
+      }
+    })
+  })
+
+  await puppet.start()
+  assert.ok(handoffPromise, 'microtask should have executed while state was still starting')
+  assert.equal(await handoffPromise, 'handoff-ok')
+  await puppet.stop()
+})
+
 
 
 
