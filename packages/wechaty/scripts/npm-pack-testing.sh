@@ -21,19 +21,38 @@ RESTORE_LIST="$TMPDIR/restore.tsv"
 backup_file () {
   local file=$1
   if [ -f "$file" ]; then
-    local backup="$TMPDIR/$(echo "$file" | tr '/.' '__')"
+    local backup
+    backup="$TMPDIR/$(echo "$file" | tr '/.' '__')"
     cp "$file" "$backup"
     printf "%s\t%s\n" "$file" "$backup" >> "$RESTORE_LIST"
   fi
 }
 
 cleanup () {
-  while IFS=$'\t' read -r file backup; do
-    [ -f "$backup" ] && cp "$backup" "$file"
-  done < "$RESTORE_LIST"
-  rm -rf "$TMPDIR"
+  local sig=${1:-}
+  trap - EXIT INT TERM
+  if [ -f "$RESTORE_LIST" ]; then
+    while IFS=$'\t' read -r file backup; do
+      if [ -f "$backup" ]; then
+        cp "$backup" "$file"
+      fi
+    done < "$RESTORE_LIST"
+  fi
+  if [ -d "$TMPDIR" ]; then
+    rm -rf "$TMPDIR"
+  fi
+  if [ -n "$sig" ]; then
+    kill -s "$sig" $$ 2>/dev/null || true
+    case "$sig" in
+      INT)  exit 130 ;;
+      TERM) exit 143 ;;
+      *)    exit 1 ;;
+    esac
+  fi
 }
-trap cleanup EXIT INT TERM
+trap 'cleanup' EXIT
+trap 'cleanup INT' INT
+trap 'cleanup TERM' TERM
 
 # The smoke test requires a real VERSION, which generate-package-json.sh embeds
 # in src/package-json.ts; put back exactly what was there, including

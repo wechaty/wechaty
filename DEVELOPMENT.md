@@ -42,8 +42,10 @@ Paths below are relative to `packages/wechaty` unless they start with `.github/`
 
 ## TypeScript and modules
 
-Wechaty is ESM-only. Use `import` instead of `require('wechaty')`; CommonJS
-builds and package entry points are no longer provided.
+Wechaty is ESM-only. Modern Node.js (>=26) natively supports loading Wechaty
+via `import` as well as CommonJS `require('wechaty')` (via Node.js native `require(esm)`
+and WinterTC `"node"` export condition). Dedicated legacy CommonJS build outputs are
+no longer generated.
 
 The project requires Node.js 26 and npm 10 or newer. `npm run build` and
 `npm run lint:ts` use TypeScript 7 via the `@typescript/native` npm alias.
