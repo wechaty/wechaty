@@ -86,9 +86,14 @@ import type {
   Message,
   Post,
 } from '../user-modules/mod.ts'
-import type {
-  Sayable,
-  SayableSayer,
+import {
+  combineAbortSignals,
+  deliverSayableStreamConversationPuppet,
+  isSayableStream,
+  type Sayable,
+  type SayableSayer,
+  type SayableStream,
+  type WechatySayStreamOptions,
 } from '../sayable/mod.ts'
 import type {
   WechatyPluginUninstaller,
@@ -390,12 +395,40 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
    */
   say (conversationId: string, text: string): Promise<void | string>
   say (sayable: Sayable): Promise<void>
-  async say (conversationOrSayable: string | Sayable, text?: string): Promise<void | string> {
-    log.verbose('Wechaty', 'say(%s%s)', conversationOrSayable, text ? `, ${text}` : '')
-    if (typeof conversationOrSayable === 'string' && typeof text === 'string') {
+  say (stream: SayableStream, options?: WechatySayStreamOptions): Promise<void | string>
+  async say (
+    conversationOrSayable: string | Sayable | SayableStream,
+    textOrOptions?: string | WechatySayStreamOptions,
+  ): Promise<void | string> {
+    log.verbose('Wechaty', 'say(%s%s)', conversationOrSayable, typeof textOrOptions === 'string' ? `, ${textOrOptions}` : '')
+    if (typeof conversationOrSayable === 'string' && typeof textOrOptions === 'string') {
       return this.puppet.operation(async () => {
-        const msgId = await this.puppet.messageSendText(conversationOrSayable, text)
+        const msgId = await this.puppet.messageSendText(conversationOrSayable, textOrOptions)
         return msgId || undefined
+      })
+    }
+    if (isSayableStream(conversationOrSayable)) {
+      const options = typeof textOrOptions === 'object' ? textOrOptions : undefined
+      if (typeof options?.to === 'string') {
+        const targetId = options.to
+        return this.puppet.operation(async signal => {
+          const msgId = await deliverSayableStreamConversationPuppet(this.puppet)(targetId)(conversationOrSayable, {
+            ...options,
+            signal: combineAbortSignals(signal, options.signal),
+          })
+          return msgId || undefined
+        })
+      }
+      if (options?.to) {
+        const target = options.to
+        return this.puppet.operation(async () => {
+          const msg = await target.say(conversationOrSayable, options)
+          return msg?.id
+        })
+      }
+      return this.puppet.operation(async () => {
+        await this.currentUser.say(conversationOrSayable, options)
+        return undefined
       })
     }
     return this.puppet.operation(async () => {

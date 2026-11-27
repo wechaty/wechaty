@@ -11,7 +11,107 @@ import {
   LocationImpl,
 }                     from '../user-modules/mod.ts'
 
-import type { Sayable } from './types.ts'
+import type { Sayable, SayableStream, SayableStreamOptions } from './types.ts'
+import { TokenCoalescer } from './token-coalescer.ts'
+
+/**
+ * Type guard for `ReadableStream<Sayable>` and `AsyncIterable<Sayable>`.
+ * Excludes `Post` instances (which implement `[Symbol.asyncIterator]`) so they
+ * continue to be delivered as `Post` payloads.
+ */
+function isSayableStream (value: unknown): value is SayableStream {
+  if (value === null || typeof value !== 'object') {
+    return false
+  }
+  if (PostImpl.validInstance(value)) {
+    return false
+  }
+  return value instanceof ReadableStream
+    || typeof (value as AsyncIterable<unknown>)[Symbol.asyncIterator] === 'function'
+}
+
+function combineAbortSignals (a?: AbortSignal, b?: AbortSignal): AbortSignal | undefined {
+  if (a && b) {
+    return AbortSignal.any([a, b])
+  }
+  return a ?? b
+}
+
+function raceWithAbort<T> (promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) {
+    return promise
+  }
+  if (signal.aborted) {
+    return Promise.reject(signal.reason)
+  }
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      reject(signal.reason)
+    }
+    signal.addEventListener('abort', onAbort, { once: true })
+    promise.then(
+      val => {
+        signal.removeEventListener('abort', onAbort)
+        resolve(val)
+      },
+      err => {
+        signal.removeEventListener('abort', onAbort)
+        reject(err)
+      },
+    )
+  })
+}
+
+async function * iterateSayableStream (
+  stream: SayableStream,
+  signal?: AbortSignal,
+): AsyncGenerator<Sayable> {
+  if (stream instanceof ReadableStream) {
+    const reader = stream.getReader()
+    let completed = false
+    try {
+      while (true) {
+        signal?.throwIfAborted()
+        const { done, value } = await raceWithAbort(reader.read(), signal)
+        if (done) {
+          completed = true
+          break
+        }
+        yield value
+      }
+    } finally {
+      if (!completed) {
+        const cancelPromise = reader.cancel(signal?.reason).catch(() => {})
+        if (!signal?.aborted) {
+          await cancelPromise
+        }
+      }
+      reader.releaseLock()
+    }
+    return
+  }
+
+  const iterator = stream[Symbol.asyncIterator]()
+  let completed = false
+  try {
+    while (true) {
+      signal?.throwIfAborted()
+      const { done, value } = await raceWithAbort(iterator.next(), signal)
+      if (done) {
+        completed = true
+        break
+      }
+      yield value
+    }
+  } finally {
+    if (!completed) {
+      const returnPromise = iterator.return?.().catch(() => {})
+      if (!signal?.aborted) {
+        await returnPromise
+      }
+    }
+  }
+}
 
 /**
  * TODO: add unit test to ensure the interface validation code works
@@ -105,6 +205,53 @@ const deliverSayableConversationPuppet = (puppet: PUPPET.Puppet) => (conversatio
   return msgId
 }
 
+/**
+ * Consume a `ReadableStream<Sayable>` or `AsyncIterable<Sayable>`, coalescing
+ * streaming text/number tokens (ADR-29) and flushing before non-text `Sayable`
+ * chunks or stream completion.
+ */
+const deliverSayableStreamConversationPuppet = (puppet: PUPPET.Puppet) => (conversationId: string) => async (
+  stream: SayableStream,
+  options?: SayableStreamOptions,
+): Promise<string | void> => {
+  const coalescer = new TokenCoalescer(options)
+  let lastMsgId: string | void = undefined
+
+  const sendText = async (text: string) => {
+    const msgId = await puppet.messageSendText(conversationId, text)
+    if (msgId) {
+      lastMsgId = msgId
+    }
+  }
+
+  const flushCoalescer = async () => {
+    const remaining = coalescer.flush()
+    if (remaining !== undefined) {
+      await sendText(remaining)
+    }
+  }
+
+  for await (const chunk of iterateSayableStream(stream, options?.signal)) {
+    if (typeof chunk === 'string' || typeof chunk === 'number') {
+      for (const text of coalescer.push(String(chunk))) {
+        await sendText(text)
+      }
+    } else {
+      await flushCoalescer()
+      const msgId = await deliverSayableConversationPuppet(puppet)(conversationId)(chunk)
+      if (msgId) {
+        lastMsgId = msgId
+      }
+    }
+  }
+
+  await flushCoalescer()
+  return lastMsgId
+}
+
 export {
+  combineAbortSignals,
   deliverSayableConversationPuppet,
+  deliverSayableStreamConversationPuppet,
+  isSayableStream,
 }

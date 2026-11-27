@@ -40,11 +40,16 @@ import {
   validationMixin,
 }                                     from '../user-mixins/mod.ts'
 import {
+  combineAbortSignals,
   deliverSayableConversationPuppet,
+  deliverSayableStreamConversationPuppet,
+  isSayableStream,
 }                                     from '../sayable/mod.ts'
 import type {
   SayableSayer,
   Sayable,
+  SayableStream,
+  SayableStreamOptions,
 }                                     from '../sayable/mod.ts'
 import { stringifyFilter }            from '../helper-functions/stringify-filter.ts'
 
@@ -336,13 +341,21 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
    *   in-flight calls drain before `stop()` completes.
    */
+  say (sayable: Sayable): Promise<void | Message>
+  say (stream: SayableStream, options?: SayableStreamOptions): Promise<void | Message>
   async say (
-    sayable: Sayable,
+    sayable: Sayable | SayableStream,
+    options?: SayableStreamOptions,
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayable)
 
     return this.wechaty.puppet.operation(async signal => {
-      const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
+      const msgId = isSayableStream(sayable)
+        ? await deliverSayableStreamConversationPuppet(this.wechaty.puppet)(this.id)(sayable, {
+            ...options,
+            signal: combineAbortSignals(signal, options?.signal),
+          })
+        : await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
 
       if (msgId) {
         const msg = await (this.wechaty.Message as any).find({ id: msgId }, signal)

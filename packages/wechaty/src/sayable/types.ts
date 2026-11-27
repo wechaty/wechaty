@@ -28,6 +28,7 @@ import type {
   Message,
   MiniProgram,
   Post,
+  Room,
   UrlLink,
 }                           from '../user-modules/mod.ts'
 
@@ -47,16 +48,45 @@ type Sayable =
   | string
   | UrlLink
 
+type SayableStream =
+  | ReadableStream<Sayable>
+  | AsyncIterable<Sayable>
+
+type SayableStreamMode =
+  | 'sentence'
+  | 'paragraph'
+  | 'adaptive'
+
+interface SayableStreamOptions {
+  /** Coalescing strategy for text/number tokens (default: `'sentence'`). */
+  mode?: SayableStreamMode
+  /** Minimum interval in ms between flushed sentence/adaptive chunks (default: `1200`). */
+  flushIntervalMs?: number
+  /** Maximum buffered characters before forcing a flush (default: `250`). */
+  maxChunkSize?: number
+  /** Optional AbortSignal to cancel stream consumption early. */
+  signal?: AbortSignal
+}
+
+interface WechatySayStreamOptions extends SayableStreamOptions {
+  /** Target Contact, Room, or conversation ID. Defaults to `bot.currentUser`. */
+  to?: Contact | Room | string
+}
+
 interface SayableSayer {
   id      : string,
   wechaty : Wechaty,
   say (
-    sayable  : Sayable,
-    replyTo? : Contact | Contact[]
+    sayable  : Sayable | SayableStream,
+    replyTo? : Contact | Contact[] | SayableStreamOptions
   ): Promise<void | Message>
 }
 
 export type {
   SayableSayer,
   Sayable,
+  SayableStream,
+  SayableStreamMode,
+  SayableStreamOptions,
+  WechatySayStreamOptions,
 }

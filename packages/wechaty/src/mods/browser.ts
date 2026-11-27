@@ -26,6 +26,14 @@ export {
 export type {
   SayableSayer,
   Sayable,
+  SayableStream,
+  SayableStreamMode,
+  SayableStreamOptions,
+  WechatySayStreamOptions,
+} from '../sayable/mod.ts'
+export {
+  TokenCoalescerTransform,
+  isSayableStream,
 } from '../sayable/mod.ts'
 
 export * as types from 'wechaty-puppet/types'

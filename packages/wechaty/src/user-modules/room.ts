@@ -43,11 +43,16 @@ import {
   validationMixin,
 }                                       from '../user-mixins/mod.ts'
 import {
+  combineAbortSignals,
   deliverSayableConversationPuppet,
+  deliverSayableStreamConversationPuppet,
+  isSayableStream,
 }                                       from '../sayable/mod.ts'
 import type {
   SayableSayer,
   Sayable,
+  SayableStream,
+  SayableStreamOptions,
 }                                       from '../sayable/mod.ts'
 import { stringifyFilter }              from '../helper-functions/stringify-filter.ts'
 
@@ -359,6 +364,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
   }
 
   say (sayable:  Sayable)                                 : Promise<void | Message>
+  say (stream:   SayableStream, options?: SayableStreamOptions) : Promise<void | Message>
   say (text:     string, ...mentionList: Contact[])       : Promise<void | Message>
   say (textList: TemplateStringsArray, ...varList: any[]) : Promise<void | Message>
 
@@ -448,7 +454,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   in-flight calls drain before `stop()` completes.
    */
   async say (
-    sayable    : Sayable | TemplateStringsArray,
+    sayable    : Sayable | SayableStream | TemplateStringsArray,
     ...varList : unknown[]
   ): Promise<void | Message> {
 
@@ -496,6 +502,12 @@ class RoomMixin extends MixinBase implements SayableSayer {
           text,
           mentionList.map(c => c.id),
         )
+      } else if (isSayableStream(sayable)) {
+        const options = varList[0] as SayableStreamOptions | undefined
+        msgId = await deliverSayableStreamConversationPuppet(this.wechaty.puppet)(this.id)(sayable, {
+          ...options,
+          signal: combineAbortSignals(signal, options?.signal),
+        })
       } else {
         msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
       }

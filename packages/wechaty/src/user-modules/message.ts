@@ -41,8 +41,11 @@ import {
 import type {
   SayableSayer,
   Sayable,
+  SayableStream,
+  SayableStreamOptions,
 }                             from '../sayable/mod.ts'
 import {
+  isSayableStream,
   messageToSayable,
 }                             from '../sayable/mod.ts'
 
@@ -556,8 +559,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
+  say (sayable: Sayable): Promise<void | Message>
+  say (stream: SayableStream, options?: SayableStreamOptions): Promise<void | Message>
   async say (
-    sayable: Sayable,
+    sayable: Sayable | SayableStream,
+    options?: SayableStreamOptions,
   ): Promise<void | Message> {
     log.verbose('Message', 'say(%s)', sayable)
 
@@ -565,9 +571,13 @@ class MessageMixin extends MixinBase implements SayableSayer {
     const room    = this.room()
 
     if (room) {
-      return room.say(sayable)
+      return isSayableStream(sayable)
+        ? room.say(sayable, options)
+        : room.say(sayable)
     } else {
-      return talker.say(sayable)
+      return isSayableStream(sayable)
+        ? talker.say(sayable, options)
+        : talker.say(sayable)
     }
   }
 
