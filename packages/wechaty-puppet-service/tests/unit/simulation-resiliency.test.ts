@@ -688,6 +688,21 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       assert.equal(client.isLoggedIn, true)
       assert.equal(client.currentUserId, 'self-user-2')
       assert.equal(remoteLogoutCalls, 0, 'account-switch LOGIN replay must not send remote logout RPC')
+
+      // Backend logout while disconnected must reconcile local auth to logged out on reconnect
+      await server.stop()
+      await client.grpcManager.whenState(s => s.kind === 'starting')
+      await backend.logout('logged-out-offline')
+
+      await server.start()
+      while (clock.pendingCount === 0) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      await clock.advanceBy(100)
+      await client.grpcManager.whenRunning()
+      await new Promise(resolve => setTimeout(resolve, 40))
+
+      assert.equal(client.isLoggedIn, false)
     } finally {
       await client.stop().catch(() => {})
       await server.stop().catch(() => {})

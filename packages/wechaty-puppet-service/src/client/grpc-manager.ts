@@ -107,6 +107,9 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   private reconnectAttempt = 0
   private streamHealthy = false
   private remoteStopPending = false
+  private remoteSessionActive = false
+  private recovering = false
+  private inConnectAttempt = false
   private currentAttemptCleanup?: () => void
   private readonly reconnectOptions: Required<Pick<GrpcReconnectOptions, 'enabled' | 'baseDelayMs' | 'maxDelayMs'>> & {
     maxAttempts?: number
@@ -235,6 +238,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   stop (options?: LifecycleWaitOptions): Promise<void> {
     if (!options?.signal?.aborted) {
       this.reconnectAttempt = 0
+      this.recovering = false
     }
     return this.lifecycle.stop(options)
   }
@@ -244,6 +248,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     const isDirty = this.state.kind === 'failed' && !this.state.cleanupComplete
     if (!options?.signal?.aborted && !isDirty) {
       this.reconnectAttempt = 0
+      this.recovering = false
     }
     return this.lifecycle.restart(options)
   }
@@ -280,7 +285,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
 
   /** Trigger ScopeLet recovery on unexpected stream loss, or fail if recovery is disabled or `maxAttempts` is exceeded. */
   private handleStreamLoss (scope: LifecycleScope, reason: unknown): void {
-    if (scope.signal.aborted || this.isStopping) {
+    if (scope.signal.aborted || this.isStopping || this.inConnectAttempt) {
       return
     }
     if (!this.reconnectOptions.enabled || !this.isRunning) {
@@ -295,8 +300,11 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       scope.fail(reason)
       return
     }
+    this.recovering = true
     if (scope.recover(reason) === 'accepted') {
       this.reconnectAttempt = nextAttempt
+    } else {
+      this.recovering = false
     }
   }
 
@@ -329,6 +337,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     }
     this.remoteStopPending = false
     this.streamHealthy = false
+    this.inConnectAttempt = true
 
     try {
       await this.initClient(attemptController.signal)
@@ -345,6 +354,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       this.remoteStopPending = true
       try {
         await this.client.start({}, { signal: attemptController.signal })
+        this.remoteSessionActive = true
       } catch (err) {
         if (!scope.signal.aborted) {
           this.remoteStopPending = false
@@ -363,32 +373,55 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       // Fence the discarded attempt's stream and detach scope.signal listener before destroyClient().
       cleanupAttempt()
       throw err
+    } finally {
+      this.inConnectAttempt = false
     }
   }
 
   /** Stop the remote puppet at most once, bounded by `stopTimeoutMs`. */
-  private async stopRemoteOnce (signal?: AbortSignal): Promise<void> {
-    if (!this.remoteStopPending || !this._client) {
+  private async stopRemoteOnce (
+    signal?: AbortSignal,
+    options?: { allowEphemeral?: boolean, suppressErrors?: boolean },
+  ): Promise<void> {
+    if (this.recovering) {
+      return
+    }
+    const useExisting = this.remoteStopPending && Boolean(this._client)
+    const useEphemeral = Boolean(options?.allowEphemeral) && !this._client && this.remoteSessionActive && this.isStopping
+    if (!useExisting && !useEphemeral) {
       return
     }
     this.remoteStopPending = false
-    const client = this._client
+    this.remoteSessionActive = false
+
     const timeoutMs = this.options.stopTimeoutMs ?? 5000
     const timeoutController = new AbortController()
     const onParentAbort = () => timeoutController.abort(signal?.reason)
     signal?.addEventListener('abort', onParentAbort, { once: true })
-    const clock = this.options.clock
-    const onTimeout = () => timeoutController.abort(new Error(`Remote stop timed out after ${timeoutMs}ms`))
+    const clock = useEphemeral ? undefined : this.options.clock
+    const effectiveTimeoutMs = useEphemeral ? Math.min(timeoutMs, 1000) : timeoutMs
+    const onTimeout = () => timeoutController.abort(new Error(`Remote stop timed out after ${effectiveTimeoutMs}ms`))
     const timer = clock
-      ? clock.setTimeout(onTimeout, timeoutMs)
-      : setTimeout(onTimeout, timeoutMs)
+      ? clock.setTimeout(onTimeout, effectiveTimeoutMs)
+      : setTimeout(onTimeout, effectiveTimeoutMs)
     try {
+      if (useEphemeral) {
+        await this.initClient(timeoutController.signal)
+      }
+      if (!this._client) {
+        return
+      }
       log.verbose('GrpcManager', 'stopRemoteOnce() stop client ...')
-      await raceAbort(client.stop({}, { signal: timeoutController.signal }), timeoutController.signal)
+      await raceAbort(this._client.stop({}, { signal: timeoutController.signal }), timeoutController.signal)
       log.verbose('GrpcManager', 'stopRemoteOnce() stop client ... done')
     } catch (e) {
-      this.emit('error', e)
+      if (!options?.suppressErrors && !useEphemeral) {
+        this.emit('error', e)
+      }
     } finally {
+      if (useEphemeral) {
+        this.destroyClient()
+      }
       signal?.removeEventListener('abort', onParentAbort)
       if (clock) {
         clock.clearTimeout(timer)
@@ -401,10 +434,11 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   /** Start the local transport and event stream under ScopeLet's lifecycle. */
   protected async onStart (scope: LifecycleScope): Promise<void> {
     log.verbose('GrpcManager', 'onStart()')
+    this.recovering = false
     this.remoteStopPending = false
     // LIFO order: stopRemoteOnce runs before destroyClient() if startup is aborted.
     scope.defer(() => this.destroyClient())
-    scope.defer(() => this.stopRemoteOnce())
+    scope.defer(() => this.stopRemoteOnce(undefined, { allowEphemeral: true, suppressErrors: true }))
     scope.defer(() => this.currentAttemptCleanup?.())
 
     try {

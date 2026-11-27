@@ -175,7 +175,9 @@ class PuppetService extends PUPPET.Puppet {
       })
       .on('reconnect', () => {
         this.enqueueAuthTransition(async () => {
-          if (this.isLoggedIn && !this.sawLoginSinceReconnect) {
+          // Yield a short turn so async iterator.next() can deliver any replayed LOGIN before reconciling.
+          await new Promise(resolve => setTimeout(resolve, 20))
+          if (this.isActive && this.isLoggedIn && !this.sawLoginSinceReconnect) {
             await super.logout('reconcile')
           }
         })
