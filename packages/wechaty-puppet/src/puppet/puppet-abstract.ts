@@ -581,8 +581,8 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * zero static `node:` imports so browser/WinterTC bundles remain unaffected.
    */
   readonly #operationContext: {
-    getStore (): { signal: AbortSignal, active: boolean } | undefined
-    run<R> (store: { signal: AbortSignal, active: boolean }, fn: () => R): R
+    getStore (): { signal: AbortSignal, active: boolean, pending: Set<Promise<unknown>> } | undefined
+    run<R> (store: { signal: AbortSignal, active: boolean, pending: Set<Promise<unknown>> }, fn: () => R): R
   } | undefined = (() => {
     const mod = (globalThis as { process?: { getBuiltinModule?: (id: string) => any } })
       .process?.getBuiltinModule?.('node:async_hooks')
@@ -594,10 +594,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * Retirement waits for all active operations to finish under stop timeout.
    *
    * Re-entrant calls made while an owning operation on this Puppet is still active
-   * reuse that operation's `AbortSignal` (even during `'stopping'` drain) in runtimes
-   * providing `node:async_hooks` (`AsyncLocalStorage`). Once the owning operation finishes
-   * (`active = false`), detached continuations fall back to `this.#lifecycle.operation()`
-   * and reject if stopped or stopping. In browser/WinterTC runtimes without `AsyncLocalStorage`,
+   * reuse that operation's `AbortSignal` (even during `'stopping'` drain) and are
+   * joined before the outer operation completes in runtimes providing `node:async_hooks`
+   * (`AsyncLocalStorage`). Once the owning operation finishes (`active = false`),
+   * detached continuations fall back to `this.#lifecycle.operation()` and reject if
+   * stopped or stopping. In browser/WinterTC runtimes without `AsyncLocalStorage`,
    * re-entrancy is not inherited and nested calls during `'stopping'` are rejected.
    *
    * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
@@ -607,16 +608,22 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
     const entry = this.#operationContext?.getStore()
     if (entry?.active) {
-      return (async () => work(entry.signal))()
+      const nested = (async () => work(entry.signal))()
+      entry.pending.add(nested)
+      void nested.finally(() => entry.pending.delete(nested))
+      return nested
     }
     return this.#lifecycle.operation(async signal => {
       if (!this.#operationContext) {
         return work(signal)
       }
-      const ctx = { signal, active: true }
+      const ctx = { signal, active: true, pending: new Set<Promise<unknown>>() }
       try {
         return await this.#operationContext.run(ctx, () => work(signal))
       } finally {
+        while (ctx.pending.size > 0) {
+          await Promise.allSettled([...ctx.pending])
+        }
         ctx.active = false
       }
     })
@@ -626,7 +633,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * Run a compatibility operation. Running calls use the controller, provider
    * startup calls use their startup scope, and idle calls receive no signal.
    * Calls made while an owning `operation()` is active reuse that operation's
-   * signal so multi-step domain methods drain cleanly before `onStop()`.
+   * signal and are joined before the owning operation completes.
    */
   async executeOperation<T> (work: (signal?: AbortSignal) => T | PromiseLike<T>): Promise<T> {
     if (this.#startupOperation) {
@@ -634,7 +641,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }
     const entry = this.#operationContext?.getStore()
     if (entry?.active) {
-      return work(entry.signal)
+      const nested = (async () => work(entry.signal))()
+      entry.pending.add(nested)
+      void nested.finally(() => entry.pending.delete(nested))
+      return nested
     }
     const state = this.#lifecycle.state
     if (this.#run || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {

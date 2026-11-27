@@ -874,6 +874,7 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
   const acceptP = f.accept()
   await fEntered.promise
   const stopP2 = bot2.stop()
+  await bot2.puppet.whenState(s => s.kind === 'stopping')
   fGate.resolve()
   await acceptP
   await stopP2
@@ -893,6 +894,7 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
   const pubP = bot3.publish({ payload: { sayableList: [] } } as any)
   await pubEntered.promise
   const stopP3 = bot3.stop()
+  await bot3.puppet.whenState(s => s.kind === 'stopping')
   pubGate.resolve()
   const publishedPost = await pubP
   await stopP3

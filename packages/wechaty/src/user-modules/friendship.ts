@@ -290,12 +290,16 @@ class FriendshipMixin extends MixinBase implements Accepter {
           log.verbose('Friendship', 'accept() with contact %s ready()', contact.name())
         }
 
-        await retryPolicy.execute(doSync)
+        await retryPolicy.execute(doSync, signal)
 
       } catch (e) {
         this.wechaty.emitError(e)
         log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, (e && (e as Error).message) || e)
         // console.error(e)
+      }
+
+      if (signal.aborted) {
+        return
       }
 
       // try to fix issue #293 - https://github.com/wechaty/wechaty/issues/293
