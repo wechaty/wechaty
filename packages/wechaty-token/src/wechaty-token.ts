@@ -97,7 +97,7 @@ class WechatyToken {
       cache       : 'no-store',
       credentials : 'omit',
       redirect    : 'manual',
-      signal,
+      ...(signal ? { signal } : {}),
     })
 
     if (response.ok) {
@@ -126,7 +126,7 @@ class WechatyToken {
 
     try {
       jsonStr = await retryPolicy.execute(
-        context => this.discoverApi(url, context.signal),
+        context => this.discoverApi(url, signal ? context.signal : undefined),
         signal,
       )
     } catch (e) {
