@@ -315,6 +315,18 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     assert.equal((await puppet.messageFile(storedSentPost.sayableList[1]!)).name, 'emo.gif')
     assert.equal((await puppet.messagePayload(storedSentPost.sayableList[2]!)).type, PUPPET.types.Message.Post)
 
+    // Forwarding a PostServer clones counter so tapping the forward does not mutate the source post
+    await puppet.tap(sentPostId as string, PUPPET.types.Tap.Like, true)
+    const fwdTypedPost = await puppet.messageForward(bob.id, sentPostId as string)
+    await puppet.tap(fwdTypedPost as string, PUPPET.types.Tap.Like, false)
+    assert.equal(((await puppet.postPayload(sentPostId as string)) as PUPPET.payloads.PostServer).counter.taps?.[PUPPET.types.Tap.Like], 1)
+
+    // Forwarding an Emoticon (including .gif) preserves Message.Emoticon instead of downgrading to Unknown
+    const emoMsgId = storedSentPost.sayableList[1] as string
+    const fwdEmo = await puppet.messageForward(bob.id, emoMsgId)
+    assert.equal((await puppet.messagePayload(fwdEmo as string)).type, PUPPET.types.Message.Emoticon)
+    assert.equal((await puppet.messageFile(fwdEmo as string)).name, 'emo.gif')
+
     const rootId = await puppet.postPublish({ sayableList: [{ payload: { mentions: [], text: 'root' }, type: PUPPET.types.Sayable.Text }], type: PUPPET.types.Post.Moment }) as string
     const childId = await puppet.postPublish({ parentId: rootId, rootId, sayableList: [], type: PUPPET.types.Post.Moment }) as string
     await puppet.postPublish({ parentId: childId, rootId, sayableList: [], type: PUPPET.types.Post.Moment })

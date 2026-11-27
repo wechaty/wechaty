@@ -468,7 +468,11 @@ class PuppetMock extends PUPPET.Puppet {
       ...payload,
       contactId,
       counter: ('counter' in payload && payload.counter)
-        ? payload.counter
+        ? {
+            children: payload.counter.children ?? 0,
+            descendant: payload.counter.descendant ?? 0,
+            taps: { ...payload.counter.taps },
+          }
         : { children: 0, descendant: 0, taps: {} },
       id,
       sayableList: sayableIdList,
@@ -625,7 +629,9 @@ class PuppetMock extends PUPPET.Puppet {
     }
     const fileJson = this.mocker.cacheFileBoxPayload.get(messageId)
     if (fileJson) {
-      return this.messageSendFile(conversationId, FileBox.fromJSON(fileJson))
+      return this._createTypedMessage(conversationId, original.type, original.text, (id) => {
+        this.mocker.cacheFileBoxPayload.set(id, structuredClone(fileJson))
+      })
     }
     return this._createTypedMessage(conversationId, original.type, original.text)
   }

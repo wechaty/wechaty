@@ -65,6 +65,11 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
       if (timer !== undefined) clearTimeout(timer)
     }
   }
+  const registerStop = (t: { after: (fn: () => Promise<void> | void) => void }, puppet: PUPPET.Puppet, label: string): void => {
+    t.after(async () => {
+      await withWatchdog(puppet.stop().catch(() => undefined), `${label} cleanup`)
+    })
+  }
 
   describe(`Puppet TCK: ${name}`, () => {
     /**
@@ -73,9 +78,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
     describe('Suite 1: Lifecycle & State Transitions', () => {
       test('C-START-01 & C-STOP-01: start() commits running and stop() unwinds cleanly', async (t) => {
         const puppet = createPuppet()
-        t.after(async () => {
-          await puppet.stop().catch(() => undefined)
-        })
+        registerStop(t, puppet, 'C-START-01')
 
         assert.equal(puppet.isStopped, true, 'new puppet starts in stopped state')
         await puppet.start()
@@ -87,9 +90,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
 
       test('C-RESTART-01: restart() transitions running -> stopping -> starting -> running', async (t) => {
         const puppet = createPuppet()
-        t.after(async () => {
-          await puppet.stop().catch(() => undefined)
-        })
+        registerStop(t, puppet, 'C-RESTART-01')
 
         await puppet.start()
         assert.equal(puppet.isRunning, true)
@@ -100,9 +101,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
 
       test('C-COND-01: ready() and isLoggedIn reset across generations', async (t) => {
         const puppet = createPuppet()
-        t.after(async () => {
-          await puppet.stop().catch(() => undefined)
-        })
+        registerStop(t, puppet, 'C-COND-01')
 
         const preStartReady = puppet.ready()
         await puppet.start()
@@ -112,7 +111,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
           (puppet as unknown as { login (userId: string): void }).login('tck-user')
           puppet.dispatchEvent(new PUPPET.WechatyEvent('ready', { detail: { data: 'ready' } }))
         }
-        await preStartReady
+        await withWatchdog(preStartReady, 'C-COND-01 first ready()')
         assert.equal(puppet.isLoggedIn, true, 'logged in during first generation')
 
         await puppet.stop()
@@ -126,7 +125,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
           (puppet as unknown as { login (userId: string): void }).login('tck-user')
           puppet.dispatchEvent(new PUPPET.WechatyEvent('ready', { detail: { data: 'ready' } }))
         }
-        await nextGenReady
+        await withWatchdog(nextGenReady, 'C-COND-01 second ready()')
         assert.equal(puppet.isLoggedIn, true, 'ready() settles on second generation')
       })
 
@@ -160,9 +159,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
       describe('Suite 2: Domain & Resource Compliance', () => {
         test('C-CONTACTS-01 & C-CONTACTS-02: contactList() and contactPayload() contract', async (t) => {
           const puppet = createPuppet()
-          t.after(async () => {
-            await puppet.stop().catch(() => undefined)
-          })
+          registerStop(t, puppet, 'C-CONTACTS')
 
           await puppet.start()
           const { contactId } = await seedDomain(puppet)
@@ -183,9 +180,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
 
         test('C-ROOMS-01 & C-ROOMS-02: roomPayload() and roomAdd/roomDel symmetry', async (t) => {
           const puppet = createPuppet()
-          t.after(async () => {
-            await puppet.stop().catch(() => undefined)
-          })
+          registerStop(t, puppet, 'C-ROOMS')
 
           await puppet.start()
           const { roomId, contactId } = await seedDomain(puppet)
@@ -204,9 +199,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
 
         test('C-MESSAGES-01: messageSendText() returns a non-empty string messageId', async (t) => {
           const puppet = createPuppet()
-          t.after(async () => {
-            await puppet.stop().catch(() => undefined)
-          })
+          registerStop(t, puppet, 'C-MESSAGES')
 
           await puppet.start()
           const { contactId } = await seedDomain(puppet)
@@ -224,9 +217,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
     describe('Suite 3: Event Stream & DTO Purity', () => {
       test('C-EVENT-01: error events emit serializable error payloads', async (t) => {
         const puppet = createPuppet()
-        t.after(async () => {
-          await puppet.stop().catch(() => undefined)
-        })
+        registerStop(t, puppet, 'C-EVENT-01')
 
         await puppet.start()
         const errorFuture = puppet.next('error')
@@ -234,15 +225,13 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
           detail: { data: 'tck-error-dto', gerror: JSON.stringify({ message: 'tck-error' }) },
         }))
 
-        const detail = await errorFuture
+        const detail = await withWatchdog(errorFuture, 'C-EVENT-01 error event')
         assert.doesNotThrow(() => JSON.stringify(detail), 'error detail is JSON-serializable')
       })
 
       test('C-EVENT-02: scan events carry valid ScanStatus transitions', async (t) => {
         const puppet = createPuppet()
-        t.after(async () => {
-          await puppet.stop().catch(() => undefined)
-        })
+        registerStop(t, puppet, 'C-EVENT-02')
 
         await puppet.start()
         const seen: PUPPET.types.ScanStatus[] = []
@@ -270,9 +259,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
       if (seedDomain) {
         test('C-EVENT-03: dirty invalidation fires before updated payload reads', async (t) => {
           const puppet = createPuppet()
-          t.after(async () => {
-            await puppet.stop().catch(() => undefined)
-          })
+          registerStop(t, puppet, 'C-EVENT-03')
 
           await puppet.start()
           const { contactId } = await seedDomain(puppet)
@@ -296,9 +283,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
     describe('Suite 4: Cooperative Cancellation Invariants', () => {
       test('C-CANCEL-01: pre-aborted AbortSignal rejects immediately', async (t) => {
         const puppet = createPuppet()
-        t.after(async () => {
-          await puppet.stop().catch(() => undefined)
-        })
+        registerStop(t, puppet, 'C-CANCEL-01')
 
         await puppet.start()
         const reason = new Error('tck-pre-aborted')
@@ -319,9 +304,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
 
       test('C-CANCEL-02: stop() drains active operations and rejects post-stop operations', async (t) => {
         const puppet = createPuppet()
-        t.after(async () => {
-          await puppet.stop().catch(() => undefined)
-        })
+        registerStop(t, puppet, 'C-CANCEL-02')
 
         await puppet.start()
 
@@ -341,8 +324,8 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
         assert.equal(inFlightFinished, false, 'stop() waits for in-flight operation()')
 
         resolveGate()
-        assert.equal(await opPromise, 'drained')
-        await stopPromise
+        assert.equal(await withWatchdog(opPromise, 'C-CANCEL-02 operation()'), 'drained')
+        await withWatchdog(stopPromise, 'C-CANCEL-02 stop()')
 
         await assert.rejects(
           () => puppet.operation(async () => 'should-fail'),

@@ -18,6 +18,30 @@ import {
   type Contact,
 } from './mods/browser.ts'
 
+const withWatchdog = async <T>(promise: Promise<T>, label: string, timeoutMs = 5_000): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timer !== undefined) clearTimeout(timer)
+  }
+}
+
+const registerStop = (
+  t: { after: (fn: () => Promise<void> | void) => void },
+  bot: Wechaty,
+  label: string,
+): void => {
+  t.after(async () => {
+    await withWatchdog(bot.stop().catch(() => undefined), `${label} cleanup`)
+  })
+}
+
 describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
   test('Public API: ContactSelf, Contact, Tag, Room, Friendship & useScoped()', async (t) => {
     const { puppet, alice, bob, room, loginReady } = await createMockWorld(t, { autoStart: false })
@@ -31,9 +55,7 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
       }
     })
 
-    t.after(async () => {
-      await bot.stop().catch(() => undefined)
-    })
+    registerStop(t, bot, 'Public API')
 
     await bot.start()
     await loginReady()
@@ -69,14 +91,19 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
   test('Recipe 1: Ding-Dong Responder', async (t) => {
     const { puppet, botUser, alice, loginReady } = await createMockWorld(t, { autoStart: false })
     const bot = new Wechaty({ puppet })
-    t.after(async () => {
-      await bot.stop().catch(() => undefined)
-    })
+    registerStop(t, bot, 'Recipe 1')
 
     const replyFuture = new Promise<string>((resolve) => {
       alice.on('message', (msg) => {
         if (msg.text() === 'dong') {
           resolve(msg.text() ?? '')
+        }
+      })
+    })
+    const botHydratedDong = new Promise<void>((resolve) => {
+      bot.addEventListener('message', ({ detail: msg }) => {
+        if (msg.text() === 'dong') {
+          resolve()
         }
       })
     })
@@ -91,20 +118,26 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     await bot.start()
     await loginReady()
     alice.say('ding').to(botUser)
-    assert.equal(await replyFuture, 'dong')
+    const [reply] = await withWatchdog(Promise.all([replyFuture, botHydratedDong]), 'Recipe 1 reply')
+    assert.equal(reply, 'dong')
   })
 
   test('Recipe 2: Room Greeter & Anti-Spam Recall/Kick', async (t) => {
     const { puppet, bob, room, loginReady } = await createMockWorld(t, { autoStart: false })
     const bot = new Wechaty({ puppet })
-    t.after(async () => {
-      await bot.stop().catch(() => undefined)
-    })
+    registerStop(t, bot, 'Recipe 2')
 
     const welcomeFuture = new Promise<string>((resolve) => {
       room.on('message', (msg) => {
         if (msg.text()?.includes('Welcome')) {
           resolve(msg.text() ?? '')
+        }
+      })
+    })
+    const botHydratedWelcome = new Promise<void>((resolve) => {
+      bot.addEventListener('message', ({ detail: msg }) => {
+        if (msg.text()?.includes('Welcome')) {
+          resolve()
         }
       })
     })
@@ -133,24 +166,30 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     await bot.start()
     await loginReady()
     await puppet.roomAdd(room.id, bob.id)
-    assert.equal(await welcomeFuture, 'Welcome Bob!')
+    const [welcome] = await withWatchdog(Promise.all([welcomeFuture, botHydratedWelcome]), 'Recipe 2 welcome')
+    assert.equal(welcome, 'Welcome Bob!')
 
     bob.say('Buy SPAM now').to(room)
-    const [leaveEvent] = await Promise.all([kickedFuture, recalledNoticeFuture])
+    const [leaveEvent] = await withWatchdog(Promise.all([kickedFuture, recalledNoticeFuture]), 'Recipe 2 kick')
     assert.ok(leaveEvent.leaverList.some((c) => c.id === bob.id))
   })
 
   test('Recipe 3: Auto-Accept Friendship & Group Onboarding', async (t) => {
     const { puppet, bob, room, loginReady } = await createMockWorld(t, { autoStart: false })
     const bot = new Wechaty({ puppet })
-    t.after(async () => {
-      await bot.stop().catch(() => undefined)
-    })
+    registerStop(t, bot, 'Recipe 3')
 
     const welcomeDmFuture = new Promise<string>((resolve) => {
       bob.on('message', (msg) => {
         if (msg.text()?.includes('onboarded')) {
           resolve(msg.text() ?? '')
+        }
+      })
+    })
+    const botHydratedDm = new Promise<void>((resolve) => {
+      bot.addEventListener('message', ({ detail: msg }) => {
+        if (msg.text()?.includes('onboarded')) {
+          resolve()
         }
       })
     })
@@ -179,22 +218,30 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     await loginReady()
     puppet.mocker.receiveFriendship(bob, 'hello wechaty', types.Friendship.Receive)
 
-    assert.equal(await welcomeDmFuture, 'You are onboarded!')
-    const [joinEvent] = await Promise.all([joinedRoomFuture, confirmFriendshipFuture])
+    const [dm, joinEvent] = await withWatchdog(
+      Promise.all([welcomeDmFuture, joinedRoomFuture, confirmFriendshipFuture, botHydratedDm]),
+      'Recipe 3 onboarding',
+    )
+    assert.equal(dm, 'You are onboarded!')
     assert.ok(joinEvent.inviteeList.some((c) => c.id === bob.id))
   })
 
   test('Recipe 4: Cross-Chat Forwarder', async (t) => {
     const { puppet, botUser, alice, room, loginReady } = await createMockWorld(t, { autoStart: false })
     const bot = new Wechaty({ puppet })
-    t.after(async () => {
-      await bot.stop().catch(() => undefined)
-    })
+    registerStop(t, bot, 'Recipe 4')
 
     const forwardedFuture = new Promise<string>((resolve) => {
       room.on('message', (msg) => {
         if (msg.text() === 'important update') {
           resolve(msg.text() ?? '')
+        }
+      })
+    })
+    const botHydratedForward = new Promise<void>((resolve) => {
+      bot.addEventListener('message', ({ detail: msg }) => {
+        if (msg.room()?.id === room.id && msg.text() === 'important update') {
+          resolve()
         }
       })
     })
@@ -211,15 +258,14 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     await bot.start()
     await loginReady()
     alice.say('important update').to(botUser)
-    assert.equal(await forwardedFuture, 'important update')
+    const [forwarded] = await withWatchdog(Promise.all([forwardedFuture, botHydratedForward]), 'Recipe 4 forward')
+    assert.equal(forwarded, 'important update')
   })
 
   test('Recipe 5: AI Agent Stream Consumer with AbortController', async (t) => {
     const { puppet, botUser, alice, loginReady } = await createMockWorld(t, { autoStart: false })
     const bot = new Wechaty({ puppet })
-    t.after(async () => {
-      await bot.stop().catch(() => undefined)
-    })
+    registerStop(t, bot, 'Recipe 5')
 
     await bot.start()
     await loginReady()
@@ -239,7 +285,7 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     alice.say('prompt-1').to(botUser)
     alice.say('prompt-2').to(botUser)
 
-    await loopPromise
+    await withWatchdog(loopPromise, 'Recipe 5 stream')
     assert.deepEqual(received, ['prompt-1', 'prompt-2'])
   })
 })
