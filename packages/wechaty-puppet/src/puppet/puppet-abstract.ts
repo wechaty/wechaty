@@ -14,9 +14,6 @@ import {
   timeoutPromise,
 }                       from 'gerror'
 import { MemoryCard }   from 'memory-card'
-import {
-  BooleanIndicator,
-}                       from 'state-switch'
 import type {
   Lifecycle,
   LifecycleConditionHandle,
@@ -28,6 +25,23 @@ import type {
 import {
   createLifecycle,
 }                       from 'scopelet'
+
+/**
+ * Minimal boolean readiness indicator replacing the legacy `state-switch` `BooleanIndicator`.
+ */
+export class BooleanIndicator {
+
+  #value = false
+
+  /** Get or set the current boolean readiness value. */
+  value (next?: boolean): boolean {
+    if (next !== undefined) {
+      this.#value = next
+    }
+    return this.#value
+  }
+
+}
 
 /**
  * Combined lifecycle state interface exposing modern LifecycleState properties
