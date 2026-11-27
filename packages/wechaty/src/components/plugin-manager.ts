@@ -63,7 +63,7 @@ export class PluginManager {
 
     for (const plugin of pluginList) {
       log.verbose('PluginManager', 'use(%s)', plugin.name)
-      const uninstaller = plugin(this.#wechaty, this.#activeScope)
+      const uninstaller = plugin(this.#wechaty)
       if (isWechatyPluginUninstaller(uninstaller)) {
         uninstallerList.push(uninstaller)
       }
@@ -90,20 +90,28 @@ export class PluginManager {
     const pluginList = plugins.flat()
     const entries: ScopedEntry[] = []
 
-    for (const plugin of pluginList) {
-      log.verbose('PluginManager', 'useScoped(%s)', plugin.name)
-      const entry: ScopedEntry = { plugin }
-      this.#scopedEntries.add(entry)
-      entries.push(entry)
-      if (this.#activeScope && !this.#activeScope.signal.aborted) {
-        this.#installEntry(entry, this.#activeScope)
+    try {
+      for (const plugin of pluginList) {
+        log.verbose('PluginManager', 'useScoped(%s)', plugin.name)
+        const entry: ScopedEntry = { plugin }
+        this.#scopedEntries.add(entry)
+        entries.push(entry)
+        if (this.#activeScope && !this.#activeScope.signal.aborted) {
+          this.#installEntry(entry, this.#activeScope)
+        }
       }
+    } catch (err) {
+      for (const entry of entries.reverse()) {
+        this.#scopedEntries.delete(entry)
+        void Promise.resolve(entry.currentUninstall?.()).catch(() => {})
+      }
+      throw err
     }
 
     return () => {
       for (const entry of entries) {
         this.#scopedEntries.delete(entry)
-        entry.currentUninstall?.()
+        void Promise.resolve(entry.currentUninstall?.()).catch(() => {})
       }
     }
   }
@@ -116,7 +124,7 @@ export class PluginManager {
         this.#activeScope = undefined
       }
     })
-    for (const entry of this.#scopedEntries) {
+    for (const entry of [...this.#scopedEntries]) {
       this.#installEntry(entry, scope)
     }
   }
@@ -124,17 +132,36 @@ export class PluginManager {
   #installEntry (entry: ScopedEntry, scope: LifecycleScope): void {
     const ret = entry.plugin(this.#wechaty, scope)
     let uninstalled = false
-    const runUninstall = () => {
+    let inFlight: Promise<void> | undefined
+    const runUninstall = (): Promise<void> | void => {
       if (uninstalled) {
         return
       }
-      uninstalled = true
-      if (entry.currentUninstall === runUninstall) {
-        entry.currentUninstall = undefined
+      if (inFlight) {
+        return inFlight
       }
-      if (isWechatyPluginUninstaller(ret)) {
-        ret()
+      if (!isWechatyPluginUninstaller(ret)) {
+        uninstalled = true
+        if (entry.currentUninstall === runUninstall) {
+          entry.currentUninstall = undefined
+        }
+        return
       }
+      const p = Promise.resolve(ret()).then(
+        () => {
+          uninstalled = true
+          inFlight = undefined
+          if (entry.currentUninstall === runUninstall) {
+            entry.currentUninstall = undefined
+          }
+        },
+        (err) => {
+          inFlight = undefined
+          throw err
+        },
+      )
+      inFlight = p
+      return p
     }
     entry.currentUninstall = runUninstall
     scope.defer(runUninstall)

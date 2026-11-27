@@ -148,3 +148,65 @@ test('Wechaty.useScoped() installs on start, uninstalls LIFO on stop, and reinst
     await bot.stop().catch(() => {})
   }
 })
+
+test('Wechaty.useScoped() snapshots installs, rolls back partial failures, and awaits/retries uninstallers', async () => {
+  const bot = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const events: string[] = []
+
+  try {
+    // 1. Nested useScoped inside installScoped must not double-install
+    bot.useScoped((b, _scope) => {
+      events.push('parent-install')
+      b.useScoped(() => {
+        events.push('child-install')
+        return () => { events.push('child-uninstall') }
+      })
+      return async () => {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        events.push('parent-async-uninstall')
+      }
+    })
+
+    await bot.start()
+    assert.deepEqual(events, ['parent-install', 'child-install'])
+
+    // 2. Partial failure in useScoped rolls back earlier entries in the same call
+    assert.throws(() => {
+      bot.useScoped(
+        () => {
+          events.push('batch-1-install')
+          return () => { events.push('batch-1-uninstall') }
+        },
+        () => {
+          throw new Error('batch-2 boom')
+        },
+      )
+    }, /batch-2 boom/)
+    assert.ok(events.includes('batch-1-uninstall'))
+
+    await bot.stop()
+    assert.ok(events.includes('parent-async-uninstall'), 'stop() should await async uninstaller')
+    assert.ok(events.includes('child-uninstall'))
+  } finally {
+    await bot.stop().catch(() => {})
+  }
+
+  // 3. Fail-once uninstaller is retried on subsequent stop()
+  const bot2 = WechatyBuilder.build({ puppet: new PuppetMock() })
+  let uninstallAttempts = 0
+  bot2.useScoped(() => () => {
+    uninstallAttempts += 1
+    if (uninstallAttempts === 1) {
+      throw new Error('uninstall transient failure')
+    }
+  })
+
+  try {
+    await bot2.start()
+    await assert.rejects(() => bot2.stop(), /uninstall transient failure/)
+    await bot2.stop()
+    assert.equal(uninstallAttempts, 2)
+  } finally {
+    await bot2.stop().catch(() => {})
+  }
+})
