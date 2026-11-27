@@ -12,7 +12,7 @@ import {
 }                       from 'file-box'
 import {
   timeoutPromise,
-}                       from 'gerror'
+}                       from '../pure-functions/async-error.ts'
 import { MemoryCard }   from 'memory-card'
 import type {
   Lifecycle,

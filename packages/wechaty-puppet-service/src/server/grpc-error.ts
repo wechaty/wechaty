@@ -7,6 +7,7 @@ import type { Interceptor } from '@connectrpc/connect'
 import { ConnectError, Code } from '@connectrpc/connect'
 import { log } from 'wechaty-puppet'
 import { GError } from 'gerror'
+import { toConnectError as gerrorToConnectError } from 'gerror-connect'
 
 function mapGrpcCode (code: unknown): Code {
   if (typeof code === 'number' && code >= 1 && code <= 16 && code !== 2) {
@@ -25,6 +26,14 @@ export function toConnectError (
   method : string,
   error  : unknown,
 ): ConnectError {
+  if (error instanceof ConnectError) {
+    log.error('PuppetServiceImpl', `toConnectError() ${method}() rejection: %s\n%s`,
+      error.rawMessage,
+      error.stack,
+    )
+    return error
+  }
+
   const gerr = GError.from(error)
 
   log.error('PuppetServiceImpl', `toConnectError() ${method}() rejection: %s\n%s`,
@@ -33,8 +42,26 @@ export function toConnectError (
   )
 
   const rawCode = (error as any)?.code ?? gerr.code
-  const code = mapGrpcCode(rawCode)
-  return new ConnectError(gerr.message, code)
+  const connectCode = mapGrpcCode(rawCode)
+
+  try {
+    const converted = gerrorToConnectError(gerr)
+    if (converted.code === connectCode) {
+      return converted
+    }
+    const outgoing = converted.details.filter(
+      (d): d is Extract<typeof converted.details[number], { desc: unknown }> => 'desc' in d,
+    )
+    return new ConnectError(
+      converted.rawMessage,
+      connectCode,
+      converted.metadata,
+      outgoing,
+      converted.cause,
+    )
+  } catch {
+    return new ConnectError(gerr.message.slice(0, 4096), connectCode)
+  }
 }
 
 export const grpcError = toConnectError

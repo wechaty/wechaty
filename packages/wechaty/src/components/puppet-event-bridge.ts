@@ -6,6 +6,7 @@
  */
 import * as PUPPET from 'wechaty-puppet'
 import {
+  helpers,
   log,
   WechatyEvent,
 } from 'wechaty-puppet'
@@ -131,7 +132,7 @@ function registerPuppetEventBridge (
            *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
            */
           const raw = payload.gerror || (payload as any).data || payload
-          const gerror = GError.from(raw)
+          const gerror = helpers.parseGErrorPayload(raw)
           dependencies.emitError(gerror)
         })
         break

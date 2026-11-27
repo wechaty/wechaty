@@ -30,11 +30,13 @@ import {
 
 import {
   GError,
+}                     from 'gerror'
+
+import {
+  parseGErrorPayload,
+  type WrapAsync,
   wrapAsyncError,
-}                     from 'gerror'
-import type {
-  WrapAsync,
-}                     from 'gerror'
+}                     from '../pure-functions/async-error.ts'
 
 import type { EventErrorPayload } from '../schemas/event.ts'
 
@@ -47,9 +49,42 @@ import {
   WechatyEvent,
 }                                 from './events.ts'
 
+const utf8Encoder = new TextEncoder()
+const utf8Decoder = new TextDecoder('utf-8', { fatal: false })
+
+/**
+ * Truncates `text` to at most `maxBytes` UTF-8 bytes without splitting a
+ * multi-byte UTF-8 sequence.
+ */
+function truncateUtf8Bytes (text: string, maxBytes: number): string {
+  const bytes = utf8Encoder.encode(text)
+  if (bytes.byteLength <= maxBytes) {
+    return text
+  }
+  let end = maxBytes
+  if (end > 0 && (bytes[end - 1]! & 0x80) !== 0) {
+    let lead = end - 1
+    while (lead > 0 && (bytes[lead]! & 0xc0) === 0x80) {
+      lead -= 1
+    }
+    const leadByte = bytes[lead]!
+    const seqLen =
+      (leadByte & 0xe0) === 0xc0 ? 2 :
+      (leadByte & 0xf0) === 0xe0 ? 3 :
+      (leadByte & 0xf8) === 0xf0 ? 4 : 1
+    if (lead + seqLen > maxBytes) {
+      end = lead
+    }
+  }
+  return utf8Decoder.decode(bytes.subarray(0, end))
+}
+
 /**
  * Normalizes an arbitrary error value or error payload into an `EventErrorPayload`
  * containing a stringified GError JSON object.
+ *
+ * Falls back to a 4096-byte UTF-8 truncated message-only `GError` if
+ * `JSON.stringify(gerr)` throws `RangeError` on oversized errors.
  *
  * @param error - Error instance, existing EventErrorPayload, or arbitrary error value.
  * @returns Canonical EventErrorPayload containing serialized GError.
@@ -57,16 +92,22 @@ import {
 function normalizeErrorPayload (error: unknown): EventErrorPayload {
   let gerr: GError
 
-  if (error instanceof GError) {
+  if (GError.isGError(error)) {
     gerr = error
   } else if (error && typeof error === 'object' && 'gerror' in error) {
-    gerr = GError.from((error as any).gerror)
+    gerr = parseGErrorPayload((error as { gerror?: unknown }).gerror)
   } else {
     gerr = GError.from(error)
   }
 
-  return {
-    gerror: JSON.stringify(gerr),
+  try {
+    return {
+      gerror: JSON.stringify(gerr),
+    }
+  } catch {
+    return {
+      gerror: JSON.stringify(new GError(truncateUtf8Bytes(gerr.message, 4096), { code: gerr.code })),
+    }
   }
 }
 

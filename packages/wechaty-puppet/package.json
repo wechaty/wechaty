@@ -86,7 +86,7 @@
     "brolog": "^2.0.0",
     "clone-class": "^2.0.0",
     "file-box": "^2.3.0",
-    "gerror": "^2.0.0-alpha.0",
+    "gerror": "2.1.0-alpha.0",
     "memory-card": "^2.0.1",
     "quick-lru": "^8.0.0",
     "scopelet": "^2.0.0-alpha.20",

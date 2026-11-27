@@ -7,6 +7,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { Code, ConnectError } from '@connectrpc/connect'
+import { fromConnectError } from 'gerror-connect'
 
 import { serverErrorInterceptor, toConnectError } from './grpc-error.ts'
 
@@ -26,6 +27,33 @@ test('toConnectError() preserves valid gRPC status codes from GError', () => {
   const invalidArgError = Object.assign(new Error('invalid argument'), { code: 'InvalidArgument' })
   const invalidArgConnectErr = toConnectError('testArg', invalidArgError)
   assert.equal(invalidArgConnectErr.code, Code.InvalidArgument, 'error code should preserve InvalidArgument')
+
+  for (const codeVal of Object.values(Code).filter((v): v is Code => typeof v === 'number')) {
+    const expected = codeVal === Code.Unknown ? Code.Internal : codeVal
+    const err = Object.assign(new Error(`code-${codeVal}`), { code: codeVal })
+    assert.equal(toConnectError('testAll', err).code, expected)
+  }
+
+  // Oversized error messages (> 8192B) must fall back to truncated ConnectError without throwing
+  const hugeErr = new Error('x'.repeat(10_000))
+  const hugeConnectErr = toConnectError('testHuge', hugeErr)
+  assert.equal(hugeConnectErr.code, Code.Internal)
+  assert.equal(hugeConnectErr.rawMessage.length, 4096)
+
+  // ConnectError passthrough preserves existing code and details
+  const existingConnect = new ConnectError('already-connect', Code.NotFound)
+  assert.equal(toConnectError('testPassthrough', existingConnect), existingConnect)
+
+  // AggregateError metadata survives Code.Unknown -> Code.Internal mapping
+  const agg = new AggregateError([new Error('m1'), new Error('m2')], 'agg-failure')
+  const aggConnect = toConnectError('testAgg', agg)
+  assert.equal(aggConnect.code, Code.Internal)
+  assert.equal(aggConnect.rawMessage, 'agg-failure')
+  const decodedAgg = fromConnectError(aggConnect).toData()
+  assert.deepEqual(
+    decodedAgg.errors?.map((e) => e.message),
+    ['m1', 'm2'],
+  )
 })
 
 test('serverErrorInterceptor() converts unary thrown error to Code.Internal', async () => {

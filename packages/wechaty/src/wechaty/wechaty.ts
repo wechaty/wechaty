@@ -33,16 +33,16 @@
 import { MemoryCard } from 'memory-card'
 import * as PUPPET from 'wechaty-puppet'
 import {
+  helpers,
   log,
   type EventIteratorOptions,
+  type WrapAsync,
   WechatyEventTarget,
   WechatyEvent,
 } from 'wechaty-puppet'
 import type { Loggable } from 'brolog'
 import {
   GError,
-  type WrapAsync,
-  wrapAsyncError,
 } from 'gerror'
 import type {
   Lifecycle,
@@ -240,7 +240,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   // --- Instance Properties ---
   readonly id: string = crypto.randomUUID()
   readonly log: Loggable = log
-  readonly wrapAsync: WrapAsync = wrapAsyncError((e: unknown) => this.emitError(e))
+  readonly wrapAsync: WrapAsync = helpers.wrapAsyncError((e: unknown) => this.emitError(e))
 
   // --- ECMAScript Hard Private Fields ---
   readonly #options: WechatyOptions
@@ -643,7 +643,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   }
 
   emitError (e: unknown): void {
-    const gerror = e instanceof GError ? e : GError.from(e)
+    const gerror = GError.isGError(e) ? e : GError.from(e)
     this.dispatchEvent(new WechatyEvent('error', { detail: gerror }))
   }
 

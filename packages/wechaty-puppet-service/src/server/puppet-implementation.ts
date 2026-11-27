@@ -14,7 +14,7 @@ import {
   type FileBoxInterface,
 } from 'file-box'
 import * as PUPPET from 'wechaty-puppet'
-import { timeoutPromise } from 'gerror'
+import { helpers } from 'wechaty-puppet'
 import {
   ConnectError,
   Code,
@@ -83,7 +83,7 @@ export function puppetImplementation (
     // Base RPCs
     start: async () => {
       log.verbose('PuppetServiceImpl', 'start()')
-      await timeoutPromise(puppet.start(), 15 * 1000)
+      await helpers.timeoutPromise(puppet.start(), 15 * 1000)
       return {}
     },
 
@@ -93,7 +93,7 @@ export function puppetImplementation (
         eventStreamManager.stop()
       }
       readyPayload = undefined
-      await timeoutPromise(puppet.stop(), 15 * 1000)
+      await helpers.timeoutPromise(puppet.stop(), 15 * 1000)
       return {}
     },
 
