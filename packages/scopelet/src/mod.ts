@@ -62,6 +62,7 @@ export type {
   WatchdogOptions,
 }                             from './companions/watchdog.ts'
 export {
+  CANONICAL_LIFECYCLE,
   createLifecycle,
 }                             from './create-lifecycle.ts'
 export {

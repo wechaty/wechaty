@@ -32,6 +32,7 @@
  * prototype overrides and for class-field overrides (v1 design §8).
  */
 
+import { CANONICAL_LIFECYCLE } from './create-lifecycle.ts'
 import { LifecycleEngine } from './engine.ts'
 import { LifecycleOverrideError } from './errors.ts'
 import type {
@@ -64,6 +65,7 @@ const SEALED_MEMBERS: readonly (string | symbol)[] = [
   'isStopped',
   'isFailed',
   Symbol.asyncDispose,
+  CANONICAL_LIFECYCLE,
 ]
 
 /**
@@ -161,6 +163,12 @@ abstract class AsyncLifecycle implements Lifecycle {
         writable: false,
         value: () => this.#engine[Symbol.asyncDispose](),
       },
+      [CANONICAL_LIFECYCLE]: {
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        value: this,
+      },
     })
   }
 
@@ -176,7 +184,7 @@ abstract class AsyncLifecycle implements Lifecycle {
     while (proto && proto !== base) {
       for (const member of SEALED_MEMBERS) {
         if (Object.hasOwn(proto, member)) {
-          throw new LifecycleOverrideError(typeof member === 'symbol' ? 'Symbol.asyncDispose' : member)
+          throw new LifecycleOverrideError(typeof member === 'symbol' ? member.toString() : member)
         }
       }
       proto = Object.getPrototypeOf(proto) as object | null

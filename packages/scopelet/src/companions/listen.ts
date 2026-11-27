@@ -41,8 +41,8 @@ interface EmitterLike {
 
 /** A Web `EventTarget`-like target. */
 interface EventTargetLike {
-  addEventListener (type: string, listener: (event: any) => void): void
-  removeEventListener (type: string, listener: (event: any) => void): void
+  addEventListener (type: string, listener: (event: any) => void, options?: boolean | AddEventListenerOptions): void
+  removeEventListener (type: string, listener: (event: any) => void, options?: boolean | EventListenerOptions): void
 }
 
 /** Anything {@link listen} can attach to. */
@@ -75,13 +75,14 @@ function listen (
   target: ListenTarget,
   event: string,
   listener: (...args: any[]) => void,
+  options?: boolean | AddEventListenerOptions,
 ): void {
   const forward = function (this: unknown, ...args: unknown[]): unknown {
     return listener.apply(this, args)
   }
   if ('addEventListener' in target) {
-    scope.defer(() => target.removeEventListener(event, forward))
-    target.addEventListener(event, forward)
+    scope.defer(() => target.removeEventListener(event, forward, options))
+    target.addEventListener(event, forward, options)
     return
   }
   const remove = target.off ?? target.removeListener

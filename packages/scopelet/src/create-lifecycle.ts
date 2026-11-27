@@ -35,6 +35,8 @@ import type {
   LifecycleOptions,
 }                           from './types.ts'
 
+const CANONICAL_LIFECYCLE = Symbol.for('scopelet.canonical-lifecycle')
+
 /**
  * Create a lifecycle in composition form.
  *
@@ -53,7 +55,7 @@ function createLifecycle (
 ): LifecycleController {
   assertHooks(hooks)
   const engine = new LifecycleEngine(hooks, options)
-  return Object.freeze<LifecycleController>({
+  const controller: LifecycleController = {
     get state () { return engine.state },
     get isRunning () { return engine.isRunning },
     get isActive () { return engine.isActive },
@@ -70,7 +72,14 @@ function createLifecycle (
     operation   : work => engine.operation(work),
     condition   : name => engine.condition(name),
     [Symbol.asyncDispose]: () => engine[Symbol.asyncDispose](),
+  }
+  Object.defineProperty(controller, CANONICAL_LIFECYCLE, {
+    value        : controller,
+    configurable : false,
+    enumerable   : false,
+    writable     : false,
   })
+  return Object.freeze(controller)
 }
 
 /**
@@ -83,16 +92,20 @@ function attach<T extends object> (
   hooks: LifecycleHooks,
   options?: LifecycleOptions,
 ): LifecycleController {
+  if ((typeof target !== 'object' && typeof target !== 'function') || target === null || !Object.isExtensible(target)) {
+    throw new TypeError('createLifecycle.attach() needs an extensible object or function target')
+  }
   const members = [
     'state', 'isRunning', 'isActive', 'isStarting', 'isStopping', 'isStopped', 'isFailed',
-    'start', 'stop', 'restart', 'whenState', 'whenRunning', 'whenStopped', 'operation', 'condition',
+    'start', 'stop', 'restart', 'whenState', 'whenRunning', 'whenStopped', 'operation',
     Symbol.asyncDispose,
+    CANONICAL_LIFECYCLE,
   ]
   for (const member of members) {
     let curr: object | null = target
     while (curr && curr !== Object.prototype) {
       if (Object.hasOwn(curr, member)) {
-        throw new LifecycleOverrideError(typeof member === 'symbol' ? 'Symbol.asyncDispose' : member)
+        throw new LifecycleOverrideError(typeof member === 'symbol' ? member.toString() : member)
       }
       curr = Object.getPrototypeOf(curr)
     }
@@ -169,15 +182,16 @@ function attach<T extends object> (
       writable: false,
       value: (work: any) => controller.operation(work),
     },
-    condition: {
-      configurable: false,
-      writable: false,
-      value: (name: string) => controller.condition(name),
-    },
     [Symbol.asyncDispose]: {
       configurable: false,
       writable: false,
       value: () => controller[Symbol.asyncDispose](),
+    },
+    [CANONICAL_LIFECYCLE]: {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: controller,
     },
   })
   return controller
@@ -201,5 +215,6 @@ function assertHooks (hooks: LifecycleHooks): void {
 }
 
 export {
+  CANONICAL_LIFECYCLE,
   createLifecycle,
 }

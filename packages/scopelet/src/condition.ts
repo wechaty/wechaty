@@ -56,6 +56,7 @@ class Condition implements LifecycleConditionHandle {
   readonly #isSet: (condition: Condition) => boolean
   readonly #set: (condition: Condition) => void
   readonly #clear: (condition: Condition) => void
+  readonly #when: (condition: Condition, timeoutMs?: number) => Promise<void>
   readonly #whenClear: (condition: Condition, timeoutMs?: number) => Promise<void>
 
   constructor (
@@ -64,6 +65,7 @@ class Condition implements LifecycleConditionHandle {
     isSet: (condition: Condition) => boolean,
     set?: (condition: Condition) => void,
     clear?: (condition: Condition) => void,
+    when?: (condition: Condition, timeoutMs?: number) => Promise<void>,
     whenClear?: (condition: Condition, timeoutMs?: number) => Promise<void>,
   ) {
     this.name = name
@@ -71,6 +73,7 @@ class Condition implements LifecycleConditionHandle {
     this.#isSet = isSet
     this.#set = set ?? (() => {})
     this.#clear = clear ?? (() => {})
+    this.#when = when ?? ((c, timeoutMs) => c.wait(timeoutMs !== undefined ? { signal: AbortSignal.timeout(timeoutMs) } : undefined))
     this.#whenClear = whenClear ?? (() => Promise.resolve())
   }
 
@@ -86,7 +89,7 @@ class Condition implements LifecycleConditionHandle {
 
   /** See {@link LifecycleConditionHandle.when}. */
   when (timeoutMs?: number): Promise<void> {
-    return this.wait(timeoutMs !== undefined ? { signal: AbortSignal.timeout(timeoutMs) } : undefined)
+    return this.#when(this, timeoutMs)
   }
 
   /** See {@link LifecycleConditionHandle.whenClear}. */
@@ -121,6 +124,7 @@ class ConditionBoard {
     wait: (condition: Condition, options?: LifecycleWaitOptions) => Promise<void>,
     set?: (condition: Condition) => void,
     clear?: (condition: Condition) => void,
+    when?: (condition: Condition, timeoutMs?: number) => Promise<void>,
     whenClear?: (condition: Condition, timeoutMs?: number) => Promise<void>,
   ): Condition {
     let condition = this.#declared.get(name)
@@ -131,6 +135,7 @@ class ConditionBoard {
         declared => this.isSet(declared),
         set,
         clear,
+        when,
         whenClear,
       )
       this.#declared.set(name, condition)

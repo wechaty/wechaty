@@ -39,6 +39,11 @@
  * `enum`, `namespace` or constructor parameter properties; use string unions.
  */
 
+import type {
+  Watchdog,
+  WatchdogOptions,
+}                           from './companions/watchdog.ts'
+
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
@@ -161,12 +166,19 @@ interface Lifecycle extends AsyncDisposable {
   /** Whether the lifecycle is currently running (kind === 'running'). */
   readonly isRunning: boolean
 
-  /** Whether the lifecycle is active (starting, running, or recovering). */
+  /** Whether the lifecycle is active (state is 'starting' or 'running'). */
   readonly isActive: boolean
 
+  /** Whether the lifecycle is currently starting (kind === 'starting'). */
   readonly isStarting: boolean
+
+  /** Whether the lifecycle is currently stopping (kind === 'stopping'). */
   readonly isStopping: boolean
+
+  /** Whether the lifecycle is currently stopped (kind === 'stopped'). */
   readonly isStopped: boolean
+
+  /** Whether the lifecycle is currently failed (kind === 'failed'). */
   readonly isFailed: boolean
 
   /** Wait until the lifecycle commits the `running` state (ADR-06). */
@@ -226,9 +238,13 @@ interface LifecycleCondition {
  * A self-sovereign handle for setting, clearing, and awaiting a condition (ADR-02).
  */
 interface LifecycleConditionHandle extends LifecycleCondition {
+  /** Mark this condition set for the active generation. */
   set (): void
+  /** Mark this condition cleared for the active generation. */
   clear (): void
+  /** Wait until the condition is set, with an optional deadline in milliseconds. */
   when (timeoutMs?: number): Promise<void>
+  /** Wait until the condition is cleared, with an optional deadline in milliseconds. */
   whenClear (timeoutMs?: number): Promise<void>
 }
 
@@ -402,9 +418,12 @@ interface LifecycleScope {
    * Arm a watchdog timer for this generation (ADR-07).
    */
   watchdog (
+    options: WatchdogOptions,
+  ): Watchdog
+  watchdog (
     timeoutMs: number,
-    options?: { readonly onTimeout?: 'fail' | 'recover'; readonly clock?: LifecycleClock },
-  ): { feed: () => void; disarm: () => void }
+    options: { readonly onTimeout: 'fail' | 'recover'; readonly clock?: LifecycleClock },
+  ): Watchdog
 
   /**
    * Report that this generation can no longer run (C-REC-01). It retires with no
@@ -574,4 +593,6 @@ export type {
   LifecycleStop,
   LifecycleStopReason,
   LifecycleWaitOptions,
+  Watchdog,
+  WatchdogOptions,
 }

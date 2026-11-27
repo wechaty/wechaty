@@ -48,7 +48,12 @@ import {
 }                           from './companions/operation.ts'
 import {
   watchdog,
+  type Watchdog,
+  type WatchdogOptions,
 }                           from './companions/watchdog.ts'
+import {
+  sleep,
+}                           from './clock.ts'
 import type {
   Lifecycle,
   LifecycleClock,
@@ -214,6 +219,8 @@ function ownedChildren (global: Record<symbol, unknown> = globalThis as Record<s
   return shared instanceof WeakSet ? shared as WeakSet<Lifecycle> : new WeakSet<Lifecycle>()
 }
 
+const CANONICAL_LIFECYCLE = Symbol.for('scopelet.canonical-lifecycle')
+
 /**
  * Children owned by some scope, in this realm (see {@link ownedChildren}, which
  * also says why cross-realm ownership is unsupported).
@@ -259,7 +266,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
     throw generation.sealReason
   }
 
-  return Object.freeze<LifecycleScope>({
+  const scope: LifecycleScope = Object.freeze<LifecycleScope>({
     generation: generation.number,
     signal,
 
@@ -395,10 +402,11 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       if (!(state.kind === 'stopped' || (state.kind === 'failed' && state.cleanupComplete))) {
         throw new LifecycleUnsafeStateError(`child lifecycle is '${state.kind}', not safe to start`)
       }
-      if (OWNED_CHILDREN.has(child)) {
+      const canonicalChild = ((child as any)[CANONICAL_LIFECYCLE] as Lifecycle | undefined) ?? child
+      if (OWNED_CHILDREN.has(canonicalChild)) {
         throw new LifecycleUnsafeStateError('child lifecycle is already owned by another scope')
       }
-      OWNED_CHILDREN.add(child)
+      OWNED_CHILDREN.add(canonicalChild)
 
       const unwatch = new AbortController()
       let watching: Promise<void> = Promise.resolve()
@@ -416,7 +424,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
           }
           // Only a successful stop ends ownership; a failed one is retried by
           // this ledger, so no other parent may adopt the child meanwhile.
-          OWNED_CHILDREN.delete(child)
+          OWNED_CHILDREN.delete(canonicalChild)
         },
       })
 
@@ -450,17 +458,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
     },
 
     condition (name: string): LifecycleConditionHandle {
-      const handle = host.condition(name)
-      return Object.freeze({
-        canonical: handle,
-        name: handle.name,
-        get isSet () { return handle.isSet },
-        wait: (options?: any) => handle.wait(options),
-        when: (timeoutMs?: number) => handle.when(timeoutMs),
-        whenClear: (timeoutMs?: number) => handle.whenClear(timeoutMs),
-        set: () => host.setCondition(generation, handle, true),
-        clear: () => host.setCondition(generation, handle, false),
-      })
+      return host.condition(name)
     },
 
     acquireService<T> (service: {
@@ -472,6 +470,7 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         return Promise.reject(generation.sealReason)
       }
       let starting!: Promise<T>
+      let startSettled = false
       let interrupting: Promise<unknown> | undefined
       const interrupted = (result: unknown) => {
         if (isPromiseLike(result)) {
@@ -479,93 +478,95 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
         }
       }
 
-      const releaseEntry = async () => {
-        if (interrupting) {
-          await interrupting.catch(() => {})
+      let cleanupPromise: Promise<void> | undefined
+      const runCleanup = async () => {
+        if (!cleanupPromise) {
+          cleanupPromise = (async () => {
+            if (interrupting) {
+              await interrupting.catch(() => {})
+            }
+            await service.stop()
+          })()
         }
-        await service.stop()
+        await cleanupPromise
+      }
+
+      const releaseEntry = async () => {
+        const cleanup = runCleanup()
+        try {
+          await starting
+        } catch {}
+        await cleanup
       }
 
       generation.ledger.add({
         release: releaseEntry,
-        interrupt: service.abort && (() => {
-          interrupted(service.abort!())
-        }),
+        interrupt: () => {
+          if (service.abort) {
+            interrupted(service.abort())
+          } else if (!startSettled) {
+            interrupted(runCleanup())
+          }
+        },
       })
 
       starting = (async () => service.start(signal))()
       starting.catch(async () => {
-        try {
-          if (service.abort) {
+        startSettled = true
+        if (service.abort) {
+          try {
             interrupted(service.abort())
-          }
-        } catch {}
+          } catch {}
+        }
         try {
-          await releaseEntry()
+          await runCleanup()
+          generation.ledger.discard(releaseEntry)
         } catch {}
-        generation.ledger.discard(releaseEntry)
       })
 
-      return starting
+      return starting.then(resource => {
+        startSettled = true
+        if (generation.sealed) {
+          throw generation.sealReason
+        }
+        return resource
+      })
     },
 
     sleep (ms: number): Promise<void> {
       if (generation.sealed) {
         return Promise.reject(generation.sealReason)
       }
-      if (signal.aborted) {
-        return Promise.reject(signal.reason)
-      }
-      if (ms <= 0) {
-        return Promise.resolve()
-      }
-
-      const { promise, resolve, reject } = Promise.withResolvers<void>()
-      let timerHandle: unknown
-
-      const onAbort = () => {
-        host.clock.clearTimeout(timerHandle)
-        generation.ledger.discard(cleanup)
-        reject(signal.reason)
-      }
-
-      const cleanup = () => {
-        host.clock.clearTimeout(timerHandle)
-        signal.removeEventListener('abort', onAbort)
-      }
-
-      signal.addEventListener('abort', onAbort, { once: true })
-      generation.ledger.add({ release: cleanup })
-
-      timerHandle = host.clock.setTimeout(() => {
-        cleanup()
-        generation.ledger.discard(cleanup)
-        resolve()
-      }, ms)
-
-      return promise
+      return sleep(ms, signal, host.clock)
     },
 
     operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
-      return operation(this, work)
+      return operation(scope, work)
     },
 
     listen (
       target: any,
       type: string,
       listener: (...args: any[]) => void,
+      options?: boolean | AddEventListenerOptions,
     ): void {
-      listen(this, target, type, listener)
+      listen(scope, target, type, listener, options)
     },
 
     watchdog (
-      timeoutMs: number,
-      options?: { readonly onTimeout?: 'fail' | 'recover'; readonly clock?: LifecycleClock },
-    ): { feed: () => void; disarm: () => void } {
-      return watchdog(this, {
-        timeoutMs,
-        onTimeout: options?.onTimeout ?? 'fail',
-        clock: options?.clock ?? host.clock,
+      timeoutMsOrOptions: number | WatchdogOptions,
+      options?: { readonly onTimeout: 'fail' | 'recover'; readonly clock?: LifecycleClock },
+    ): Watchdog {
+      if (typeof timeoutMsOrOptions === 'number') {
+        return watchdog(scope, {
+          timeoutMs: timeoutMsOrOptions,
+          onTimeout: options!.onTimeout,
+          clock: options?.clock ?? host.clock,
+        })
+      }
+      return watchdog(scope, {
+        ...timeoutMsOrOptions,
+        clock: timeoutMsOrOptions.clock ?? host.clock,
       })
     },
 
@@ -577,6 +578,8 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       return host.recover(generation, reason)
     },
   })
+
+  return scope
 }
 
 export type {

@@ -361,9 +361,9 @@ class LifecycleEngine {
 
   operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
     const current = this.#current
-    if (!current || this.#state.kind === 'stopped' || current.sealed) {
+    if (this.#state.kind !== 'running' || !current || current.sealed) {
       return Promise.reject(new LifecycleUnsafeStateError(
-        `Cannot run operation: lifecycle is in state '${this.#state.kind}'`,
+        `Cannot run operation: lifecycle is in state '${this.#state.kind}', expected 'running'`,
       ))
     }
     return current.scope.operation(work)
@@ -525,26 +525,59 @@ class LifecycleEngine {
       (condition, options) => this.#waitCondition(condition, options),
       condition => {
         const current = this.#current
-        if (current && !current.sealed) {
-          this.#setCondition(current, condition, true)
+        if (!current || current.sealed) {
+          throw new LifecycleUnsafeStateError(`cannot set condition '${name}' while lifecycle is in state '${this.#state.kind}'`)
         }
+        this.#setCondition(current, condition, true)
       },
       condition => {
         const current = this.#current
-        if (current && !current.sealed) {
-          this.#setCondition(current, condition, false)
+        if (!current || current.sealed) {
+          throw new LifecycleUnsafeStateError(`cannot clear condition '${name}' while lifecycle is in state '${this.#state.kind}'`)
         }
+        this.#setCondition(current, condition, false)
       },
-      (condition, timeoutMs) => {
-        const current = this.#current
-        const target = current && !current.sealed ? current.number : 'next'
-        return this.#board.waitClear(
-          condition,
-          target,
-          timeoutMs !== undefined ? { signal: AbortSignal.timeout(timeoutMs) } : undefined,
-        )
-      },
+      (condition, timeoutMs) => this.#whenCondition(condition, timeoutMs),
+      (condition, timeoutMs) => this.#whenClearCondition(condition, timeoutMs),
     )
+  }
+
+  #whenCondition (condition: Condition, timeoutMs?: number): Promise<void> {
+    validTimeout('condition.when timeoutMs', timeoutMs)
+    if (timeoutMs === undefined) {
+      return this.#waitCondition(condition)
+    }
+    const controller = new AbortController()
+    const timer = this.#clock.setTimeout(() => {
+      controller.abort(
+        typeof globalThis.DOMException === 'function'
+          ? new globalThis.DOMException('The operation was aborted due to timeout', 'TimeoutError')
+          : Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }),
+      )
+    }, timeoutMs)
+    return this.#waitCondition(condition, { signal: controller.signal }).finally(() => {
+      this.#clock.clearTimeout(timer)
+    })
+  }
+
+  #whenClearCondition (condition: Condition, timeoutMs?: number): Promise<void> {
+    validTimeout('condition.whenClear timeoutMs', timeoutMs)
+    const current = this.#current
+    const target = current && !current.sealed ? current.number : 'next'
+    if (timeoutMs === undefined) {
+      return this.#board.waitClear(condition, target)
+    }
+    const controller = new AbortController()
+    const timer = this.#clock.setTimeout(() => {
+      controller.abort(
+        typeof globalThis.DOMException === 'function'
+          ? new globalThis.DOMException('The operation was aborted due to timeout', 'TimeoutError')
+          : Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }),
+      )
+    }, timeoutMs)
+    return this.#board.waitClear(condition, target, { signal: controller.signal }).finally(() => {
+      this.#clock.clearTimeout(timer)
+    })
   }
 
   #waitCondition (condition: Condition, options?: LifecycleWaitOptions): Promise<void> {
