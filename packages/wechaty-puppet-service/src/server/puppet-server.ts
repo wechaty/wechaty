@@ -11,6 +11,11 @@ import net from 'node:net'
 import type { AddressInfo, Socket } from 'node:net'
 
 import {
+  AsyncLifecycle,
+  type LifecycleClock,
+  type LifecycleScope,
+} from 'scopelet'
+import {
   Puppet,
   log,
 } from 'wechaty-puppet'
@@ -49,9 +54,13 @@ import {
 } from '../file-box-helper/uuidify-file-box-local.ts'
 
 export interface PuppetServerOptions {
-  endpoint : string,
-  puppet   : Puppet,
-  token    : string,
+  endpoint      : string,
+  puppet        : Puppet,
+  token         : string,
+  /** Optional clock for deterministic grace-period and stop-timeout testing. */
+  clock?        : LifecycleClock,
+  /** Maximum milliseconds to wait for `stop()` before force-closing connections. */
+  stopTimeoutMs?: number,
   tls?: {
     serverCert? : string,
     serverKey?  : string,
@@ -59,7 +68,7 @@ export interface PuppetServerOptions {
   }
 }
 
-export class PuppetServer {
+export class PuppetServer extends AsyncLifecycle {
 
   protected server?: HttpServer | Http2Server | Http2SecureServer | net.Server
   protected urnRegistry?: UniformResourceNameRegistry
@@ -75,6 +84,11 @@ export class PuppetServer {
   constructor (
     options: PuppetServerOptions,
   ) {
+    super({
+      name: 'PuppetServer',
+      clock: options.clock,
+      stopTimeoutMs: options.stopTimeoutMs,
+    })
     this.options = options
     log.verbose('PuppetServer',
       'constructor({endpoint: "%s", puppet: "%s", token: "%s"})',
@@ -88,8 +102,9 @@ export class PuppetServer {
     return VERSION
   }
 
-  public async start (): Promise<void> {
-    log.verbose('PuppetServer', 'start()')
+  /** Start the ConnectRPC/gRPC server and register all owned resources on `scope`. */
+  protected override async onStart (scope: LifecycleScope): Promise<void> {
+    log.verbose('PuppetServer', 'onStart()')
 
     if (this.server) {
       throw new Error('grpc server existed!')
@@ -148,194 +163,204 @@ export class PuppetServer {
       }
     }
 
-    this.shutdownController = new AbortController()
-
-    try {
-      if (!this.urnRegistry) {
-        log.verbose('PuppetServer', 'start() initializing FileBox UUID URN Registry ...')
-        this.urnRegistry = new UniformResourceNameRegistry()
-        await this.urnRegistry.init()
-        log.verbose('PuppetServer', 'start() initializing FileBox UUID URN Registry ... done')
-      }
-
-      const FileBoxUuid = uuidifyFileBoxLocal(this.urnRegistry)
-      const puppetImpl = puppetImplementation(
-        this.options.puppet,
-        FileBoxUuid,
-        this.shutdownController.signal,
-      )
-      const healthImpl = healthImplementation(
-        this.options.puppet,
-        this.shutdownController.signal,
-      )
-
-      const handler = connectNodeAdapter({
-        readMaxBytes: 4 * 1024 * 1024,
-        shutdownSignal: this.shutdownController.signal,
-        routes: (router) => {
-          router.service(PuppetServiceDefinition, puppetImpl, {
-            interceptors: [
-              authImplToken(this.options.token),
-              serverErrorInterceptor(),
-            ],
-          })
-          router.service(HealthServiceDefinition, healthImpl, {
-            interceptors: [serverErrorInterceptor()],
-          })
-        },
-      })
-
-      const requestListener = (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => {
-        if (req.headers[':authority'] && !req.headers['authority']) {
-          req.headers['authority'] = req.headers[':authority']
-        }
-        return handler(req, res)
-      }
-
-      const disableTls = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER(this.options.tls?.disable)
-
-      if (disableTls) {
-        log.warn('PuppetServer', 'start() TLS disabled: INSECURE!')
-        const h1 = http.createServer(requestListener as any)
-        const h2 = http2.createServer(requestListener)
-        this.h1CleartextServer = h1
-        this.h2CleartextServer = h2
-
-        h2.on('session', (session) => {
-          this.sessions.add(session)
-          session.once('close', () => this.sessions.delete(session))
-        })
-
-        const cleartextServer = net.createServer((socket) => {
-          this.sockets.add(socket)
-
-          const onPreDispatchError = (err: Error) => {
-            log.verbose('PuppetServer', 'cleartext pre-dispatch socket error: %s', err.message)
-            cleanupPreDispatch()
-            this.sockets.delete(socket)
-            socket.destroy()
-          }
-
-          const onPreDispatchClose = () => {
-            cleanupPreDispatch()
-            this.sockets.delete(socket)
-          }
-
-          let buffer = Buffer.alloc(0)
-          const onData = (chunk: Buffer) => {
-            buffer = Buffer.concat([buffer, chunk])
-            // If we have received at least 3 bytes, or if it definitely cannot be the HTTP/2 preface ('PRI')
-            if (buffer.length >= 3 || (buffer.length > 0 && !Buffer.from('PRI').subarray(0, buffer.length).equals(buffer))) {
-              cleanupPreDispatch()
-              socket.unshift(buffer)
-              socket.once('close', () => this.sockets.delete(socket))
-              if (buffer.length >= 3 && buffer.subarray(0, 3).toString('ascii') === 'PRI') {
-                const handle = (socket as any)._handle
-                if (handle) {
-                  try {
-                    Object.defineProperty(handle, 'isStreamBase', { value: false, configurable: true })
-                  } catch {}
-                }
-                h2.emit('connection', socket)
-              } else {
-                h1.emit('connection', socket)
-              }
-            }
-          }
-
-          function cleanupPreDispatch () {
-            socket.removeListener('data', onData)
-            socket.removeListener('error', onPreDispatchError)
-            socket.removeListener('close', onPreDispatchClose)
-          }
-
-          socket.on('error', onPreDispatchError)
-          socket.once('close', onPreDispatchClose)
-          socket.on('data', onData)
-        })
-        this.server = cleartextServer
-      } else {
-        log.verbose('PuppetServer', 'start() TLS enabled.')
-        const cert = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT(this.options.tls?.serverCert) || TLS_INSECURE_SERVER_CERT
-        const key = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey) || TLS_INSECURE_SERVER_KEY
-        this.server = http2.createSecureServer({ allowHTTP1: true, cert, key }, requestListener)
-
-        this.server.on('session', (session) => {
-          this.sessions.add(session)
-          session.once('close', () => this.sessions.delete(session))
-        })
-        this.server.on('connection', (socket) => {
-          this.sockets.add(socket)
-          socket.once('close', () => this.sockets.delete(socket))
-        })
-        this.server.on('secureConnection', (socket) => {
-          this.sockets.add(socket)
-          socket.once('close', () => this.sockets.delete(socket))
-        })
-      }
-
-      await new Promise<void>((resolve, reject) => {
-        this.server!.once('error', reject)
-        this.server!.listen(parsedPort, parsedHost, () => {
-          this.server!.removeListener('error', reject)
-          const addr = this.server!.address() as AddressInfo
-          if (addr) {
-            log.verbose('PuppetServer', 'start() listening on %s:%s', addr.address, addr.port)
-          }
-          resolve()
-        })
-      })
-    } catch (e) {
-      if (this.shutdownController) {
-        this.shutdownController.abort()
+    const shutdownController = new AbortController()
+    this.shutdownController = shutdownController
+    const onScopeAbort = () => {
+      shutdownController.abort()
+    }
+    scope.signal.addEventListener('abort', onScopeAbort, { once: true })
+    scope.defer(() => {
+      scope.signal.removeEventListener('abort', onScopeAbort)
+      shutdownController.abort()
+      if (this.shutdownController === shutdownController) {
         this.shutdownController = undefined
       }
-      if (this.server) {
-        try { this.server.close() } catch {}
-        this.server = undefined
-      }
-      if (this.h1CleartextServer) {
-        try { this.h1CleartextServer.close() } catch {}
-        this.h1CleartextServer = undefined
-      }
-      if (this.h2CleartextServer) {
-        try { this.h2CleartextServer.close() } catch {}
-        this.h2CleartextServer = undefined
-      }
-      if (this.urnRegistry) {
-        try { await this.urnRegistry.destroy() } catch {}
-        this.urnRegistry = undefined
-      }
-      throw e
+    })
+
+    if (!this.urnRegistry) {
+      log.verbose('PuppetServer', 'onStart() initializing FileBox UUID URN Registry ...')
+      const urnRegistry = new UniformResourceNameRegistry()
+      this.urnRegistry = urnRegistry
+      scope.defer(async () => {
+        log.verbose('PuppetServer', 'onStop() destroy URN Registry ...')
+        if (this.urnRegistry === urnRegistry) {
+          this.urnRegistry = undefined
+        }
+        await urnRegistry.destroy()
+        log.verbose('PuppetServer', 'onStop() destroy URN Registry ... done')
+      })
+      await urnRegistry.init()
+      scope.signal.throwIfAborted()
+      log.verbose('PuppetServer', 'onStart() initializing FileBox UUID URN Registry ... done')
     }
 
-    log.verbose('PuppetServer', 'start() server starting ... done')
+    const FileBoxUuid = uuidifyFileBoxLocal(this.urnRegistry)
+    const puppetImpl = puppetImplementation(
+      this.options.puppet,
+      FileBoxUuid,
+      shutdownController.signal,
+    )
+    const healthImpl = healthImplementation(
+      this.options.puppet,
+      shutdownController.signal,
+    )
+
+    const handler = connectNodeAdapter({
+      readMaxBytes: 4 * 1024 * 1024,
+      shutdownSignal: shutdownController.signal,
+      routes: (router) => {
+        router.service(PuppetServiceDefinition, puppetImpl, {
+          interceptors: [
+            authImplToken(this.options.token),
+            serverErrorInterceptor(),
+          ],
+        })
+        router.service(HealthServiceDefinition, healthImpl, {
+          interceptors: [serverErrorInterceptor()],
+        })
+      },
+    })
+
+    const requestListener = (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => {
+      if (req.headers[':authority'] && !req.headers['authority']) {
+        req.headers['authority'] = req.headers[':authority']
+      }
+      return handler(req, res)
+    }
+
+    const disableTls = envVars.WECHATY_PUPPET_SERVICE_NO_TLS_INSECURE_SERVER(this.options.tls?.disable)
+
+    if (disableTls) {
+      log.warn('PuppetServer', 'onStart() TLS disabled: INSECURE!')
+      const h1 = http.createServer(requestListener as any)
+      const h2 = http2.createServer(requestListener)
+      this.h1CleartextServer = h1
+      this.h2CleartextServer = h2
+
+      h2.on('session', (session) => {
+        this.sessions.add(session)
+        session.once('close', () => this.sessions.delete(session))
+      })
+
+      const cleartextServer = net.createServer((socket) => {
+        this.sockets.add(socket)
+
+        const onPreDispatchError = (err: Error) => {
+          log.verbose('PuppetServer', 'cleartext pre-dispatch socket error: %s', err.message)
+          cleanupPreDispatch()
+          this.sockets.delete(socket)
+          socket.destroy()
+        }
+
+        const onPreDispatchClose = () => {
+          cleanupPreDispatch()
+          this.sockets.delete(socket)
+        }
+
+        let buffer = Buffer.alloc(0)
+        const onData = (chunk: Buffer) => {
+          buffer = Buffer.concat([buffer, chunk])
+          // If we have received at least 3 bytes, or if it definitely cannot be the HTTP/2 preface ('PRI')
+          if (buffer.length >= 3 || (buffer.length > 0 && !Buffer.from('PRI').subarray(0, buffer.length).equals(buffer))) {
+            cleanupPreDispatch()
+            socket.unshift(buffer)
+            socket.once('close', () => this.sockets.delete(socket))
+            if (buffer.length >= 3 && buffer.subarray(0, 3).toString('ascii') === 'PRI') {
+              const handle = (socket as any)._handle
+              if (handle) {
+                try {
+                  Object.defineProperty(handle, 'isStreamBase', { value: false, configurable: true })
+                } catch {}
+              }
+              h2.emit('connection', socket)
+            } else {
+              h1.emit('connection', socket)
+            }
+          }
+        }
+
+        function cleanupPreDispatch () {
+          socket.removeListener('data', onData)
+          socket.removeListener('error', onPreDispatchError)
+          socket.removeListener('close', onPreDispatchClose)
+        }
+
+        socket.on('error', onPreDispatchError)
+        socket.once('close', onPreDispatchClose)
+        socket.on('data', onData)
+      })
+      this.server = cleartextServer
+    } else {
+      log.verbose('PuppetServer', 'onStart() TLS enabled.')
+      const cert = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_CERT(this.options.tls?.serverCert) || TLS_INSECURE_SERVER_CERT
+      const key = envVars.WECHATY_PUPPET_SERVICE_TLS_SERVER_KEY(this.options.tls?.serverKey) || TLS_INSECURE_SERVER_KEY
+      this.server = http2.createSecureServer({ allowHTTP1: true, cert, key }, requestListener)
+
+      this.server.on('session', (session) => {
+        this.sessions.add(session)
+        session.once('close', () => this.sessions.delete(session))
+      })
+      this.server.on('connection', (socket) => {
+        this.sockets.add(socket)
+        socket.once('close', () => this.sockets.delete(socket))
+      })
+      this.server.on('secureConnection', (socket) => {
+        this.sockets.add(socket)
+        socket.once('close', () => this.sockets.delete(socket))
+      })
+    }
+
+    scope.defer(async () => {
+      await this.closeServers()
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      const server = this.server!
+      const onAbort = () => {
+        reject(scope.signal.reason)
+      }
+      const onError = (err: Error) => {
+        scope.signal.removeEventListener('abort', onAbort)
+        reject(err)
+      }
+      scope.signal.addEventListener('abort', onAbort, { once: true })
+      server.once('error', onError)
+      server.listen(parsedPort, parsedHost, () => {
+        server.removeListener('error', onError)
+        scope.signal.removeEventListener('abort', onAbort)
+        const addr = server.address() as AddressInfo
+        if (addr) {
+          log.verbose('PuppetServer', 'onStart() listening on %s:%s', addr.address, addr.port)
+        }
+        resolve()
+      })
+    })
+
+    log.verbose('PuppetServer', 'onStart() server starting ... done')
   }
 
-  public async stop (): Promise<void> {
-    log.verbose('PuppetServer', 'stop()')
-
-    if (this.shutdownController) {
-      this.shutdownController.abort()
-      this.shutdownController = undefined
-    }
-
+  /** Gracefully close HTTP/HTTP2/net servers, force-destroying lingering connections before `stopTimeoutMs`. */
+  private async closeServers (): Promise<void> {
     for (const session of this.sessions) {
       if (!session.destroyed && !session.closed) {
         session.close()
       }
     }
 
-    if (this.server) {
-      const s = this.server
-      this.server = undefined
-      const h1 = this.h1CleartextServer
-      this.h1CleartextServer = undefined
-      const h2 = this.h2CleartextServer
-      this.h2CleartextServer = undefined
+    const s = this.server
+    this.server = undefined
+    const h1 = this.h1CleartextServer
+    this.h1CleartextServer = undefined
+    const h2 = this.h2CleartextServer
+    this.h2CleartextServer = undefined
 
+    if (s) {
+      const graceMs = this.options.stopTimeoutMs !== undefined
+        ? Math.min(1000, Math.max(1, Math.floor(this.options.stopTimeoutMs * 0.5)))
+        : 1000
+      const clock = this.options.clock
       await new Promise<void>((resolve) => {
-        const timer = setTimeout(() => {
+        const forceDestroy = () => {
           for (const session of this.sessions) {
             if (!session.destroyed) {
               try {
@@ -350,10 +375,18 @@ export class PuppetServer {
               } catch {}
             }
           }
-        }, 1000)
+        }
+
+        const timer = clock
+          ? clock.setTimeout(forceDestroy, graceMs)
+          : setTimeout(forceDestroy, graceMs)
 
         s.close(() => {
-          clearTimeout(timer)
+          if (clock) {
+            clock.clearTimeout(timer)
+          } else {
+            clearTimeout(timer as ReturnType<typeof setTimeout>)
+          }
           try { h1?.close() } catch {}
           try { h2?.close() } catch {}
           resolve()
@@ -361,14 +394,7 @@ export class PuppetServer {
       })
       this.sessions.clear()
       this.sockets.clear()
-      log.verbose('PuppetServer', 'stop() server shutdown ... done')
-    }
-
-    if (this.urnRegistry) {
-      log.verbose('PuppetServer', 'stop() destroy URN Registry ...')
-      await this.urnRegistry.destroy()
-      this.urnRegistry = undefined
-      log.verbose('PuppetServer', 'stop() destroy URN Registry ... done')
+      log.verbose('PuppetServer', 'closeServers() server shutdown ... done')
     }
   }
 
