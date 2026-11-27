@@ -190,6 +190,7 @@ export class PuppetServer extends AsyncLifecycle {
         log.verbose('PuppetServer', 'onStop() destroy URN Registry ... done')
       })
       await urnRegistry.init()
+      scope.signal.throwIfAborted()
       log.verbose('PuppetServer', 'onStart() initializing FileBox UUID URN Registry ... done')
     }
 

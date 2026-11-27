@@ -205,7 +205,15 @@ class PuppetService extends PUPPET.Puppet {
       case EventType.LOGIN:
         {
           const loginPayload = JSON.parse(payload) as PUPPET.payloads.EventLogin
-          ;(async () => this.login(loginPayload.contactId))().catch(e =>
+          ;(async () => {
+            if (this.isLoggedIn) {
+              if (this.currentUserId === loginPayload.contactId) {
+                return
+              }
+              await this.logout('re-login')
+            }
+            await this.login(loginPayload.contactId)
+          })().catch(e =>
             log.error('PuppetService', 'onGrpcStreamEvent() this.login() rejection %s',
               (e as Error).message,
             ),

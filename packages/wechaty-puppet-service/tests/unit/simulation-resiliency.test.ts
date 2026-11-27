@@ -585,4 +585,82 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       await backend.stop().catch(() => {})
     }
   })
+
+  await t.test('GrpcManager fails cleanly when maxAttempts is 0 and stream drops while running', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const manager = new GrpcManager({
+      endpoint,
+      token,
+      reconnect: { maxAttempts: 0 },
+    })
+    manager.on('error', () => {})
+
+    try {
+      await server.start()
+      await manager.start()
+      assert.equal(manager.isRunning, true)
+
+      await server.stop()
+      await manager.whenState(s => s.kind === 'failed')
+      assert.equal(manager.isFailed, true)
+    } finally {
+      await manager.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
+
+  await t.test('PuppetService handles LOGIN replay for the same user on reconnect', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const clock = new ManualClock()
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const client = new PuppetService({
+      endpoint,
+      token,
+      clock,
+      reconnect: { baseDelayMs: 100, maxDelayMs: 400 },
+    } as PuppetServiceOptions)
+    const errors: unknown[] = []
+    client.on('error', err => errors.push(err))
+
+    try {
+      await server.start()
+      await client.start()
+      const loginSeen = new Promise<void>(resolve => client.once('login', () => resolve()))
+      await backend.login('self-user-1')
+      await loginSeen
+      assert.equal(client.isLoggedIn, true)
+
+      await server.stop()
+      await client.grpcManager.whenState(s => s.kind === 'starting')
+      await server.start()
+      while (clock.pendingCount === 0) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      await clock.advanceBy(100)
+      await client.grpcManager.whenRunning()
+      await new Promise(resolve => setImmediate(resolve))
+
+      assert.equal(client.isLoggedIn, true)
+      assert.equal(client.currentUserId, 'self-user-1')
+      // No "must logout first before login again!" error should be emitted
+      assert.equal(
+        errors.some(e => String((e as Error)?.message ?? e).includes('must logout first')),
+        false,
+      )
+    } finally {
+      await client.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
 })

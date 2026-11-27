@@ -106,6 +106,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
 
   private reconnectAttempt = 0
   private remoteStopPending = false
+  private currentAttemptCleanup?: () => void
   private readonly reconnectOptions: Required<Pick<GrpcReconnectOptions, 'enabled' | 'baseDelayMs' | 'maxDelayMs'>> & {
     maxAttempts?: number
   }
@@ -231,11 +232,13 @@ class GrpcManager extends EventEmitter implements Lifecycle {
 
   /** Stop the remote session (bounded by `stopTimeoutMs`) and dispose local transport. */
   stop (options?: LifecycleWaitOptions): Promise<void> {
+    this.reconnectAttempt = 0
     return this.lifecycle.stop(options)
   }
 
   /** Stop the current connection and start a fresh one. */
   restart (options?: LifecycleWaitOptions): Promise<void> {
+    this.reconnectAttempt = 0
     return this.lifecycle.restart(options)
   }
 
@@ -259,6 +262,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
 
   /** Dispose the gRPC lifecycle asynchronously. */
   [Symbol.asyncDispose] (): Promise<void> {
+    this.reconnectAttempt = 0
     return this.lifecycle[Symbol.asyncDispose]()
   }
 
@@ -268,14 +272,16 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     return Math.min(this.reconnectOptions.maxDelayMs, this.reconnectOptions.baseDelayMs * (2 ** exp))
   }
 
-  /** Trigger ScopeLet recovery on unexpected stream loss while running. */
+  /** Trigger ScopeLet recovery on unexpected stream loss while running, or fail if `maxAttempts` is exceeded. */
   private handleStreamLoss (scope: LifecycleScope, reason: unknown): void {
     if (
       scope.signal.aborted
-      || !this.reconnectOptions.enabled
       || !this.isRunning
       || this.isStopping
     ) {
+      return
+    }
+    if (!this.reconnectOptions.enabled) {
       return
     }
     const nextAttempt = this.reconnectAttempt + 1
@@ -283,6 +289,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       this.reconnectOptions.maxAttempts !== undefined
       && nextAttempt > this.reconnectOptions.maxAttempts
     ) {
+      scope.fail(reason)
       return
     }
     if (scope.recover(reason) === 'accepted') {
@@ -295,19 +302,30 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     log.verbose('GrpcManager', 'connectAndStartStream()')
     scope.signal.throwIfAborted()
 
+    this.currentAttemptCleanup?.()
     const attemptController = new AbortController()
     const onScopeAbort = () => attemptController.abort(scope.signal.reason)
     scope.signal.addEventListener('abort', onScopeAbort, { once: true })
-    scope.defer(() => {
+    const cleanupAttempt = () => {
       scope.signal.removeEventListener('abort', onScopeAbort)
       attemptController.abort()
-    })
+      if (this.currentAttemptCleanup === cleanupAttempt) {
+        this.currentAttemptCleanup = undefined
+      }
+    }
+    this.currentAttemptCleanup = cleanupAttempt
+
+    let earlyStreamLoss: { reason: unknown } | undefined
 
     try {
       await this.initClient(attemptController.signal)
       attemptController.signal.throwIfAborted()
 
-      await this.startStream(scope, attemptController.signal)
+      await this.startStream(scope, attemptController.signal, (reason) => {
+        if (!this.isRunning && !attemptController.signal.aborted) {
+          earlyStreamLoss = { reason }
+        }
+      })
       attemptController.signal.throwIfAborted()
 
       this.remoteStopPending = true
@@ -319,10 +337,17 @@ class GrpcManager extends EventEmitter implements Lifecycle {
         }
         throw err
       }
+
+      if (earlyStreamLoss) {
+        throw earlyStreamLoss.reason instanceof Error
+          ? earlyStreamLoss.reason
+          : new Error(String(earlyStreamLoss.reason ?? 'gRPC event stream ended during startup'))
+      }
+
       log.verbose('GrpcManager', 'connectAndStartStream() ... done')
     } catch (err) {
-      // Fence the discarded attempt's stream before destroyClient() tears down the session.
-      attemptController.abort(err)
+      // Fence the discarded attempt's stream and detach scope.signal listener before destroyClient().
+      cleanupAttempt()
       throw err
     }
   }
@@ -366,6 +391,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     // LIFO order: stopRemoteOnce runs before destroyClient() if startup is aborted.
     scope.defer(() => this.destroyClient())
     scope.defer(() => this.stopRemoteOnce())
+    scope.defer(() => this.currentAttemptCleanup?.())
 
     try {
       if (this.reconnectAttempt === 0) {
@@ -496,6 +522,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   protected async startStream (
     scope: LifecycleScope,
     attemptSignal: AbortSignal = scope.signal,
+    onEarlyLoss?: (reason: unknown) => void,
   ): Promise<void> {
     log.verbose('GrpcManager', 'startStream()')
 
@@ -545,7 +572,9 @@ class GrpcManager extends EventEmitter implements Lifecycle {
           if (first.done) {
             if (!isCancelled()) {
               this.emit('end')
-              this.handleStreamLoss(scope, new Error('gRPC event stream ended'))
+              const reason = new Error('gRPC event stream ended')
+              onEarlyLoss?.(reason)
+              this.handleStreamLoss(scope, reason)
             }
             return
           }
@@ -556,7 +585,9 @@ class GrpcManager extends EventEmitter implements Lifecycle {
           if (res.done) {
             if (!isCancelled()) {
               this.emit('end')
-              this.handleStreamLoss(scope, new Error('gRPC event stream ended'))
+              const reason = new Error('gRPC event stream ended')
+              onEarlyLoss?.(reason)
+              this.handleStreamLoss(scope, reason)
             }
             return
           }
@@ -565,6 +596,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       } catch (err) {
         if (!isCancelled()) {
           this.emit('error', err)
+          onEarlyLoss?.(err)
           this.handleStreamLoss(scope, err)
         }
       }
