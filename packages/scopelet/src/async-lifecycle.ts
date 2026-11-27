@@ -128,7 +128,10 @@ abstract class AsyncLifecycle implements Lifecycle {
       operation: {
         configurable: false,
         writable: false,
-        value: <T>(work: (signal: AbortSignal) => T | PromiseLike<T>) => this.#engine.operation(work),
+        value: <T>(
+          work: (signal: AbortSignal) => T | PromiseLike<T>,
+          callOptions?: LifecycleOperationOptions,
+        ) => this.#engine.operation(work, callOptions),
       },
       isRunning: {
         configurable: false,

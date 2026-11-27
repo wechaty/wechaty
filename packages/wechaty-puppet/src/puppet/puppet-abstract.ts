@@ -24,6 +24,7 @@ import type {
 }                       from 'scopelet'
 import {
   createLifecycle,
+  LifecycleUnsafeStateError,
 }                       from 'scopelet'
 
 import {
@@ -244,9 +245,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     ++this.#loginToken
     this.#loggedOut = false
     this.#currentUserId = userId
-    if (this.#lifecycle.isActive) {
-      this.#login.set()
-    }
+    this.#writeCondition(this.#login, true)
     this.dispatchEvent(new WechatyEvent('login', {
       detail: { contactId: userId },
     }))
@@ -261,7 +260,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
     this.#loggedOut = true
     const currentToken = this.#loginToken
-    const generation = this.#lifecycle.isActive ? this.#lifecycle.state.generation : undefined
+    const state = this.#lifecycle.state
+    const generation = (state.kind === 'stopped' || state.kind === 'failed')
+      ? undefined
+      : state.generation
 
     this.dispatchEvent(new WechatyEvent('logout', {
       detail: {
@@ -276,30 +278,43 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }, 0))
   }
 
-  /** Mirror a generation's readiness into the generation-scoped ready condition. */
-  #setReady (ready: boolean): void {
+  /** Set or clear a condition only while the active generation is unsealed. */
+  #writeCondition (handle: LifecycleConditionHandle, value: boolean): void {
     if (!this.#lifecycle.isActive) {
       return
     }
-    if (ready) {
-      this.#ready.set()
-    } else {
-      this.#ready.clear()
+    try {
+      if (value) {
+        handle.set()
+      } else {
+        handle.clear()
+      }
+    } catch (error) {
+      if (!(error instanceof LifecycleUnsafeStateError)) {
+        throw error
+      }
     }
+  }
+
+  /** Mirror a generation's readiness into the generation-scoped ready condition. */
+  #setReady (ready: boolean): void {
+    this.#writeCondition(this.#ready, ready)
   }
 
   /** Clear only the login and generation that scheduled this logout. */
   #finishLogout (generation: number | undefined, token: number): void {
-    const current = this.#lifecycle.isActive ? this.#lifecycle.state.generation : undefined
+    const state = this.#lifecycle.state
+    if (state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
+      return
+    }
+    const current = this.#lifecycle.isActive ? state.generation : undefined
     // An idle logout can finish after startup adopts the same login token.
     // A logout from a generation stays with that generation.
     if ((generation !== undefined && generation !== current) || this.#loginToken !== token) {
       return
     }
-    if (this.#lifecycle.isActive) {
-      this.#login.clear()
-      this.#ready.clear()
-    }
+    this.#writeCondition(this.#login, false)
+    this.#writeCondition(this.#ready, false)
     this.#currentUserId = undefined
     this.#loggedOut = false
   }
@@ -650,10 +665,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     scope.listen(this, 'stop', cleanAuthQrCode)
 
     scope.listen(this, 'login', (e: any) => {
-      if (scope.signal.aborted) {
+      if (scope.isSealed || scope.signal.aborted) {
         return
       }
-      this.#login.set()
+      this.#writeCondition(this.#login, true)
       const payload = (e instanceof CustomEvent) ? e.detail : (e?.detail ?? e)
       if (payload?.contactId) {
         this.#currentUserId = payload.contactId
