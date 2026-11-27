@@ -324,6 +324,11 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   get UrlLink (): UrlLinkConstructor { return this.#userModuleManager.UrlLink }
 
   // --- Bot Lifecycle ---
+  /**
+   * Ensures `MemoryCard` is created and loaded (with browser `nop` storage fallback,
+   * tolerating `'already loaded'` across restarts/retries) and delegates puppet
+   * initialization to `this.#puppetManager.init()`.
+   */
   async #init (): Promise<void> {
     log.verbose('Wechaty', '#init()')
     if (!this.#memory) {
@@ -343,7 +348,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
       if (!err?.message?.includes?.('already loaded')) {
         throw err
       }
-      log.silly('Wechaty', 'init() memory.load() had already loaded')
+      log.silly('Wechaty', '#init() memory.load() had already loaded')
     }
     await this.#puppetManager.init()
   }
