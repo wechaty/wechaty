@@ -1,6 +1,6 @@
 /**
- * `PuppetSkeleton`: the base every mixin extends. It owns the puppet `id`,
- * `options`, the typed event emitter and `wrapAsync()`.
+ * `PuppetSkeleton`: the minimal base class for `PuppetAbstract`. It owns the puppet
+ * `id`, `options`, the typed event emitter, and `wrapAsync()`.
  */
 /**
  *   Wechaty - https://github.com/wechaty/wechaty

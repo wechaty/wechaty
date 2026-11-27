@@ -131,7 +131,6 @@
     "cross-spawn": "^7.0.3",
     "dotenv": "^16.0.0",
     "file-box": "^2.3.0",
-    "fp-ts": "^2.11.9",
     "gerror": "2.1.0-alpha.0",
     "get-port": "^6.1.2",
     "json-rpc-peer": "^0.17.0",
