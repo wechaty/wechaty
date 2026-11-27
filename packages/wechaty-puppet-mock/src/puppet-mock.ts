@@ -1,8 +1,8 @@
 /**
  * `PuppetMock`: a Wechaty puppet provider with no IM behind it. Every puppet
- * method answers from an in-memory `Mocker` (contacts, rooms, messages), so
- * tests and examples can drive a bot without a real account. Methods with
- * nothing to mock log their call and return an empty result.
+ * method answers from an in-memory `Mocker` (contacts, rooms, messages,
+ * friendships, tags, posts, taps) and emits `PuppetEventDetailMap` events,
+ * so tests and examples can drive a bot without a real account.
  */
 /**
  *   Wechaty - https://github.com/chatie/wechaty
@@ -363,10 +363,10 @@ class PuppetMock extends PUPPET.Puppet {
    * Materializes a `SayablePayload` into a persisted `MessagePayload` (and attachment
    * cache entry) so `Post` sayable IDs resolve via `messagePayload(id)`.
    */
-  private _materializeSayable (
+  private async _materializeSayable (
     sayable: PUPPET.payloads.Sayable | string,
     talkerId: string,
-  ): string {
+  ): Promise<string> {
     if (typeof sayable === 'string') {
       return sayable
     }
@@ -401,14 +401,33 @@ class PuppetMock extends PUPPET.Puppet {
         base.type = PUPPET.types.Message.Contact
         this.mocker.cacheMessageContactId.set(id, sayable.payload.contactId)
         break
+      case PUPPET.types.Sayable.Post:
+        base.type = PUPPET.types.Message.Post
+        await this._storePostPayload(id, sayable.payload)
+        break
+      case PUPPET.types.Sayable.Emoticon:
+        base.type = PUPPET.types.Message.Emoticon
+        break
       case PUPPET.types.Sayable.Attachment:
       case PUPPET.types.Sayable.Image:
       case PUPPET.types.Sayable.Audio:
       case PUPPET.types.Sayable.Video: {
-        base.type = PUPPET.types.Message.Attachment
+        base.type = sayable.type === PUPPET.types.Sayable.Image
+          ? PUPPET.types.Message.Image
+          : sayable.type === PUPPET.types.Sayable.Audio
+            ? PUPPET.types.Message.Audio
+            : sayable.type === PUPPET.types.Sayable.Video
+              ? PUPPET.types.Message.Video
+              : PUPPET.types.Message.Attachment
         const rawBox = sayable.payload.filebox
         const box = typeof rawBox === 'string' ? FileBox.fromUrl(rawBox) : rawBox
-        this.mocker.cacheFileBoxPayload.set(id, box.toJSON())
+        let json: ReturnType<FileBox['toJSON']>
+        try {
+          json = box.toJSON()
+        } catch {
+          json = FileBox.fromBase64(await box.toBase64(), box.name).toJSON()
+        }
+        this.mocker.cacheFileBoxPayload.set(id, json)
         break
       }
       default:
@@ -422,15 +441,15 @@ class PuppetMock extends PUPPET.Puppet {
    * Stores a `PostPayload` as a `PostServer` in `mocker.cachePostPayload` under `id`,
    * materializing any client sayables into message records.
    */
-  private _storePostPayload (
+  private async _storePostPayload (
     id: string,
     payload: PUPPET.payloads.Post,
-  ): PUPPET.payloads.PostServer {
+  ): Promise<PUPPET.payloads.PostServer> {
     const contactId = ('contactId' in payload && payload.contactId)
       ? payload.contactId
       : (this.isLoggedIn ? this.currentUserId : '')
-    const sayableIdList = payload.sayableList.map((item) =>
-      this._materializeSayable(item, contactId),
+    const sayableIdList = await Promise.all(
+      payload.sayableList.map((item) => this._materializeSayable(item, contactId)),
     )
     const stored: PUPPET.payloads.PostServer = {
       ...payload,
@@ -507,10 +526,11 @@ class PuppetMock extends PUPPET.Puppet {
     postPayload: PUPPET.payloads.Post,
   ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageSendPost(%s, %s)', conversationId, JSON.stringify(postPayload))
-    return this._createTypedMessage(conversationId, PUPPET.types.Message.Post, undefined, (id) => {
+    const messageId = this._createTypedMessage(conversationId, PUPPET.types.Message.Post, undefined, (id) => {
       this.mocker.cacheMessagePostPayload.set(id, postPayload)
-      this._storePostPayload(id, postPayload)
     })
+    await this._storePostPayload(messageId, postPayload)
+    return messageId
   }
 
   override async messageForward (
@@ -865,7 +885,7 @@ class PuppetMock extends PUPPET.Puppet {
     const existing = await this.friendshipRawPayload(friendshipId)
     const contactPayload = this.mocker.contactPayload(existing.contactId)
     contactPayload.friend = true
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, existing.contactId)
+    await this.contactPayloadDirty(existing.contactId)
     const contact = this.mocker.ContactMock.load(existing.contactId)
     this.mocker.receiveFriendship(contact, existing.hello ?? '', PUPPET.types.Friendship.Confirm)
   }
@@ -886,7 +906,7 @@ class PuppetMock extends PUPPET.Puppet {
       this.mocker.cacheTagContacts.set(tagId, set)
     }
     set.add(contactId)
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+    await this.contactPayloadDirty(contactId)
   }
 
   override async tagContactRemove (
@@ -895,7 +915,7 @@ class PuppetMock extends PUPPET.Puppet {
   ): Promise<void> {
     log.verbose('PuppetMock', 'tagContactRemove(%s, %s)', tagId, contactId)
     this.mocker.cacheTagContacts.get(tagId)?.delete(contactId)
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+    await this.contactPayloadDirty(contactId)
   }
 
   override async tagContactDelete (
@@ -906,7 +926,7 @@ class PuppetMock extends PUPPET.Puppet {
     this.mocker.cacheTagContacts.delete(tagId)
     if (contacts) {
       for (const contactId of contacts) {
-        await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+        await this.contactPayloadDirty(contactId)
       }
     }
   }
@@ -951,7 +971,7 @@ class PuppetMock extends PUPPET.Puppet {
       PUPPET.helpers.typeName(PUPPET.types.Post, payload.type || PUPPET.types.Post.Unspecified),
     )
     const id = ('id' in payload && payload.id) ? payload.id : crypto.randomUUID()
-    this._storePostPayload(id, payload)
+    await this._storePostPayload(id, payload)
     this.dispatchEvent(new PUPPET.WechatyEvent('post', {
       detail: { postId: id },
     }))
@@ -977,8 +997,14 @@ class PuppetMock extends PUPPET.Puppet {
       })
       .map((p) => p.id)
 
+    if (pagination?.pageSize !== undefined && pagination.pageSize <= 0) {
+      throw new Error(`Invalid pageSize: ${pagination.pageSize}`)
+    }
     const pageSize = pagination?.pageSize ?? allIds.length
     const offset = pagination?.pageToken ? Number.parseInt(pagination.pageToken, 10) : 0
+    if (Number.isNaN(offset) || offset < 0) {
+      throw new Error(`Invalid pageToken: ${pagination?.pageToken}`)
+    }
     const slice = allIds.slice(offset, offset + pageSize)
     const nextOffset = offset + slice.length
 
