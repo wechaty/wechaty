@@ -28,10 +28,14 @@ cleanup () {
   trap - EXIT INT TERM
   if [ -f "$RESTORE_LIST" ]; then
     while IFS=$'\t' read -r file backup; do
-      [ -f "$backup" ] && cp "$backup" "$file"
+      if [ -f "$backup" ]; then
+        cp "$backup" "$file"
+      fi
     done < "$RESTORE_LIST"
   fi
-  [ -d "$TMPDIR" ] && rm -rf "$TMPDIR"
+  if [ -d "$TMPDIR" ]; then
+    rm -rf "$TMPDIR"
+  fi
   if [ -n "$sig" ]; then
     kill -s "$sig" $$ 2>/dev/null || true
     case "$sig" in

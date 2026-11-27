@@ -163,8 +163,9 @@ export function backupPathForManifest (pkgPath: string): string {
  * the manifest in place with dist-ready mappings. If a backup already exists from
  * an interrupted prior pack where the manifest was left in the prepared state,
  * automatically recovers the original source manifest before preparing anew.
- * Throws if the backup cannot be parsed or if the current manifest has diverged
- * from the backup's prepared state to prevent accidental data loss.
+ * Also cleans up orphaned backups when the manifest was already restored (matching
+ * the backup byte-for-byte). Throws if the backup cannot be parsed or if the current
+ * manifest has diverged from the backup to prevent accidental data loss.
  *
  * @param pkgPath - Relative or absolute path to the target package.json (defaults to 'package.json')
  */
@@ -181,6 +182,7 @@ export function preparePack (pkgPath = 'package.json'): void {
     throw new Error(`Cannot prepare pack: failed to parse ${pkgPath}: ${String(err)}`)
   }
 
+  let sourceRaw = raw
   const backup = backupPathForManifest(pkgPath)
   if (existsSync(backup)) {
     let backupRaw: string
@@ -201,9 +203,14 @@ export function preparePack (pkgPath = 'package.json'): void {
       // Auto-recover the original source manifest from the backup before proceeding.
       writeFileSync(pkgPath, backupRaw, 'utf8')
       manifest = backupManifest
+      sourceRaw = backupRaw
+      unlinkSync(backup)
+    } else if (raw === backupRaw) {
+      // The working tree manifest was already restored (e.g. by a shell trap or checkout)
+      // and is byte-for-byte identical to the backup. Clean up the orphaned backup.
       unlinkSync(backup)
     } else {
-      // The current manifest has diverged from the backup's prepared state.
+      // The current manifest has diverged from both the backup and its prepared state.
       // Refuse to overwrite to prevent silent data loss.
       throw new Error(
         `Cannot prepare pack: backup file already exists at ${backup} and current manifest has diverged. Remove or restore ${backup} to prevent data loss.`,
@@ -211,7 +218,7 @@ export function preparePack (pkgPath = 'package.json'): void {
     }
   }
 
-  writeFileSync(backup, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
+  writeFileSync(backup, sourceRaw, 'utf8')
 
   const transformed = transformManifestForPack(manifest)
   writeFileSync(pkgPath, JSON.stringify(transformed, null, 2) + '\n', 'utf8')

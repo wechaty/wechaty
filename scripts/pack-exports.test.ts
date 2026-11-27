@@ -133,6 +133,7 @@ test('preparePack and restorePack lifecycle cycle preserves file content', () =>
   const pkgFile = join(dir, 'package.json')
 
   try {
+    // Test with non-canonical 4-space indentation and extra whitespace to ensure byte-for-byte preservation
     const originalContent = JSON.stringify({
       name: 'pack-lifecycle-test',
       version: '1.0.0',
@@ -143,24 +144,31 @@ test('preparePack and restorePack lifecycle cycle preserves file content', () =>
           default: './src/mod.ts',
         },
       },
-    }, null, 2) + '\n'
+    }, null, 4) + '\n\n'
 
     writeFileSync(pkgFile, originalContent, 'utf8')
 
-    // 1. preparePack rewrites exports to dist/esm
+    // 1. preparePack rewrites exports to dist/esm while preserving exact original raw bytes in backup
     preparePack(pkgFile)
     const preparedContent = JSON.parse(readFileSync(pkgFile, 'utf8'))
     assert.equal(preparedContent.exports['.'].node, './dist/esm/src/mod.js')
 
     const backupFile = backupPathForManifest(pkgFile)
     assert.ok(existsSync(backupFile), 'Backup file must exist after preparePack')
+    assert.equal(readFileSync(backupFile, 'utf8'), originalContent, 'Backup must preserve exact raw bytes')
 
     // 2. An interrupted preparation (where pkgFile holds the prepared state) auto-recovers the original manifest
     preparePack(pkgFile)
     assert.ok(existsSync(backupFile), 'Backup file must exist after auto-recovered preparePack')
     assert.equal(readFileSync(backupFile, 'utf8'), originalContent, 'Backup must preserve the original source manifest')
 
-    // 3. A diverged manifest (conflicting with an existing backup) must reject to protect data
+    // 3. An orphaned backup where pkgFile was already restored (raw === backupRaw) unlinks backup and succeeds
+    writeFileSync(pkgFile, originalContent, 'utf8')
+    preparePack(pkgFile)
+    assert.ok(existsSync(backupFile), 'Backup file must exist after preparePack on restored manifest')
+    assert.equal(readFileSync(backupFile, 'utf8'), originalContent, 'Backup preserves raw bytes')
+
+    // 4. A diverged manifest (conflicting with an existing backup) must reject to protect data
     const divergedContent = JSON.stringify({ name: 'diverged-pkg', version: '2.0.0' }, null, 2) + '\n'
     writeFileSync(pkgFile, divergedContent, 'utf8')
     assert.throws(
@@ -174,12 +182,12 @@ test('preparePack and restorePack lifecycle cycle preserves file content', () =>
     const preparedDist = JSON.stringify(transformManifestForPack(JSON.parse(originalContent)), null, 2) + '\n'
     writeFileSync(pkgFile, preparedDist, 'utf8')
 
-    // 4. restorePack restores original content and unlinks backup
+    // 5. restorePack restores original content byte-for-byte and unlinks backup
     restorePack(pkgFile)
-    assert.equal(readFileSync(pkgFile, 'utf8'), originalContent, 'Original content must be restored')
+    assert.equal(readFileSync(pkgFile, 'utf8'), originalContent, 'Original content must be restored byte-for-byte')
     assert.ok(!existsSync(backupFile), 'Backup file must be cleaned up after restorePack')
 
-    // 5. Calling restorePack again when no backup exists is a safe no-op
+    // 6. Calling restorePack again when no backup exists is a safe no-op
     restorePack(pkgFile)
     assert.equal(readFileSync(pkgFile, 'utf8'), originalContent, 'Content remains unchanged')
   } finally {
