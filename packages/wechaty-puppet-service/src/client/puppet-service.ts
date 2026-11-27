@@ -37,8 +37,11 @@ import { millisecondsFromTimestamp } from '../pure-functions/timestamp.ts'
 
 export type PuppetServiceOptions = PUPPET.PuppetOptions & {
   authority?     : string
+  /** Optional clock for deterministic reconnect backoff and stop-timeout testing. */
   clock?         : LifecycleClock
+  /** Maximum milliseconds to wait for `GrpcManager.stop()` before force-closing. */
   stopTimeoutMs? : number
+  /** Options controlling automatic stream-loss reconnection in `GrpcManager`. */
   reconnect?     : GrpcReconnectOptions
   tls?: {
     caCert?     : string

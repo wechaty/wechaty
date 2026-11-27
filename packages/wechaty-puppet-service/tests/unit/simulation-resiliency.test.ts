@@ -657,8 +657,62 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
         errors.some(e => String((e as Error)?.message ?? e).includes('must logout first')),
         false,
       )
+
+      // Account switch (A -> B) during reconnect must reconcile local auth without calling remote logout
+      let remoteLogoutCalls = 0
+      const origLogout = backend.logout.bind(backend)
+      backend.logout = async (reason?: string) => {
+        remoteLogoutCalls += 1
+        return origLogout(reason)
+      }
+      await server.stop()
+      await client.grpcManager.whenState(s => s.kind === 'starting')
+      await backend.logout('switch')
+      await backend.login('self-user-2')
+      remoteLogoutCalls = 0
+
+      await server.start()
+      while (clock.pendingCount === 0) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      await clock.advanceBy(100)
+      await client.grpcManager.whenRunning()
+      await new Promise(resolve => setTimeout(resolve, 20))
+
+      assert.equal(client.isLoggedIn, true)
+      assert.equal(client.currentUserId, 'self-user-2')
+      assert.equal(remoteLogoutCalls, 0, 'account-switch LOGIN replay must not send remote logout RPC')
     } finally {
       await client.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
+
+  await t.test('GrpcManager fails cleanly when reconnect.enabled is false and stream drops', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const manager = new GrpcManager({
+      endpoint,
+      token,
+      reconnect: { enabled: false },
+    })
+    manager.on('error', () => {})
+
+    try {
+      await server.start()
+      await manager.start()
+      assert.equal(manager.isRunning, true)
+
+      await server.stop()
+      await manager.whenState(s => s.kind === 'failed')
+      assert.equal(manager.isFailed, true)
+    } finally {
+      await manager.stop().catch(() => {})
       await server.stop().catch(() => {})
       await backend.stop().catch(() => {})
     }

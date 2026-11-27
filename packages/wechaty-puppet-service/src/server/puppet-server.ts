@@ -317,7 +317,6 @@ export class PuppetServer extends AsyncLifecycle {
     await new Promise<void>((resolve, reject) => {
       const server = this.server!
       const onAbort = () => {
-        server.removeListener('error', onError)
         reject(scope.signal.reason)
       }
       const onError = (err: Error) => {
