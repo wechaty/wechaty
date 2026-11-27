@@ -111,26 +111,34 @@ class GrpcManager extends EventEmitter {
     log.verbose('GrpcManager', 'constructor() serverName(SNI): "%s"', this.serverName)
   }
 
-  async start (): Promise<void> {
+  /** Start the local transport and event stream under Puppet's startup signal. */
+  async start (signal?: AbortSignal): Promise<void> {
     log.verbose('GrpcManager', 'start()')
+    signal?.throwIfAborted()
 
     try {
       log.verbose('GrpcManager', 'start() initializing client ...')
-      await this.initClient()
+      await this.initClient(signal)
+      signal?.throwIfAborted()
       log.verbose('GrpcManager', 'start() initializing client ... done')
 
       log.verbose('GrpcManager', 'start() starting stream ...')
-      await this.startStream()
+      await this.startStream(signal)
+      signal?.throwIfAborted()
       log.verbose('GrpcManager', 'start() starting stream ... done')
 
       log.verbose('GrpcManager', 'start() calling grpc server: start() ...')
-      await this.client.start({})
+      await this.client.start({}, { signal })
       log.verbose('GrpcManager', 'start() calling grpc server: start() ... done')
 
       log.verbose('GrpcManager', 'start() ... done')
     } catch (e) {
-      this.stopStream()
-      this.destroyClient()
+      if (!signal?.aborted) {
+        this.stopStream()
+        this.destroyClient()
+      }
+      // On cancellation Puppet's early stop owns transport disposal. Its
+      // remote stop call may still be using the transport.
       throw e
     }
   }
@@ -168,7 +176,8 @@ class GrpcManager extends EventEmitter {
     log.verbose('GrpcManager', 'stop() ... done')
   }
 
-  protected async initClient (): Promise<void> {
+  /** Resolve the endpoint and check cancellation before allocating a client. */
+  protected async initClient (signal?: AbortSignal): Promise<void> {
     log.verbose('GrpcManager', 'initClient()')
 
     const protocol = this.disableTls ? 'http' : 'https'
@@ -200,6 +209,7 @@ class GrpcManager extends EventEmitter {
       target = parsed.host
     }
 
+    signal?.throwIfAborted()
     const baseUrl = `${protocol}://${target}`
     log.verbose('GrpcManager', 'initClient() baseUrl: %s', baseUrl)
 
@@ -235,7 +245,8 @@ class GrpcManager extends EventEmitter {
     this._client = undefined
   }
 
-  protected async startStream (): Promise<void> {
+  /** Start the event iterator, which stopStream can interrupt during startup. */
+  protected async startStream (startupSignal?: AbortSignal): Promise<void> {
     log.verbose('GrpcManager', 'startStream()')
 
     if (this.abortController) {
@@ -266,6 +277,8 @@ class GrpcManager extends EventEmitter {
         throw err
       }
     }
+
+    startupSignal?.throwIfAborted()
 
     // Start background event loop
     ;(async () => {

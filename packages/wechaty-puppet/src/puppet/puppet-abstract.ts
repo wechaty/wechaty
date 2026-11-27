@@ -19,7 +19,7 @@ import {
 }                       from 'state-switch'
 import type {
   Lifecycle,
-  LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleController,
   LifecycleScope,
   LifecycleState,
@@ -27,9 +27,6 @@ import type {
 }                       from 'scopelet'
 import {
   createLifecycle,
-  listen,
-  operation,
-  LifecycleUnsafeStateError,
 }                       from 'scopelet'
 
 /**
@@ -121,6 +118,13 @@ import { typeName }               from '../schemas/type-name.ts'
 const filebox = (fb: string | FileBoxInterface): FileBoxInterface =>
   typeof fb === 'string' ? FileBox.fromJSON(fb) : fb
 
+/** Generation-bound authentication captured by provider event handlers. */
+interface PuppetRun {
+  readonly login: LifecycleConditionHandle
+  readonly ready: LifecycleConditionHandle
+  readonly signal: AbortSignal
+}
+
 let PUPPET_COUNTER = 0
 
 /**
@@ -136,10 +140,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   // --- ECMAScript Hard Private Brands (Node 26+ / TS 7+) ---
   readonly #options: PuppetOptions
   readonly #lifecycle: LifecycleController
-  readonly #login: LifecycleCondition
-  readonly #ready: LifecycleCondition
+  readonly #ready: LifecycleConditionHandle
   readonly #readyIndicator: BooleanIndicator
-  #scope: LifecycleScope | undefined
+  readonly #writeLegacyReady: (ready: boolean) => void
+  #run: PuppetRun | undefined
+  #startupOperation: LifecycleScope['operation'] | undefined
 
   readonly #watchdog: WatchdogAgent
   readonly #cache: CacheAgent
@@ -166,27 +171,21 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     this.#watchdog = new WatchdogAgent(this)
     this.#readyIndicator = new BooleanIndicator()
 
-    const origValue = this.#readyIndicator.value.bind(this.#readyIndicator)
-    this.#readyIndicator.value = ((val?: boolean): any => {
-      if (val === undefined) {
-        return this.#scope ? this.#ready.isSet : origValue()
+    const original = this.#readyIndicator.value.bind(this.#readyIndicator)
+    this.#writeLegacyReady = original
+    this.#readyIndicator.value = ((value?: boolean): boolean => {
+      const run = this.#run
+      if (value === undefined) {
+        return run?.ready.isSet ?? original()
       }
-      origValue(val)
-      if (this.#scope) {
-        if (val) {
-          this.#scope.set(this.#ready)
-        } else {
-          this.#scope.clear(this.#ready)
-        }
-      }
-      return val
+      this.#setReady(run, value)
+      return value
     }) as BooleanIndicator['value']
 
     this.#lifecycle = createLifecycle({
       onStart: scope => this.#lifecycleStart(scope),
       onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
     }, { name: 'Puppet', stopTimeoutMs: 15_000 })
-    this.#login = this.#lifecycle.condition('login')
     this.#ready = this.#lifecycle.condition('ready')
   }
 
@@ -265,9 +264,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     ++this.#loginToken
     this.#loggedOut = false
     this.#currentUserId = userId
-    if (this.#scope) {
-      this.#scope.set(this.#login)
-    }
+    this.#run?.login.set()
     this.dispatchEvent(new WechatyEvent('login', {
       detail: { contactId: userId },
     }))
@@ -282,6 +279,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
     this.#loggedOut = true
     const currentToken = this.#loginToken
+    const run = this.#run
 
     this.dispatchEvent(new WechatyEvent('logout', {
       detail: {
@@ -291,16 +289,36 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }))
 
     await new Promise<void>(resolve => setTimeout(() => {
-      if (this.#loginToken === currentToken) {
-        if (this.#scope) {
-          this.#scope.clear(this.#login)
-          this.#scope.clear(this.#ready)
-        }
-        this.#currentUserId = undefined
-        this.#loggedOut = false
-      }
+      this.#finishLogout(run, currentToken)
       resolve()
     }, 0))
+  }
+
+  /** Mirror a generation's readiness into the compatibility indicator. */
+  #setReady (run: PuppetRun | undefined, ready: boolean): void {
+    if (run?.signal.aborted) {
+      return
+    }
+    this.#writeLegacyReady(ready)
+    if (ready) {
+      run?.ready.set()
+    } else {
+      run?.ready.clear()
+    }
+  }
+
+  /** Clear only the login and generation that scheduled this logout. */
+  #finishLogout (run: PuppetRun | undefined, token: number): void {
+    const current = this.#run
+    // An idle logout can finish after startup adopts the same login token.
+    // A logout from a generation stays with that generation.
+    if ((run && run !== current) || current?.signal.aborted || this.#loginToken !== token) {
+      return
+    }
+    current?.login.clear()
+    this.#setReady(current, false)
+    this.#currentUserId = undefined
+    this.#loggedOut = false
   }
 
   /**
@@ -530,14 +548,18 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   }
 
   /**
-   * Provider-specific startup logic. Called during puppet startup after core infrastructure is ready.
+   * Start the provider after Puppet's infrastructure is ready. Use the lifecycle
+   * signal to cancel asynchronous startup before allocating further resources.
+   * The signal is available when Puppet starts the provider.
    */
-  abstract onStart (): Promise<void>
+  abstract onStart (signal?: AbortSignal): Promise<void>
 
   /**
-   * Provider-specific teardown logic. Called when stopping or aborting.
+   * Release the provider's resources. During pending startup this can run early
+   * to unblock `onStart()`. Successful teardown prevents further allocation by
+   * that startup. A failed release can be retried.
    */
-  abstract onStop  (): Promise<void>
+  abstract onStop (): Promise<void>
 
   /**
    * Executes a Puppet domain operation for the bot against the active generation (C-COMP-03).
@@ -547,23 +569,22 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * @returns Promise resolving to the result of `work`, or rejected with `LifecycleUnsafeStateError`
    *          if the puppet is not currently running.
    */
-  async operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
-    if (this.#scope) {
-      return operation(this.#scope, signal => work(signal))
-    }
-    throw new LifecycleUnsafeStateError('operation requested when puppet is not running')
+  operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    return this.#lifecycle.operation(work)
   }
 
   /**
-   * Executes an asynchronous domain operation bound to the active puppet generation.
-   * Retirement waits for all active operations to finish under stop timeout.
-   *
-   * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
-   * @returns Result of work.
+   * Run a compatibility operation. Running calls use the controller, provider
+   * startup calls use their startup scope, and idle calls receive no signal.
+   * Owned work is joined during retirement.
    */
   executeOperation<T> (work: (signal?: AbortSignal) => T | PromiseLike<T>): Promise<T> {
-    if (this.#scope) {
-      return operation(this.#scope, signal => work(signal))
+    if (this.#startupOperation) {
+      return this.#startupOperation(work)
+    }
+    const state = this.#lifecycle.state
+    if (this.#run || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
+      return this.#lifecycle.operation(work)
     }
     return Promise.resolve(work())
   }
@@ -642,21 +663,18 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     await this.stop()
   }
 
+  /** Register Puppet infrastructure and give the ledger ownership of provider startup. */
   async #lifecycleStart (scope: LifecycleScope): Promise<void> {
-    let stopping: Promise<void> | undefined
-    const stopProvider = (): Promise<void> => (stopping ??= (async () => this.onStop())())
-
-    // 1. Retirement cleanup: Clear scope reference
     scope.defer(() => {
-      this.#scope = undefined
+      this.#run = undefined
     })
 
-    // 2. super.stop()
+    // The shell stops after the generation has released its resources.
     scope.defer(async () => {
       await super.stop()
     })
 
-    // 3. Clear auth QR code & login clean callbacks:
+    // Authentication cleanup follows provider stop and the cache releases.
     const cleanAuthQrCode = () => {
       this.#authQrCode = undefined
     }
@@ -674,7 +692,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       }
     })
 
-    // 4. Cache lifecycle:
+    // Keep the cache live for provider stop and the logout event.
     this.#cache.start()
     scope.defer(async () => {
       this.#cache.stop()
@@ -690,13 +708,13 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       }
     })
 
-    // 5. Watchdog lifecycle:
+    // The watchdog is owned by this generation.
     this.#watchdog.start()
     scope.defer(() => {
       this.#watchdog.stop()
     })
 
-    // 6. Deferred logout (fires while cache and currentUserId are still available):
+    // Logout fires while the cache and currentUserId are still available.
     scope.defer(async () => {
       const userId = this.#currentUserId
       const shouldEmit = userId && !this.#loggedOut
@@ -719,33 +737,48 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       }
     })
 
-    // 7. Deferred provider onStop (runs first on retirement in LIFO order):
-    scope.defer(async () => {
-      try {
-        await stopProvider()
-      } catch (error) {
-        stopping = undefined
-        throw error
-      }
+    // Register the provider before its listeners so normal retirement detaches
+    // them first. Provider stop still runs before logout, watchdog and cache cleanup.
+    let enteredProvider = false
+    await scope.acquireService({
+      start: async signal => {
+        try {
+          await this.#prepareProvider(scope, cleanAuthQrCode)
+          await super.start()
+          signal.throwIfAborted()
+          enteredProvider = true
+          await this.onStart(signal)
+        } finally {
+          this.#startupOperation = undefined
+        }
+      },
+      stop: () => enteredProvider ? this.onStop() : undefined,
     })
+  }
 
-    // 8. Abort listener during startup:
-    let started = false
-    scope.signal.addEventListener('abort', () => {
-      if (!started) {
-        stopProvider().catch(() => {})
-      }
-    }, { once: true })
-
-    // 9. Memory loading:
+  /** Load memory and bind startup events before invoking the provider. */
+  async #prepareProvider (scope: LifecycleScope, cleanAuthQrCode: () => void): Promise<void> {
     try {
       await this.#memory.load()
     } catch (_) {
       log.silly('Puppet', 'start() memory has already been loaded before')
     }
+    scope.signal.throwIfAborted()
 
-    // 10. Event listeners bound to this generation:
-    listen(scope, this, 'dirty', (e: any) => {
+    const run: PuppetRun = {
+      login: scope.condition('login'),
+      ready: scope.condition('ready'),
+      signal: scope.signal,
+    }
+    if (this.#currentUserId) {
+      run.login.set()
+    }
+    if (this.#readyIndicator.value()) {
+      run.ready.set()
+    }
+    scope.defer(() => this.#writeLegacyReady(false))
+
+    scope.listen(this, 'dirty', (e: any) => {
       const payload = (e instanceof CustomEvent) ? e.detail : (e?.detail ?? e)
       this.onDirty(payload)
     })
@@ -769,60 +802,30 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
           break
       }
     }
-    listen(scope, this, 'scan', onScan)
-    listen(scope, this, 'login', cleanAuthQrCode)
-    listen(scope, this, 'stop', cleanAuthQrCode)
+    scope.listen(this, 'scan', onScan)
+    scope.listen(this, 'login', cleanAuthQrCode)
+    scope.listen(this, 'stop', cleanAuthQrCode)
 
-    // 11. Conditions tracking & pre-start state synchronization:
-    if (this.#currentUserId) {
-      scope.set(this.#login)
-    }
-    if (this.#readyIndicator.value()) {
-      scope.set(this.#ready)
-    }
-    scope.defer(() => {
-      this.#readyIndicator.value(false)
-    })
-
-    listen(scope, this, 'login', (e: any) => {
-      scope.set(this.#login)
+    scope.listen(this, 'login', (e: any) => {
+      if (run.signal.aborted) {
+        return
+      }
+      run.login.set()
       const payload = (e instanceof CustomEvent) ? e.detail : (e?.detail ?? e)
       if (payload?.contactId) {
         this.#currentUserId = payload.contactId
       }
     })
-    listen(scope, this, 'logout', () => {
-      const currentToken = this.#loginToken
-      setTimeout(() => {
-        if (this.#scope === scope && this.#loginToken === currentToken) {
-          try {
-            scope.clear(this.#login)
-            scope.clear(this.#ready)
-          } catch (_) {}
-          this.#readyIndicator.value(false)
-          this.#currentUserId = undefined
-        }
-      }, 0)
+    scope.listen(this, 'logout', () => {
+      const token = this.#loginToken
+      setTimeout(() => this.#finishLogout(run, token), 0)
     })
-    listen(scope, this, 'ready', () => {
-      scope.set(this.#ready)
-      this.#readyIndicator.value(true)
-    })
-    listen(scope, this, 'scan', () => {
-      scope.clear(this.#ready)
-      this.#readyIndicator.value(false)
-    })
-    listen(scope, this, 'reset', () => {
-      scope.clear(this.#ready)
-      this.#readyIndicator.value(false)
-    })
+    scope.listen(this, 'ready', () => this.#setReady(run, true))
+    scope.listen(this, 'scan', () => this.#setReady(run, false))
+    scope.listen(this, 'reset', () => this.#setReady(run, false))
 
-    // 12. Set #scope BEFORE onStart() so domain calls and readyIndicator work during onStart():
-    this.#scope = scope
-
-    await super.start()
-    await this.onStart()
-    started = true
+    this.#run = run
+    this.#startupOperation = scope.operation
   }
 
   #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {

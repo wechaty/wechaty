@@ -56,6 +56,19 @@ The above puppet provider is just for mocking and easy to understand. It will be
 
 `Puppet`(npm module `wechaty-puppet`) itself must be a _peer Dependencies_ for all the Puppet Providers, and should only be installed via Wechaty because all Puppet Providers should share the same Puppet Base Class with Wechaty, we must be sure all `Puppet` is the same version.
 
+## Provider lifecycle
+
+Puppet owns provider startup and teardown through ScopeLet. During `onStart(signal)`,
+use the signal to interrupt asynchronous setup or check it when setup resumes.
+`onStop()` can unblock a pending start and must prevent that startup from
+allocating again once teardown succeeds. It may be retried if a release fails.
+
+`operation()` requires a running Puppet and retirement waits for its work.
+`executeOperation()` also supports provider setup and legacy idle calls. Setup
+uses the startup generation's signal, and an idle call receives no signal.
+A `ready()` wait made before start follows the next generation and rejects
+if that generation retires before readiness.
+
 ## Wechaty Puppet Toolsets
 
 ### 1. Using SwitchState

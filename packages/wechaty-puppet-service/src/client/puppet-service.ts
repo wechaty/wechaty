@@ -87,8 +87,10 @@ class PuppetService extends PUPPET.Puppet {
     return packageJson.version || '0.0.0'
   }
 
-  override async onStart (): Promise<void> {
+  /** Start the client and pass Puppet's startup cancellation through to gRPC. */
+  override async onStart (signal?: AbortSignal): Promise<void> {
     log.verbose('PuppetService', 'onStart()')
+    signal?.throwIfAborted()
 
     if (this._grpcManager) {
       log.warn('PuppetService', 'onStart() found this.grpc is already existed. dropped.')
@@ -103,7 +105,7 @@ class PuppetService extends PUPPET.Puppet {
     this.bridgeGrpcEventStream(grpcManager)
 
     log.verbose('PuppetService', 'start() starting grpc manager...')
-    await grpcManager.start()
+    await grpcManager.start(signal)
 
     log.verbose('PuppetService', 'onStart() ... done')
   }
