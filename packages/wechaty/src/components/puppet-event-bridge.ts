@@ -6,6 +6,7 @@
  */
 import * as PUPPET from 'wechaty-puppet'
 import {
+  helpers,
   log,
   WechatyEvent,
 } from 'wechaty-puppet'
@@ -130,17 +131,8 @@ function registerPuppetEventBridge (
            *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
            *  2. throw error if `payload.gerror` is not exists (for enforce puppet strict follow the error event schema)
            */
-          let gerror: GError
-          if (typeof payload.gerror === 'string') {
-            try {
-              gerror = GError.parse(payload.gerror)
-            } catch {
-              gerror = GError.from(payload.gerror)
-            }
-          } else {
-            const raw = payload.gerror || (payload as any).data || payload
-            gerror = GError.from(raw)
-          }
+          const raw = payload.gerror || (payload as any).data || payload
+          const gerror = helpers.parseGErrorPayload(raw)
           dependencies.emitError(gerror)
         })
         break

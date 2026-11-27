@@ -70,7 +70,6 @@
     "flash-store": "^2.2.0",
     "gerror": "2.1.0-alpha.0",
     "gerror-connect": "2.1.0-alpha.0",
-    "gerror-protobuf": "2.1.0-alpha.0",
     "scopelet": "^2.0.0-alpha.20",
     "stronger-typed-streams": "^0.2.0",
     "wechaty-grpc": "^2.0.0-alpha.20",

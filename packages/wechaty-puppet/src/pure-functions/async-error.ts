@@ -1,6 +1,6 @@
 /**
- * Async error-forwarding and timeout helpers shared across `wechaty-puppet`,
- * `wechaty-puppet-service`, and `wechaty`.
+ * Async error-forwarding, timeout, and GError-payload parsing helpers shared
+ * across `wechaty-puppet`, `wechaty-puppet-service`, and `wechaty`.
  *
  * Replaces the legacy `timeoutPromise`, `TimeoutPromiseGError`, and
  * `wrapAsyncError` utilities removed from `gerror` v2 core.
@@ -22,7 +22,8 @@ export interface WrapAsync {
 
 /**
  * Creates a `WrapAsync` helper that routes promise rejections and synchronous
- * or asynchronous function failures into `onError`.
+ * or asynchronous function failures into `onError`, preserving the caller's
+ * `this` receiver when wrapping functions.
  */
 export function wrapAsyncError (onError: WrapAsyncCallback): WrapAsync {
   function wrap (target: Promise<unknown>): void
@@ -31,9 +32,9 @@ export function wrapAsyncError (onError: WrapAsyncCallback): WrapAsync {
     target: Promise<unknown> | ((...args: unknown[]) => Promise<unknown>),
   ): void | ((...args: unknown[]) => void) {
     if (typeof target === 'function') {
-      return (...args: unknown[]): void => {
+      return function (this: unknown, ...args: unknown[]): void {
         try {
-          const result = target(...args)
+          const result = target.apply(this, args)
           if (result !== null && typeof result === 'object' && typeof result.catch === 'function') {
             result.catch(onError)
           }
@@ -83,4 +84,22 @@ export function timeoutPromise<T> (
       },
     )
   })
+}
+
+/**
+ * Parses a serialized `GErrorData` JSON string or normalizes an arbitrary
+ * runtime value into a `GError`.
+ */
+export function parseGErrorPayload (raw: unknown): GError {
+  if (GError.isGError(raw)) {
+    return raw
+  }
+  if (typeof raw === 'string') {
+    try {
+      return GError.parse(raw)
+    } catch {
+      return GError.from(raw)
+    }
+  }
+  return GError.from(raw)
 }

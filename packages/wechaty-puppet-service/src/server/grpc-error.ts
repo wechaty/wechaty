@@ -22,6 +22,25 @@ function mapGrpcCode (code: unknown): Code {
   return Code.Internal
 }
 
+const CONNECT_TO_GERROR_CODE: Record<Code, GErrorCode> = {
+  [Code.Canceled]: GErrorCode.Cancelled,
+  [Code.Unknown]: GErrorCode.Unknown,
+  [Code.InvalidArgument]: GErrorCode.InvalidArgument,
+  [Code.DeadlineExceeded]: GErrorCode.DeadlineExceeded,
+  [Code.NotFound]: GErrorCode.NotFound,
+  [Code.AlreadyExists]: GErrorCode.AlreadyExists,
+  [Code.PermissionDenied]: GErrorCode.PermissionDenied,
+  [Code.ResourceExhausted]: GErrorCode.ResourceExhausted,
+  [Code.FailedPrecondition]: GErrorCode.FailedPrecondition,
+  [Code.Aborted]: GErrorCode.Aborted,
+  [Code.OutOfRange]: GErrorCode.OutOfRange,
+  [Code.Unimplemented]: GErrorCode.Unimplemented,
+  [Code.Internal]: GErrorCode.Internal,
+  [Code.Unavailable]: GErrorCode.Unavailable,
+  [Code.DataLoss]: GErrorCode.DataLoss,
+  [Code.Unauthenticated]: GErrorCode.Unauthenticated,
+}
+
 export function toConnectError (
   method : string,
   error  : unknown,
@@ -34,9 +53,9 @@ export function toConnectError (
   )
 
   const rawCode = (error as any)?.code ?? gerr.code
-  const code = mapGrpcCode(rawCode) as unknown as GErrorCode
+  const connectCode = mapGrpcCode(rawCode)
   const normalized = new GError(gerr.message, {
-    code,
+    code: CONNECT_TO_GERROR_CODE[connectCode],
     details: gerr.details,
     ...('cause' in gerr ? { cause: gerr.cause } : {}),
   })

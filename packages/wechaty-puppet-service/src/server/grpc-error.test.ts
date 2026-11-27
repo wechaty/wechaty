@@ -26,6 +26,12 @@ test('toConnectError() preserves valid gRPC status codes from GError', () => {
   const invalidArgError = Object.assign(new Error('invalid argument'), { code: 'InvalidArgument' })
   const invalidArgConnectErr = toConnectError('testArg', invalidArgError)
   assert.equal(invalidArgConnectErr.code, Code.InvalidArgument, 'error code should preserve InvalidArgument')
+
+  for (const codeVal of Object.values(Code).filter((v): v is Code => typeof v === 'number')) {
+    const expected = codeVal === Code.Unknown ? Code.Internal : codeVal
+    const err = Object.assign(new Error(`code-${codeVal}`), { code: codeVal })
+    assert.equal(toConnectError('testAll', err).code, expected)
+  }
 })
 
 test('serverErrorInterceptor() converts unary thrown error to Code.Internal', async () => {

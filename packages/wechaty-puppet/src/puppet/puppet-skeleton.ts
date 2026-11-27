@@ -33,6 +33,7 @@ import {
 }                     from 'gerror'
 
 import {
+  parseGErrorPayload,
   type WrapAsync,
   wrapAsyncError,
 }                     from '../pure-functions/async-error.ts'
@@ -61,16 +62,7 @@ function normalizeErrorPayload (error: unknown): EventErrorPayload {
   if (GError.isGError(error)) {
     gerr = error
   } else if (error && typeof error === 'object' && 'gerror' in error) {
-    const raw = (error as { gerror?: unknown }).gerror
-    if (typeof raw === 'string') {
-      try {
-        gerr = GError.parse(raw)
-      } catch {
-        gerr = GError.from(raw)
-      }
-    } else {
-      gerr = GError.from(raw)
-    }
+    gerr = parseGErrorPayload((error as { gerror?: unknown }).gerror)
   } else {
     gerr = GError.from(error)
   }

@@ -17,16 +17,12 @@ import {
   type LifecycleStop,
   type LifecycleWaitOptions,
 } from 'scopelet'
-import { log } from 'wechaty-puppet'
+import { helpers, log } from 'wechaty-puppet'
 import {
   EventType,
   Puppet,
   type EventResponse,
 } from 'wechaty-grpc'
-import {
-  timeoutPromise,
-  TimeoutPromiseGError,
-} from 'wechaty-puppet/helpers'
 import {
   WechatyToken,
 } from 'wechaty-token'
@@ -531,7 +527,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     log.verbose('GrpcManager', 'startStream() waiting for initial heartbeat...')
     try {
       const first = await raceAbort(
-        timeoutPromise(firstResultPromise, 5 * 1000),
+        helpers.timeoutPromise(firstResultPromise, 5 * 1000),
         attemptSignal,
       ) as IteratorResult<EventResponse>
       if (first.done) {
@@ -539,7 +535,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       }
       peekedData = first.value
     } catch (err) {
-      if (!attemptSignal.aborted && err instanceof TimeoutPromiseGError) {
+      if (!attemptSignal.aborted && err instanceof helpers.TimeoutPromiseGError) {
         log.verbose('GrpcManager', 'startStream() initial heartbeat timeout, proceeding')
       } else {
         throw err

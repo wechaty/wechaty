@@ -11,6 +11,7 @@
 import '../puppet/interface-of.ts'
 
 import {
+  parseGErrorPayload,
   timeoutPromise,
   TimeoutPromiseGError,
   type WrapAsync,
@@ -24,6 +25,7 @@ import {
 }                   from '../schemas/type-name.ts'
 
 export {
+  parseGErrorPayload,
   resolvePuppet,
   timeoutPromise,
   TimeoutPromiseGError,
