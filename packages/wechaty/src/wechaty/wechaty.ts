@@ -586,10 +586,10 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
    */
   async publish (post: Post): Promise<void | Post> {
     log.verbose('Wechaty', 'publish(%s)', post)
-    return this.puppet.operation(async () => {
+    return this.puppet.operation(async signal => {
       const postId = await this.puppet.postPublish(post.payload)
       if (postId) {
-        return this.Post.find({ id: postId })
+        return (this.Post as any).find({ id: postId }, signal)
       }
       return undefined
     })

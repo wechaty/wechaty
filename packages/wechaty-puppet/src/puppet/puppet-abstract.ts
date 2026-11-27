@@ -576,31 +576,66 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   abstract onStop (): Promise<void>
 
   /**
+   * Active operation signals currently executing inside `operation()`.
+   * Used as a WinterTC-portable re-entrancy token for multi-step domain methods
+   * so nested `operation()` / `executeOperation()` calls drain cleanly during
+   * `'stopping'` without `AsyncLocalStorage` or `process` dependencies.
+   */
+  readonly #admittedSignals = new WeakSet<AbortSignal>()
+
+  /**
    * Executes a Puppet domain operation for the bot against the active generation (C-COMP-03).
    * Retirement waits for all active operations to finish under stop timeout.
    *
+   * When `admittedSignal` is supplied and belongs to an active outer `operation()`
+   * on this Puppet instance, `work` reuses that signal and executes immediately even
+   * during `'stopping'` drain. Detached or unrelated calls without a live
+   * `admittedSignal` route through `this.#lifecycle.operation()` and reject with
+   * `LifecycleUnsafeStateError` when stopped or stopping.
+   *
    * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
+   * @param admittedSignal - Optional `AbortSignal` from an enclosing active `operation()`.
    * @returns Promise resolving to the result of `work`, or rejected with `LifecycleUnsafeStateError`
    *          if the puppet is not currently running.
    */
-  operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
-    return this.#lifecycle.operation(work)
+  operation<T> (
+    work: (signal: AbortSignal) => Promise<T>,
+    admittedSignal?: AbortSignal,
+  ): Promise<T> {
+    if (admittedSignal && this.#admittedSignals.has(admittedSignal)) {
+      return (async () => work(admittedSignal))()
+    }
+    return this.#lifecycle.operation(async signal => {
+      this.#admittedSignals.add(signal)
+      try {
+        return await work(signal)
+      } finally {
+        this.#admittedSignals.delete(signal)
+      }
+    })
   }
 
   /**
    * Run a compatibility operation. Running calls use the controller, provider
    * startup calls use their startup scope, and idle calls receive no signal.
-   * Owned work is joined during retirement.
+   * When `admittedSignal` belongs to an enclosing active `operation()`, work
+   * reuses that signal so multi-step domain methods drain cleanly before `onStop()`.
    */
-  executeOperation<T> (work: (signal?: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+  async executeOperation<T> (
+    work: (signal?: AbortSignal) => T | PromiseLike<T>,
+    admittedSignal?: AbortSignal,
+  ): Promise<T> {
     if (this.#startupOperation) {
       return this.#startupOperation(work)
+    }
+    if (admittedSignal && this.#admittedSignals.has(admittedSignal)) {
+      return work(admittedSignal)
     }
     const state = this.#lifecycle.state
     if (this.#run || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
       return this.#lifecycle.operation(work)
     }
-    return Promise.resolve(work())
+    return work()
   }
 
   /**
@@ -1053,7 +1088,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     return this.#cache.contact.get(contactId)
   }
 
-  async contactPayload (contactId: string): Promise<ContactPayload> {
+  async contactPayload (contactId: string, admittedSignal?: AbortSignal): Promise<ContactPayload> {
     return this.executeOperation(async () => {
       if (!contactId) {
         throw new Error('no id')
@@ -1068,7 +1103,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       const payload    = await this.contactRawPayloadParser(rawPayload)
       this.#cache.contact.set(contactId, payload)
       return payload
-    })
+    }, admittedSignal)
   }
 
   async contactPayloadDirty (id: string): Promise<void> {
@@ -1149,6 +1184,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   async roomMemberPayload (
     roomId   : string,
     memberId : string,
+    admittedSignal?: AbortSignal,
   ): Promise<RoomMemberPayload> {
     return this.executeOperation(async () => {
       log.verbose('Puppet', 'roomMemberPayload(roomId=%s, memberId=%s)', roomId, memberId)
@@ -1174,7 +1210,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
         [memberId]: payload,
       })
       return payload
-    })
+    }, admittedSignal)
   }
 
   async roomMemberPayloadDirty (id: string): Promise<void> {
@@ -1297,7 +1333,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     return this.#cache.room.get(roomId)
   }
 
-  async roomPayload (roomId: string): Promise<RoomPayload> {
+  async roomPayload (roomId: string, admittedSignal?: AbortSignal): Promise<RoomPayload> {
     return this.executeOperation(async () => {
       log.verbose('Puppet', 'roomPayload(%s)', roomId)
       if (!roomId) {
@@ -1313,7 +1349,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       const payload    = await this.roomRawPayloadParser(rawPayload)
       this.#cache.room.set(roomId, payload)
       return payload
-    })
+    }, admittedSignal)
   }
 
   async roomPayloadDirty (id: string): Promise<void> {
@@ -1422,11 +1458,12 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     return this.#cache.roomInvitation.get(roomInvitationId)
   }
 
-  async roomInvitationPayload (roomInvitationId: string): Promise<RoomInvitationPayload>
-  async roomInvitationPayload (roomInvitationId: string, newPayload: RoomInvitationPayload): Promise<void>
+  async roomInvitationPayload (roomInvitationId: string, newPayload?: undefined, admittedSignal?: AbortSignal): Promise<RoomInvitationPayload>
+  async roomInvitationPayload (roomInvitationId: string, newPayload: RoomInvitationPayload, admittedSignal?: AbortSignal): Promise<void>
   async roomInvitationPayload (
     roomInvitationId: string,
     newPayload?: RoomInvitationPayload,
+    admittedSignal?: AbortSignal,
   ): Promise<void | RoomInvitationPayload> {
     return this.executeOperation(async () => {
       log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
@@ -1445,7 +1482,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       const payload    = await this.roomInvitationRawPayloadParser(rawPayload)
       this.#cache.roomInvitation.set(roomInvitationId, payload)
       return payload
-    })
+    }, admittedSignal)
   }
 
   // ==========================================
@@ -1487,7 +1524,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     return this.#cache.message.get(messageId)
   }
 
-  async messagePayload (messageId: string): Promise<MessagePayload> {
+  async messagePayload (messageId: string, admittedSignal?: AbortSignal): Promise<MessagePayload> {
     return this.executeOperation(async () => {
       log.verbose('Puppet', 'messagePayload(%s)', messageId)
       if (!messageId) {
@@ -1503,7 +1540,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       const payload    = await this.messageRawPayloadParser(rawPayload)
       this.#cache.message.set(messageId, payload)
       return payload
-    })
+    }, admittedSignal)
   }
 
   messageList (): string[] {
@@ -1513,12 +1550,13 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   async messageSearch (
     query?: MessageQueryFilter,
+    admittedSignal?: AbortSignal,
   ): Promise<string[]> {
     log.verbose('Puppet', 'messageSearch(%s)', JSON.stringify(query))
 
     if (query?.id) {
       try {
-        await this.messagePayload(query.id)
+        await this.messagePayload(query.id, admittedSignal)
         return [ query.id ]
       } catch (e) {
         log.verbose('Puppet', 'messageSearch() payload not found for id "%s"', query.id)
@@ -1532,7 +1570,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }
 
     const messagePayloadList: MessagePayload[] = await Promise.all(
-      allMessageIdList.map(id => this.messagePayload(id)),
+      allMessageIdList.map(id => this.messagePayload(id, admittedSignal)),
     )
 
     const filterFunction = this.messageQueryFilterFactory(query)
@@ -1645,7 +1683,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     return this.#cache.post.get(postId)
   }
 
-  async postPayload (postId: string): Promise<PostPayload> {
+  async postPayload (postId: string, admittedSignal?: AbortSignal): Promise<PostPayload> {
     return this.executeOperation(async () => {
       log.verbose('Puppet', 'postPayload(%s)', postId)
       if (!postId) {
@@ -1661,7 +1699,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       const payload    = await this.postRawPayloadParser(rawPayload)
       this.#cache.post.set(postId, payload)
       return payload
-    })
+    }, admittedSignal)
   }
 
   postList (): string[] {

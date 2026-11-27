@@ -25,6 +25,15 @@
  */
 
 /**
+ * Wechaty `Post` user module for Moments, Channels, Feeds, and replies.
+ *
+ * Why this module exists:
+ * Encapsulates post payloads, media/text sayables, counters, and hierarchical
+ * root/parent navigation on top of `wechaty-puppet`'s post SPI.
+ *
+ * Architectural boundaries:
+ * Bound to a `Wechaty` instance via `bindUserModule` and `UserModuleManager`.
+ *
  * Issue #2245 - New Wechaty User Module (WUM):
  *  `Post` for supporting Moments, Channel, Tweet, Weibo, Facebook feeds, etc.
  *
@@ -147,6 +156,7 @@ class PostMixin extends wechatifyMixinBase() {
 
   static async find (
     filter: PUPPET.filters.Post,
+    admittedSignal?: AbortSignal,
   ): Promise<undefined | Post> {
     log.verbose('Post', 'find(%s)',
       JSON.stringify(filter),
@@ -154,7 +164,7 @@ class PostMixin extends wechatifyMixinBase() {
 
     if (filter.id) {
       const post = this.wechaty.Post.load(filter.id)
-      await post.ready()
+      await (post as PostImpl).ready(admittedSignal)
       return post
     }
 
@@ -282,17 +292,28 @@ class PostMixin extends wechatifyMixinBase() {
     return post
   }
 
-  async sync (): Promise<void> {
+  /**
+   * Sync post payload from puppet, fenced against the active lifecycle generation.
+   *
+   * @throws {Error} If this post has no `id`.
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
+   */
+  async sync (admittedSignal?: AbortSignal): Promise<void> {
     log.silly('Post', 'sync()')
+    return this.wechaty.puppet.operation(signal => this.#sync(signal), admittedSignal)
+  }
 
+  /** Fetch and store the post payload without opening a new `operation()` fence. */
+  async #sync (admittedSignal?: AbortSignal): Promise<void> {
     if (!this.id) {
       throw new Error('no post id found')
     }
 
-    this._payload = await this.wechaty.puppet.postPayload(this.id)
+    this._payload = await this.wechaty.puppet.postPayload(this.id, admittedSignal)
   }
 
-  async ready (): Promise<void> {
+  async ready (admittedSignal?: AbortSignal): Promise<void> {
     log.silly('Post', 'ready()')
 
     if (!this.id) {
@@ -303,7 +324,7 @@ class PostMixin extends wechatifyMixinBase() {
       return
     }
 
-    await this.sync()
+    await this.#sync(admittedSignal)
   }
 
   async * [Symbol.asyncIterator] (): AsyncIterableIterator<Sayable> {

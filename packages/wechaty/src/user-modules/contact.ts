@@ -97,6 +97,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    */
   static async find (
     query : string | PUPPET.filters.Contact,
+    admittedSignal?: AbortSignal,
   ): Promise<undefined | Contact> {
     log.silly('Contact', 'find(%s)', JSON.stringify(query, stringifyFilter))
 
@@ -113,7 +114,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
 
       // const contact = (this.wechaty.Contact as any as typeof ContactImpl).load(query.id)
       try {
-        await contact.ready()
+        await contact.ready(false, admittedSignal)
       } catch (e) {
         this.wechaty.emitError(e)
         return undefined
@@ -332,20 +333,25 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * })
    * await contact.say(location)
    * const msg = await contact.say(location)
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    */
   async say (
     sayable: Sayable,
   ): Promise<void | Message> {
     log.verbose('Contact', 'say(%s)', sayable)
 
-    const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
+    return this.wechaty.puppet.operation(async signal => {
+      const msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
 
-    if (msgId) {
-      const msg = await this.wechaty.Message.find({ id: msgId })
-      if (msg) {
-        return msg
+      if (msgId) {
+        const msg = await (this.wechaty.Message as any).find({ id: msgId }, signal)
+        if (msg) {
+          return msg
+        }
       }
-    }
+      return undefined
+    })
   }
 
   /**
@@ -671,13 +677,17 @@ class ContactMixin extends MixinBase implements SayableSayer {
   /**
    * Force reload data for Contact, Sync data from low-level API again.
    *
-   * @returns {Promise<this>}
+   * @returns {Promise<void>}
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    * @example
    * await contact.sync()
    */
-  async sync (): Promise<void> {
-    await this.wechaty.puppet.contactPayloadDirty(this.id)
-    await this.ready(true)
+  async sync (admittedSignal?: AbortSignal): Promise<void> {
+    return this.wechaty.puppet.operation(async signal => {
+      await this.wechaty.puppet.contactPayloadDirty(this.id)
+      await this.ready(true, signal)
+    }, admittedSignal)
   }
 
   /**
@@ -690,6 +700,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    */
   async ready (
     forceSync = false,
+    admittedSignal?: AbortSignal,
   ): Promise<void> {
     log.silly('Contact', 'ready() @ %s with id="%s"', this.wechaty.puppet, this.id)
 
@@ -699,7 +710,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
     }
 
     try {
-      this.payload = await this.wechaty.puppet.contactPayload(this.id)
+      this.payload = await this.wechaty.puppet.contactPayload(this.id, admittedSignal)
       // log.silly('Contact', `ready() this.wechaty.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {

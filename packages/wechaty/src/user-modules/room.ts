@@ -293,13 +293,17 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * Force reload data for Room, Sync data from puppet API again.
    *
    * @returns {Promise<void>}
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    * @example
    * await room.sync()
    */
-  async sync (): Promise<void> {
-    await this.wechaty.puppet.roomPayloadDirty(this.id)
-    await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
-    await this.ready(true)
+  async sync (admittedSignal?: AbortSignal): Promise<void> {
+    return this.wechaty.puppet.operation(async signal => {
+      await this.wechaty.puppet.roomPayloadDirty(this.id)
+      await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
+      await this.ready(true, signal)
+    }, admittedSignal)
   }
 
   /**
@@ -312,6 +316,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    */
   async ready (
     forceSync = false,
+    admittedSignal?: AbortSignal,
   ): Promise<void> {
     log.silly('Room', 'ready()')
 
@@ -319,7 +324,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       return
     }
 
-    this.payload = await this.wechaty.puppet.roomPayload(this.id)
+    this.payload = await this.wechaty.puppet.roomPayload(this.id, admittedSignal)
 
     /**
      * Sync all room member contacts
@@ -328,7 +333,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
     const doReady = async (id: string): Promise<void> => {
       try {
-        await this.wechaty.Contact.find({ id })
+        await (this.wechaty.Contact as any).find({ id }, admittedSignal)
       } catch (e) {
         this.wechaty.emitError(e)
       }
@@ -439,6 +444,8 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * })
    * await room.say(location)
    * const msg = await room.say(location)
+   * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
+   *   in-flight calls drain before `stop()` completes.
    */
   async say (
     sayable    : Sayable | TemplateStringsArray,
@@ -450,59 +457,60 @@ class RoomMixin extends MixinBase implements SayableSayer {
       varList.join(', '),
     )
 
-    let msgId
-    let text: string
+    return this.wechaty.puppet.operation(async signal => {
+      let msgId
+      let text: string
 
-    if (isTemplateStringArray(sayable)) {
-      msgId = await this.sayTemplateStringsArray(
-        sayable as TemplateStringsArray,
-        ...varList,
-      )
-    } else if (typeof sayable === 'string') {
-      /**
-       * 1. string
-       */
-      let mentionList: Contact[] = []
+      if (isTemplateStringArray(sayable)) {
+        msgId = await this.sayTemplateStringsArray(
+          sayable as TemplateStringsArray,
+          signal,
+          ...varList,
+        )
+      } else if (typeof sayable === 'string') {
+        /**
+         * 1. string
+         */
+        let mentionList: Contact[] = []
 
-      if (varList.length > 0) {
-        const allIsContact = varList.every(c => ContactImpl.valid(c))
-        if (!allIsContact) {
-          throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
+        if (varList.length > 0) {
+          const allIsContact = varList.every(c => ContactImpl.valid(c))
+          if (!allIsContact) {
+            throw new Error('mentionList must be contact when not using TemplateStringsArray function call.')
+          }
+
+          mentionList = [ ...varList as any ]
+
+          const AT_SEPARATOR = FOUR_PER_EM_SPACE
+          const mentionAlias = await Promise.all(mentionList.map(async contact =>
+            '@' + (await this.alias(contact, signal) || contact.name()),
+          ))
+          const mentionText = mentionAlias.join(AT_SEPARATOR)
+
+          text = mentionText + ' ' + sayable
+        } else {
+          text = sayable
         }
-
-        mentionList = [ ...varList as any ]
-
-        const AT_SEPARATOR = FOUR_PER_EM_SPACE
-        const mentionAlias = await Promise.all(mentionList.map(async contact =>
-          '@' + (await this.alias(contact) || contact.name()),
-        ))
-        const mentionText = mentionAlias.join(AT_SEPARATOR)
-
-        text = mentionText + ' ' + sayable
+        msgId = await this.wechaty.puppet.messageSendText(
+          this.id,
+          text,
+          mentionList.map(c => c.id),
+        )
       } else {
-        text = sayable
+        msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
       }
-      // const receiver = {
-      //   contactId : (mentionList.length && mentionList[0].id) || undefined,
-      //   roomId    : this.id,
-      // }
-      msgId = await this.wechaty.puppet.messageSendText(
-        this.id,
-        text,
-        mentionList.map(c => c.id),
-      )
-    } else {
-      msgId = await deliverSayableConversationPuppet(this.wechaty.puppet)(this.id)(sayable)
-    }
 
-    if (msgId) {
-      const msg = await this.wechaty.Message.find({ id: msgId })
-      return msg
-    }
+      if (msgId) {
+        const msg = await (this.wechaty.Message as any).find({ id: msgId }, signal)
+        return msg
+      }
+      return undefined
+    })
   }
 
   private async sayTemplateStringsArray (
     textList: TemplateStringsArray,
+    admittedSignal: AbortSignal,
     ...varList: unknown[]
   ) {
     const mentionList = varList.filter(c => ContactImpl.valid(c)) as Contact[]
@@ -549,7 +557,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       for (; i < varListLength; i++) {
         if (ContactImpl.valid(varList[i])) {
           const mentionContact: Contact = varList[i] as any
-          const mentionName = await this.alias(mentionContact) || mentionContact.name()
+          const mentionName = await this.alias(mentionContact, admittedSignal) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
         } else {
           finalText += textList[i]! + varList[i]!
@@ -895,8 +903,8 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
-  async alias (contact: Contact): Promise<undefined | string> {
-    const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
+  async alias (contact: Contact, admittedSignal?: AbortSignal): Promise<undefined | string> {
+    const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id, admittedSignal)
 
     if (memberPayload.roomAlias) {
       return memberPayload.roomAlias
