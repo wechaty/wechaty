@@ -60,7 +60,6 @@ export type {
 } from '../puppet-config.ts'
 
 export type {
-  WechatyPlugin,
   WechatyPluginReturn,
   WechatyPluginUninstaller,
   WechatyScopedPlugin,

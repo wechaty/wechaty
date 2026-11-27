@@ -71,7 +71,6 @@ test('Wechaty interface', async _t => {
     abstract ding        : Wechaty['ding']
     abstract emitError   : WechatyInterface['emitError']
     abstract id          : WechatyInterface['id']
-    abstract init        : WechatyInterface['init']
     abstract io          : WechatyInterface['io']
     abstract isActive    : WechatyInterface['isActive']
     abstract isFailed    : WechatyInterface['isFailed']
@@ -95,7 +94,6 @@ test('Wechaty interface', async _t => {
     abstract start       : WechatyInterface['start']
     abstract state       : WechatyInterface['state']
     abstract stop        : WechatyInterface['stop']
-    abstract use         : WechatyInterface['use']
     abstract useScoped   : WechatyInterface['useScoped']
     abstract version     : WechatyInterface['version']
     abstract wechaty     : WechatyInterface['wechaty']
@@ -137,7 +135,4 @@ test('options.puppet initialization', async _t => {
   const puppet  = new PuppetMock()
   const wechaty = new WechatyImpl({ puppet })
   assert.strictEqual(wechaty.puppet, puppet, 'should bind injected puppet at construction')
-
-  await wechaty.init()
-  assert.strictEqual(wechaty.puppet, puppet, 'should keep bound puppet instance after init()')
 })

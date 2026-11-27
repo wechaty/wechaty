@@ -21,11 +21,11 @@
  * Plugin lifecycle and uninstaller manager for Wechaty bot instances.
  *
  * Why this module exists:
- * Encapsulates both legacy `bot.use(...plugins)` registration and
- * generation-scoped `bot.useScoped(...plugins)` / `installScoped(scope)`
+ * Encapsulates generation-scoped `bot.useScoped(...plugins)` / `installScoped(scope)`
  * lifecycle management (`#scopedEntries`, `#activeScope`), replacing the
- * legacy `pluginMixin`. Cleanup errors are isolated via `#invokeUninstaller`
- * while install errors propagate (with `useScoped` rolling back its batch).
+ * legacy `pluginMixin` and bot-lifetime `bot.use()`. Cleanup errors are isolated
+ * via `#invokeUninstaller` while install errors propagate (with `useScoped` rolling
+ * back its batch).
  *
  * Architectural boundaries:
  * Owned by `Wechaty`. Internal to `packages/wechaty/src/components/`.
@@ -33,7 +33,6 @@
 import type { LifecycleScope } from 'scopelet'
 import { log } from 'wechaty-puppet'
 import type {
-  WechatyPlugin,
   WechatyPluginUninstaller,
   WechatyScopedPlugin,
 } from '../plugin.ts'
@@ -53,28 +52,6 @@ export class PluginManager {
 
   constructor (wechaty: Wechaty) {
     this.#wechaty = wechaty
-  }
-
-  use (
-    ...plugins: (
-      | WechatyPlugin
-      | WechatyPlugin[]
-    )[]
-  ): WechatyPluginUninstaller {
-    const pluginList = plugins.flat()
-    const uninstallerList: WechatyPluginUninstaller[] = []
-
-    for (const plugin of pluginList) {
-      log.verbose('PluginManager', 'use(%s)', plugin.name)
-      const uninstaller = plugin(this.#wechaty)
-      if (isWechatyPluginUninstaller(uninstaller)) {
-        uninstallerList.push(uninstaller)
-      }
-    }
-
-    return () => {
-      uninstallerList.forEach(u => u())
-    }
   }
 
   /**

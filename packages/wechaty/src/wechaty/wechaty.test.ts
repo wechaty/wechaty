@@ -246,22 +246,24 @@ test('Wechaty dispatches "puppet" event with detail: puppetInstance', async () =
     dispatchedPuppet = event.detail
   })
 
-  await bot.init()
+  await bot.start()
   assert.strictEqual(dispatchedPuppet, puppet, 'dispatched puppet must be the puppet instance directly')
+  await bot.stop()
 })
 
-test('Wechaty init() loads default MemoryCard when options.memory is omitted', async () => {
+test('Wechaty start() loads default MemoryCard when options.memory is omitted', async () => {
   const puppet = new PuppetMock()
   const bot = new Wechaty({ puppet })
 
-  await bot.init()
-  assert.ok(bot.memory, 'bot.memory should be accessible after init()')
+  await bot.start()
+  assert.ok(bot.memory, 'bot.memory should be accessible after start()')
   // Loading an already loaded memory card throws 'already loaded'
   await assert.rejects(
     async () => bot.memory.load(),
     /already loaded/,
-    'memory card should have been loaded during init()',
+    'memory card should have been loaded during start()',
   )
+  await bot.stop()
 })
 
 test('Wechaty ding() routes errors through error event when puppet ding throws', async () => {
@@ -273,7 +275,6 @@ test('Wechaty ding() routes errors through error event when puppet ding throws',
 
   const puppet = new DingFailingPuppet()
   const bot = new Wechaty({ puppet })
-  await bot.init()
 
   let receivedError: Error | undefined
   bot.addEventListener('error', (event) => {
@@ -947,14 +948,14 @@ test('IoManager.prepare() disarms capture when scope retires before Io starts', 
   assert.equal(capturedIo.eventBuffer.length, beforeLen, 'disarmed Io must not buffer events after cancelled startup')
 })
 
-test('Wechaty init() rethrows non-"already loaded" memory load errors', async () => {
+test('Wechaty start() rethrows non-"already loaded" memory load errors', async () => {
   const { MemoryCard } = await import('memory-card')
   const memory = new MemoryCard()
   memory.load = async () => {
     throw new Error('disk failure')
   }
   const bot = new Wechaty({ puppet: new PuppetMock(), memory })
-  await assert.rejects(bot.init(), /disk failure/)
+  await assert.rejects(bot.start(), /disk failure/)
 })
 
 
