@@ -357,7 +357,7 @@ export function puppetImplementation (
         roomId: payload.roomId || '',
         talkerId: payload.talkerId || payload.fromId || '',
         text: payload.text || '',
-        type: payload.type as any,
+        type: payload.type,
       }
     },
 

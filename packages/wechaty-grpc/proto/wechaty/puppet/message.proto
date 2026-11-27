@@ -19,24 +19,26 @@ import "wechaty/puppet/location.proto";
 import "wechaty/puppet/mini-program.proto";
 import "wechaty/puppet/url-link.proto";
 
+// Numbers match wechaty-puppet's MessageType, which Puppet Service sends as-is.
+// Existing numbers and names form the binary and JSON contracts respectively.
 enum MessageType {
   MESSAGE_TYPE_UNSPECIFIED  = 0;
 
   MESSAGE_TYPE_ATTACHMENT   = 1;
   MESSAGE_TYPE_AUDIO        = 2;
   MESSAGE_TYPE_CONTACT      = 3;
-  MESSAGE_TYPE_EMOTICON     = 4;
-  MESSAGE_TYPE_IMAGE        = 5;
-  MESSAGE_TYPE_TEXT         = 6;
-  MESSAGE_TYPE_VIDEO        = 7;
-  MESSAGE_TYPE_CHAT_HISTORY = 8;
-  MESSAGE_TYPE_LOCATION     = 9;
-  MESSAGE_TYPE_MINI_PROGRAM = 10;
+  MESSAGE_TYPE_CHAT_HISTORY = 4;
+  MESSAGE_TYPE_EMOTICON     = 5;
+  MESSAGE_TYPE_IMAGE        = 6;
+  MESSAGE_TYPE_TEXT         = 7;
+  MESSAGE_TYPE_LOCATION     = 8;
+  MESSAGE_TYPE_MINI_PROGRAM = 9;
+  MESSAGE_TYPE_GROUP_NOTE   = 10;
   MESSAGE_TYPE_TRANSFER     = 11;
   MESSAGE_TYPE_RED_ENVELOPE = 12;
   MESSAGE_TYPE_RECALLED     = 13;
   MESSAGE_TYPE_URL          = 14;
-  MESSAGE_TYPE_GROUP_NOTE   = 15;
+  MESSAGE_TYPE_VIDEO        = 15;
   MESSAGE_TYPE_POST         = 16;
 
   MESSAGE_TYPE_SYSTEM       = 18;
