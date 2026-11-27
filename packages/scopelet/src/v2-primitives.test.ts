@@ -924,6 +924,39 @@ async function exerciseDelegatedLifecycle (target: Lifecycle): Promise<void> {
   assert.equal(target.isStopped, true)
 }
 
+test('LifecycleScope.isSealed flips synchronously on stop, restart, recover, and fail', async () => {
+  const scopes: LifecycleScope[] = []
+  const lc = createLifecycle({
+    onStart: scope => {
+      scopes.push(scope)
+    },
+  })
+
+  await lc.start()
+  const s1 = scopes[0]!
+  assert.equal(s1.isSealed, false)
+
+  // stop() seals synchronously before signal.aborted flips
+  const stopP = lc.stop()
+  assert.equal(s1.isSealed, true)
+  await stopP
+
+  // recover() seals synchronously
+  await lc.start()
+  const s2 = scopes[1]!
+  assert.equal(s2.isSealed, false)
+  s2.recover('test recover')
+  assert.equal(s2.isSealed, true)
+  await lc.whenState(s => s.kind === 'running' && s.generation > s2.generation)
+
+  // fail() seals synchronously
+  const s3 = scopes[2]!
+  assert.equal(s3.isSealed, false)
+  s3.fail(new Error('boom'))
+  assert.equal(s3.isSealed, true)
+  await lc.whenState(s => s.kind === 'failed')
+})
+
 async function flushTurns (count = 10): Promise<void> {
   for (let i = 0; i < count; i++) {
     await Promise.resolve()
