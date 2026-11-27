@@ -1,6 +1,6 @@
 {
   "name": "scopelet",
-  "version": "2.0.0-alpha.20",
+  "version": "2.0.0-alpha.21",
   "description": "Structured concurrency and transactional lifecycle management for asynchronous services",
   "type": "module",
   "exports": {
