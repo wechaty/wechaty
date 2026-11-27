@@ -218,8 +218,7 @@ jobs:
           # Direct review prompt: no plugin-wide "already commented" skip rule.
           # The existing HEAD/BASE guard handles duplicate revisions.
           prompt: |
-            Review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} at HEAD ${{ github.event.pull_request.head.sha }} against BASE ${{ github.event.pull_request.base.sha }}. Follow AGENTS.md, think hard in three passes, verify actionable findings, and use any available tools as needed.
-            Return the review in review_body with actionable file and line references, tests, and limits. Use "No issues found." if appropriate. Update this run's native progress comment in place. The workflow publishes the formal review.
+            Review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} at HEAD ${{ github.event.pull_request.head.sha }} against BASE ${{ github.event.pull_request.base.sha }} and share any actionable feedback.
           claude_args: |
             --effort ${{ steps.effort.outputs.level }}
             --allowedTools "mcp__github_inline_comment__create_inline_comment"
