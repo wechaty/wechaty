@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet",
-  "version": "2.0.0-alpha.20",
+  "version": "2.0.0-alpha.21",
   "description": "Abstract Puppet for Wechaty",
   "type": "module",
   "exports": {
@@ -83,7 +83,7 @@
     "gerror": "2.1.0-alpha.0",
     "memory-card": "^2.0.1",
     "quick-lru": "^8.0.0",
-    "scopelet": "^2.0.0-alpha.20",
+    "scopelet": "^2.0.0-alpha.21",
     "typesafe-actions": "^5.1.0",
     "watchdog": "^1.0.0"
   },

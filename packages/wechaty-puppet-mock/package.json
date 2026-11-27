@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-mock",
-  "version": "2.0.0-alpha.20",
+  "version": "2.0.0-alpha.21",
   "description": "Puppet Mocker for Wechaty",
   "type": "module",
   "exports": {
@@ -60,11 +60,11 @@
     "file-box": "^2.3.0"
   },
   "peerDependencies": {
-    "wechaty-puppet": "^2.0.0-alpha.20"
+    "wechaty-puppet": "^2.0.0-alpha.21"
   },
   "devDependencies": {
     "shx": "^0.3.4",
-    "wechaty-puppet": "^2.0.0-alpha.20"
+    "wechaty-puppet": "^2.0.0-alpha.21"
   },
   "files": [
     "dist/",
