@@ -52,6 +52,7 @@ RUN  sed -i '/chromedriver/d' package.json \
   && (   mkdir /node_modules && cd /node_modules \
       && ln -s /wechaty . \
       && ln -s /wechaty/node_modules/* . \
+      && ([ -d /wechaty/packages/wechaty/node_modules ] && ln -sf /wechaty/packages/wechaty/node_modules/* . || true) \
     ) \
   && ln -s /wechaty/tsconfig.json / \
   && echo "export * from 'wechaty'" > /index.ts \
