@@ -104,7 +104,7 @@ export class PluginManager {
         const entry: ScopedEntry = { plugin }
         this.#scopedEntries.add(entry)
         entries.push(entry)
-        if (this.#activeScope && !this.#activeScope.signal.aborted) {
+        if (this.#activeScope && !this.#activeScope.isSealed) {
           this.#installEntry(entry, this.#activeScope)
         }
       }
@@ -147,9 +147,9 @@ export class PluginManager {
   /**
    * Install a single scoped plugin onto `scope` and wire idempotent, retryable cleanup.
    *
-   * - Probes `scope.defer(() => {})` first so a sealed scope (`stop`, `restart`,
-   *   `recover`, `fail`) is detected before `entry.plugin()` runs; in that case
-   *   `#activeScope` is cleared and installation waits for the next generation.
+   * - Checks `scope.isSealed` first so a sealed scope (`stop`, `restart`, `recover`,
+   *   `fail`) is detected before `entry.plugin()` runs; in that case `#activeScope`
+   *   is cleared and installation waits for the next generation.
    * - Registers `runUninstall` via `scope.defer` after `entry.plugin()` so any
    *   `scope.defer` calls made inside the plugin unwind after `runUninstall` (LIFO).
    * - If the plugin uninstalls itself re-entrantly during setup, its returned cleanup runs
@@ -161,9 +161,7 @@ export class PluginManager {
    *   so failed cleanups remain retryable.
    */
   #installEntry (entry: ScopedEntry, scope: LifecycleScope): void {
-    try {
-      scope.defer(() => {})
-    } catch {
+    if (scope.isSealed) {
       if (this.#activeScope === scope) {
         this.#activeScope = undefined
       }

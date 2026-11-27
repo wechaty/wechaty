@@ -314,6 +314,13 @@ interface LifecycleScope {
   readonly signal: AbortSignal
 
   /**
+   * True once this generation is sealed and retiring (`stop`, `restart`,
+   * `recover`, `fail`, `watchdog`, or child crash). Becomes `true`
+   * synchronously when retirement begins, before `signal.aborted`.
+   */
+  readonly isSealed: boolean
+
+  /**
    * Record ownership, then create a resource (C-SCOPE-04, C-SCOPE-05).
    *
    * The release is registered before `create` runs. If `create` resolves after

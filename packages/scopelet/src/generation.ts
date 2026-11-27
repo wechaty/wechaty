@@ -270,6 +270,9 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
   const scope: LifecycleScope = Object.freeze<LifecycleScope>({
     generation: generation.number,
     signal,
+    get isSealed (): boolean {
+      return generation.sealed
+    },
 
     acquire<T> (
       create: (signal: AbortSignal) => T | PromiseLike<T>,
