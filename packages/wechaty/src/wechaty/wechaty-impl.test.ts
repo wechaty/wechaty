@@ -96,6 +96,7 @@ test('Wechaty interface', async _t => {
     abstract state       : WechatyInterface['state']
     abstract stop        : WechatyInterface['stop']
     abstract use         : WechatyInterface['use']
+    abstract useScoped   : WechatyInterface['useScoped']
     abstract version     : WechatyInterface['version']
     abstract wechaty     : WechatyInterface['wechaty']
     abstract whenRunning : WechatyInterface['whenRunning']

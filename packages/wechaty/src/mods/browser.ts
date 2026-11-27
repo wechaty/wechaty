@@ -65,5 +65,7 @@ export type {
 
 export type {
   WechatyPlugin,
+  WechatyPluginReturn,
   WechatyPluginUninstaller,
+  WechatyScopedPlugin,
 } from '../plugin.ts'

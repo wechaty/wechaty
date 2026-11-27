@@ -93,6 +93,7 @@ import type {
 import type {
   WechatyPlugin,
   WechatyPluginUninstaller,
+  WechatyScopedPlugin,
 } from '../plugin.ts'
 import type { Io } from '../io.ts'
 
@@ -285,7 +286,8 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     }, 1000 * 60 * 60)
     scope.defer(() => clearInterval(lifeTimer))
 
-    // Arm Io event capture before either child starts, then boot Io and Puppet concurrently.
+    // Arm Io event capture and scoped plugins before either child starts.
+    this.#pluginManager.installScoped(scope)
     if (this.#ioManager.hasIo) {
       await this.#ioManager.prepare(scope)
     }
@@ -604,6 +606,19 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     )[]
   ): WechatyPluginUninstaller {
     return this.#pluginManager.use(...plugins)
+  }
+
+  /**
+   * Register lifecycle-managed plugins bound to each bot generation's {@link LifecycleScope}.
+   * Uninstalled automatically in LIFO order on `stop()` and `restart()`, and re-installed on next `start()`.
+   */
+  useScoped (
+    ...plugins: (
+      | WechatyScopedPlugin
+      | WechatyScopedPlugin[]
+    )[]
+  ): WechatyPluginUninstaller {
+    return this.#pluginManager.useScoped(...plugins)
   }
 
   ding (data?: string): void {
