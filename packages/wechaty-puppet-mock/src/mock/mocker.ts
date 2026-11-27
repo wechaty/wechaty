@@ -359,13 +359,15 @@ class Mocker {
   }
 
   /**
-   * Create a message payload targeting a contact or room, store it, and emit
-   * a `message` event on the attached puppet.
+   * Create a message payload targeting a contact or room, store it, invoke
+   * `onBeforeEmit` before dispatching so attachment caches are populated,
+   * and emit a `message` event on the attached puppet.
    */
   createAndEmitMessage (
     partial: Omit<PUPPET.payloads.MessageBase, 'id' | 'timestamp'> & (
       { listenerId: string } | { roomId: string, mentionIdList?: string[] }
     ),
+    onBeforeEmit?: (id: string) => void,
   ): string {
     const id = crypto.randomUUID()
     const payload = {
@@ -373,6 +375,7 @@ class Mocker {
       id,
       timestamp: Date.now(),
     } as PUPPET.payloads.Message
+    onBeforeEmit?.(id)
     this.MessageMock.create(payload)
     if (this._puppet) {
       this._puppet.dispatchEvent(new PUPPET.WechatyEvent('message', {
@@ -383,11 +386,12 @@ class Mocker {
   }
 
   /**
-   * Simulate receiving a room invitation and emit `room-invite`.
+   * Simulate receiving or sending a room invitation and emit `room-invite`.
    */
   receiveRoomInvitation (
     room: RoomMock,
     inviter: ContactMock,
+    receiverId?: string,
   ): PUPPET.payloads.RoomInvitation {
     const id = crypto.randomUUID()
     const payload: PUPPET.payloads.RoomInvitation = {
@@ -397,7 +401,7 @@ class Mocker {
       inviterId    : inviter.id,
       memberCount  : room.payload.memberIdList.length,
       memberIdList : [...room.payload.memberIdList],
-      receiverId   : this._puppet?.isLoggedIn ? this._puppet.currentUserId : '',
+      receiverId   : receiverId ?? (this._puppet?.isLoggedIn ? this._puppet.currentUserId : ''),
       timestamp    : Date.now(),
       topic        : room.payload.topic,
     }

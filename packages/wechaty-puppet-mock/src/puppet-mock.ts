@@ -330,10 +330,16 @@ class PuppetMock extends PUPPET.Puppet {
     return user.say(something, mentions).to(conversation)
   }
 
+  /**
+   * Creates and emits a typed message (contact card, URL, location, mini-program, or post),
+   * running `onBeforeEmit` before the `message` event is dispatched so attachment caches
+   * are populated when listeners inspect the message.
+   */
   private _createTypedMessage (
     conversationId: string,
     type: PUPPET.types.Message,
     text?: string,
+    onBeforeEmit?: (id: string) => void,
   ): string {
     if (!this.isLoggedIn) {
       throw new Error('not logged in')
@@ -347,83 +353,195 @@ class PuppetMock extends PUPPET.Puppet {
       text,
       type,
       ...target,
-    })
+    }, onBeforeEmit)
+  }
+
+  /**
+   * Materializes a `SayablePayload` into a persisted `MessagePayload` (and attachment
+   * cache entry) so `Post` sayable IDs resolve via `messagePayload(id)`.
+   */
+  private _materializeSayable (
+    sayable: PUPPET.payloads.Sayable | string,
+    talkerId: string,
+  ): string {
+    if (typeof sayable === 'string') {
+      return sayable
+    }
+    const id = crypto.randomUUID()
+    const base: PUPPET.payloads.MessageBase = {
+      id,
+      talkerId,
+      timestamp: Date.now(),
+      type: PUPPET.types.Message.Text,
+    }
+    switch (sayable.type) {
+      case PUPPET.types.Sayable.Text:
+        base.type = PUPPET.types.Message.Text
+        base.text = sayable.payload.text
+        break
+      case PUPPET.types.Sayable.Url:
+        base.type = PUPPET.types.Message.Url
+        base.text = sayable.payload.title
+        this.mocker.cacheMessageUrlPayload.set(id, sayable.payload)
+        break
+      case PUPPET.types.Sayable.Location:
+        base.type = PUPPET.types.Message.Location
+        base.text = sayable.payload.name
+        this.mocker.cacheMessageLocationPayload.set(id, sayable.payload)
+        break
+      case PUPPET.types.Sayable.MiniProgram:
+        base.type = PUPPET.types.Message.MiniProgram
+        base.text = sayable.payload.title
+        this.mocker.cacheMessageMiniProgramPayload.set(id, sayable.payload)
+        break
+      case PUPPET.types.Sayable.Contact:
+        base.type = PUPPET.types.Message.Contact
+        this.mocker.cacheMessageContactId.set(id, sayable.payload.contactId)
+        break
+      case PUPPET.types.Sayable.Attachment:
+      case PUPPET.types.Sayable.Image:
+      case PUPPET.types.Sayable.Audio:
+      case PUPPET.types.Sayable.Video:
+        base.type = PUPPET.types.Message.Attachment
+        break
+      default:
+        break
+    }
+    this.mocker.MessageMock.create(base as PUPPET.payloads.Message)
+    return id
+  }
+
+  /**
+   * Stores a `PostPayload` as a `PostServer` in `mocker.cachePostPayload` under `id`,
+   * materializing any client sayables into message records.
+   */
+  private _storePostPayload (
+    id: string,
+    payload: PUPPET.payloads.Post,
+  ): PUPPET.payloads.PostServer {
+    const contactId = ('contactId' in payload && payload.contactId)
+      ? payload.contactId
+      : (this.isLoggedIn ? this.currentUserId : '')
+    const sayableIdList = payload.sayableList.map((item) =>
+      this._materializeSayable(item, contactId),
+    )
+    const stored: PUPPET.payloads.PostServer = {
+      ...payload,
+      contactId,
+      counter: ('counter' in payload && payload.counter)
+        ? payload.counter
+        : { children: 0, descendant: 0, taps: {} },
+      id,
+      sayableList: sayableIdList,
+      timestamp: ('timestamp' in payload && payload.timestamp) ? payload.timestamp : Date.now(),
+    }
+    this.mocker.cachePostPayload.set(id, stored)
+    return stored
   }
 
   override async messageSendText (
     conversationId: string,
     text: string,
     mentionIdList?: string[],
-  ): Promise<string> {
+  ): Promise<void | string> {
     return this._messageSend(conversationId, text, mentionIdList)
   }
 
   override async messageSendFile (
     conversationId: string,
     file: FileBoxInterface,
-  ): Promise<string> {
+  ): Promise<void | string> {
     return this._messageSend(conversationId, file)
   }
 
   override async messageSendContact (
     conversationId: string,
     contactId: string,
-  ): Promise<string> {
+  ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageSendContact(%s, %s)', conversationId, contactId)
     this.mocker.contactPayload(contactId)
-    const messageId = this._createTypedMessage(conversationId, PUPPET.types.Message.Contact)
-    this.mocker.cacheMessageContactId.set(messageId, contactId)
-    return messageId
+    return this._createTypedMessage(conversationId, PUPPET.types.Message.Contact, undefined, (id) => {
+      this.mocker.cacheMessageContactId.set(id, contactId)
+    })
   }
 
   override async messageSendUrl (
     conversationId: string,
     urlLinkPayload: PUPPET.payloads.UrlLink,
-  ): Promise<string> {
+  ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageSendUrl(%s, %s)', conversationId, JSON.stringify(urlLinkPayload))
-    const messageId = this._createTypedMessage(conversationId, PUPPET.types.Message.Url, urlLinkPayload.title)
-    this.mocker.cacheMessageUrlPayload.set(messageId, urlLinkPayload)
-    return messageId
+    return this._createTypedMessage(conversationId, PUPPET.types.Message.Url, urlLinkPayload.title, (id) => {
+      this.mocker.cacheMessageUrlPayload.set(id, urlLinkPayload)
+    })
   }
 
   override async messageSendLocation (
     conversationId: string,
     locationPayload: PUPPET.payloads.Location,
-  ): Promise<string> {
+  ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageSendLocation(%s, %s)', conversationId, JSON.stringify(locationPayload))
-    const messageId = this._createTypedMessage(conversationId, PUPPET.types.Message.Location, locationPayload.name)
-    this.mocker.cacheMessageLocationPayload.set(messageId, locationPayload)
-    return messageId
+    return this._createTypedMessage(conversationId, PUPPET.types.Message.Location, locationPayload.name, (id) => {
+      this.mocker.cacheMessageLocationPayload.set(id, locationPayload)
+    })
   }
 
   override async messageSendMiniProgram (
     conversationId: string,
     miniProgramPayload: PUPPET.payloads.MiniProgram,
-  ): Promise<string> {
+  ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageSendMiniProgram(%s, %s)', conversationId, JSON.stringify(miniProgramPayload))
-    const messageId = this._createTypedMessage(conversationId, PUPPET.types.Message.MiniProgram, miniProgramPayload.title)
-    this.mocker.cacheMessageMiniProgramPayload.set(messageId, miniProgramPayload)
-    return messageId
+    return this._createTypedMessage(conversationId, PUPPET.types.Message.MiniProgram, miniProgramPayload.title, (id) => {
+      this.mocker.cacheMessageMiniProgramPayload.set(id, miniProgramPayload)
+    })
   }
 
   override async messageSendPost (
     conversationId: string,
     postPayload: PUPPET.payloads.Post,
-  ): Promise<string> {
+  ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageSendPost(%s, %s)', conversationId, JSON.stringify(postPayload))
-    const messageId = this._createTypedMessage(conversationId, PUPPET.types.Message.Post)
-    this.mocker.cacheMessagePostPayload.set(messageId, postPayload)
-    return messageId
+    return this._createTypedMessage(conversationId, PUPPET.types.Message.Post, undefined, (id) => {
+      this.mocker.cacheMessagePostPayload.set(id, postPayload)
+      this._storePostPayload(id, postPayload)
+    })
   }
 
   override async messageForward (
     conversationId: string,
     messageId: string,
-  ): Promise<string> {
+  ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageForward(%s, %s)', conversationId, messageId)
     const original = this.mocker.messagePayload(messageId)
-    if (original.type === PUPPET.types.Message.Text) {
-      return this.messageSendText(conversationId, original.text ?? '')
+    switch (original.type) {
+      case PUPPET.types.Message.Text:
+        return this.messageSendText(conversationId, original.text ?? '')
+      case PUPPET.types.Message.Contact: {
+        const contactId = this.mocker.cacheMessageContactId.get(messageId)
+        if (contactId) return this.messageSendContact(conversationId, contactId)
+        break
+      }
+      case PUPPET.types.Message.Url: {
+        const urlPayload = this.mocker.cacheMessageUrlPayload.get(messageId)
+        if (urlPayload) return this.messageSendUrl(conversationId, urlPayload)
+        break
+      }
+      case PUPPET.types.Message.Location: {
+        const locPayload = this.mocker.cacheMessageLocationPayload.get(messageId)
+        if (locPayload) return this.messageSendLocation(conversationId, locPayload)
+        break
+      }
+      case PUPPET.types.Message.MiniProgram: {
+        const mpPayload = this.mocker.cacheMessageMiniProgramPayload.get(messageId)
+        if (mpPayload) return this.messageSendMiniProgram(conversationId, mpPayload)
+        break
+      }
+      case PUPPET.types.Message.Post: {
+        const postPayload = this.mocker.cacheMessagePostPayload.get(messageId) ?? this.mocker.cachePostPayload.get(messageId)
+        if (postPayload) return this.messageSendPost(conversationId, postPayload)
+        break
+      }
+      default:
+        break
     }
     const fileJson = this.mocker.cacheFileBoxPayload.get(messageId)
     if (fileJson) {
@@ -495,7 +613,9 @@ class PuppetMock extends PUPPET.Puppet {
       const room = this.mocker.RoomMock.load(roomId)
       const inviterId = this.isLoggedIn ? this.currentUserId : (payload.ownerId ?? ids[0] ?? '')
       const inviter = this.mocker.ContactMock.load(inviterId)
-      this.mocker.receiveRoomInvitation(room, inviter)
+      for (const receiverId of ids) {
+        this.mocker.receiveRoomInvitation(room, inviter, receiverId)
+      }
       return
     }
 
@@ -639,8 +759,9 @@ class PuppetMock extends PUPPET.Puppet {
     if (!invitation || !roomId) {
       throw new Error(`no roomInvitation found for id ${roomInvitationId}`)
     }
-    if (this.isLoggedIn) {
-      await this.roomAdd(roomId, this.currentUserId)
+    const memberId = invitation.receiverId || (this.isLoggedIn ? this.currentUserId : '')
+    if (memberId) {
+      await this.roomAdd(roomId, memberId)
     }
   }
 
@@ -802,22 +923,7 @@ class PuppetMock extends PUPPET.Puppet {
       PUPPET.helpers.typeName(PUPPET.types.Post, payload.type || PUPPET.types.Post.Unspecified),
     )
     const id = ('id' in payload && payload.id) ? payload.id : crypto.randomUUID()
-    const sayableIdList = payload.sayableList.map((item) =>
-      typeof item === 'string' ? item : crypto.randomUUID(),
-    )
-    const stored: PUPPET.payloads.PostServer = {
-      ...payload,
-      contactId: ('contactId' in payload && payload.contactId)
-        ? payload.contactId
-        : (this.isLoggedIn ? this.currentUserId : ''),
-      counter: ('counter' in payload && payload.counter)
-        ? payload.counter
-        : { children: 0, descendant: 0, taps: {} },
-      id,
-      sayableList: sayableIdList,
-      timestamp: ('timestamp' in payload && payload.timestamp) ? payload.timestamp : Date.now(),
-    }
-    this.mocker.cachePostPayload.set(id, stored)
+    this._storePostPayload(id, payload)
     this.dispatchEvent(new PUPPET.WechatyEvent('post', {
       detail: { postId: id },
     }))
@@ -837,6 +943,8 @@ class PuppetMock extends PUPPET.Puppet {
         if (filter.id && p.id !== filter.id) return false
         if (filter.contactId && p.contactId !== filter.contactId) return false
         if (filter.type !== undefined && p.type !== filter.type) return false
+        if ('parentId' in filter && p.parentId !== filter.parentId) return false
+        if ('rootId' in filter && p.rootId !== filter.rootId) return false
         return true
       })
       .map((p) => p.id)
@@ -908,7 +1016,13 @@ class PuppetMock extends PUPPET.Puppet {
     const filtered: PUPPET.payloads.Tap = {}
     for (const [key, entry] of Object.entries(tapPayload)) {
       const tapType = Number.parseInt(key, 10) as PUPPET.types.Tap
-      if (query?.type !== undefined && tapType !== query.type) continue
+      if (
+        query?.type !== undefined
+        && query.type !== PUPPET.types.Tap.Unspecified
+        && tapType !== query.type
+      ) {
+        continue
+      }
       if (!entry) continue
       if (query?.contactId) {
         const contactId: string[] = []

@@ -45,7 +45,7 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     assert.equal(payload.corporation, 'Wechaty')
     assert.equal(payload.description, 'Core contributor')
 
-    const customAvatar = FileBox.fromBuffer(Buffer.from('png-bytes'), 'avatar.png')
+    const customAvatar = FileBox.fromBase64(btoa('png-bytes'), 'avatar.png')
     await puppet.contactAvatar(alice.id, customAvatar)
     const readAvatar = await puppet.contactAvatar(alice.id)
     assert.equal(readAvatar.name, 'avatar.png')
@@ -55,16 +55,22 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     const { puppet, alice, bob, room } = await createMockWorld(t)
 
     const textId = await puppet.messageSendText(room.id, 'hi @Alice', [alice.id])
-    assert.equal((await puppet.messagePayload(textId)).text, 'hi @Alice')
+    assert.equal(typeof textId, 'string')
+    assert.equal((await puppet.messagePayload(textId as string)).text, 'hi @Alice')
 
     const contactMsgId = await puppet.messageSendContact(alice.id, bob.id)
-    assert.equal(await puppet.messageContact(contactMsgId), bob.id)
+    assert.equal(await puppet.messageContact(contactMsgId as string), bob.id)
 
+    const urlFuture = puppet.next('message')
     const urlMsgId = await puppet.messageSendUrl(alice.id, {
       title: 'Wechaty',
       url: 'https://wechaty.js.org',
     })
-    assert.equal((await puppet.messageUrl(urlMsgId)).title, 'Wechaty')
+    assert.equal((await puppet.messageUrl((await urlFuture).messageId)).title, 'Wechaty')
+
+    const fwdUrlId = await puppet.messageForward(bob.id, urlMsgId as string)
+    assert.ok(typeof fwdUrlId === 'string')
+    assert.equal((await puppet.messageUrl(fwdUrlId)).url, 'https://wechaty.js.org')
 
     const locMsgId = await puppet.messageSendLocation(alice.id, {
       accuracy: 10,
@@ -73,27 +79,29 @@ describe('PuppetMock Full-Domain Behaviors', () => {
       longitude: -122.41,
       name: 'HQ',
     })
-    assert.equal((await puppet.messageLocation(locMsgId)).name, 'HQ')
+    assert.equal((await puppet.messageLocation(locMsgId as string)).name, 'HQ')
 
     const mpMsgId = await puppet.messageSendMiniProgram(alice.id, {
       appid: 'wx123',
       title: 'MiniApp',
     })
-    assert.equal((await puppet.messageMiniProgram(mpMsgId)).title, 'MiniApp')
+    assert.equal((await puppet.messageMiniProgram(mpMsgId as string)).title, 'MiniApp')
 
     const postMsgId = await puppet.messageSendPost(alice.id, {
       sayableList: [],
       type: PUPPET.types.Post.Moment,
     })
+    assert.ok(typeof postMsgId === 'string')
     assert.equal((await puppet.messagePayload(postMsgId)).type, PUPPET.types.Message.Post)
+    assert.equal((await puppet.postRawPayload(postMsgId)).id, postMsgId)
 
-    const fwdId = await puppet.messageForward(bob.id, textId)
+    const fwdId = await puppet.messageForward(bob.id, textId as string)
     assert.ok(typeof fwdId === 'string' && fwdId !== textId)
     assert.equal((await puppet.messagePayload(fwdId)).text, 'hi @Alice')
 
-    assert.equal(await puppet.messageRecall(textId), true)
-    assert.equal((await puppet.messagePayload(textId)).type, PUPPET.types.Message.Recalled)
-    assert.equal(await puppet.messageRecall(textId), false)
+    assert.equal(await puppet.messageRecall(textId as string), true)
+    assert.equal((await puppet.messagePayload(textId as string)).type, PUPPET.types.Message.Recalled)
+    assert.equal(await puppet.messageRecall(textId as string), false)
 
     await puppet.conversationReadMark(alice.id, true)
     assert.equal(puppet.mocker.cacheConversationRead.get(alice.id), true)
@@ -130,7 +138,9 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     const { roomInvitationId } = await inviteFuture
     const inv = await puppet.roomInvitationPayload(roomInvitationId)
     assert.equal(inv.topic, 'TCK General')
+    assert.equal(inv.receiverId, bob.id)
     await puppet.roomInvitationAccept(roomInvitationId)
+    assert.ok((await puppet.roomMemberList(room.id)).includes(bob.id))
 
     await puppet.roomQuit(newRoomId)
   })
@@ -172,9 +182,25 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     assert.deepEqual(await puppet.tagContactList(), [])
 
     const postFuture = puppet.next('post')
-    const postId1 = await puppet.postPublish({ sayableList: [], type: PUPPET.types.Post.Moment })
-    const postId2 = await puppet.postPublish({ sayableList: [], type: PUPPET.types.Post.Moment })
+    const postId1 = await puppet.postPublish({
+      sayableList: [{ payload: { mentions: [], text: 'hello post' }, type: PUPPET.types.Sayable.Text }],
+      type: PUPPET.types.Post.Moment,
+    })
+    const postId2 = await puppet.postPublish({
+      parentId: postId1,
+      rootId: postId1,
+      sayableList: [],
+      type: PUPPET.types.Post.Moment,
+    })
     assert.equal((await postFuture).postId, postId1)
+
+    const storedPost1 = await puppet.postRawPayload(postId1)
+    assert.equal(storedPost1.sayableList.length, 1)
+    const sayableMsg = await puppet.messagePayload(storedPost1.sayableList[0] as string)
+    assert.equal(sayableMsg.text, 'hello post')
+
+    const children = await puppet.postSearch({ parentId: postId1 })
+    assert.deepEqual(children.response, [postId2])
 
     const page1 = await puppet.postSearch({}, { pageSize: 1 })
     assert.deepEqual(page1.response, [postId1])
@@ -187,6 +213,8 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     assert.equal(await puppet.tap(postId1, PUPPET.types.Tap.Like), true)
     const taps = await puppet.tapSearch(postId1, { type: PUPPET.types.Tap.Like })
     assert.equal(taps.response[PUPPET.types.Tap.Like]?.contactId.length, 1)
+    const wildcardTaps = await puppet.tapSearch(postId1, { type: PUPPET.types.Tap.Unspecified })
+    assert.equal(wildcardTaps.response[PUPPET.types.Tap.Like]?.contactId.length, 1)
     await puppet.tap(postId1, PUPPET.types.Tap.Like, false)
     assert.equal(await puppet.tap(postId1, PUPPET.types.Tap.Like), false)
   })
