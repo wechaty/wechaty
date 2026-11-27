@@ -576,13 +576,13 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   abstract onStop (): Promise<void>
 
   /**
-   * Per-instance async context tracking an already-admitted `operation()`'s AbortSignal.
+   * Per-instance async context tracking an already-admitted, still-active `operation()`.
    * Uses `process.getBuiltinModule('node:async_hooks')` when available (Node/Deno) with
    * zero static `node:` imports so browser/WinterTC bundles remain unaffected.
    */
   readonly #operationContext: {
-    getStore (): AbortSignal | undefined
-    run<R> (store: AbortSignal, fn: () => R): R
+    getStore (): { signal: AbortSignal, active: boolean } | undefined
+    run<R> (store: { signal: AbortSignal, active: boolean }, fn: () => R): R
   } | undefined = (() => {
     const mod = (globalThis as { process?: { getBuiltinModule?: (id: string) => any } })
       .process?.getBuiltinModule?.('node:async_hooks')
@@ -593,41 +593,46 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    * Executes a Puppet domain operation for the bot against the active generation (C-COMP-03).
    * Retirement waits for all active operations to finish under stop timeout.
    *
-   * Re-entrant calls made within the async execution context of an already-admitted
-   * operation on this Puppet reuse that operation's `AbortSignal` (even during `'stopping'`
-   * drain), while unrelated callers during `'stopping'` or `'stopped'` reject immediately
-   * with `LifecycleUnsafeStateError`.
+   * Re-entrant calls made while an owning operation on this Puppet is still active
+   * reuse that operation's `AbortSignal` (even during `'stopping'` drain). Once the
+   * owning operation finishes (`active = false`), any detached continuations fall back
+   * to `this.#lifecycle.operation()` and reject if stopped or stopping.
    *
    * @param work - Callback receiving an AbortSignal that aborts when retirement begins.
    * @returns Promise resolving to the result of `work`, or rejected with `LifecycleUnsafeStateError`
    *          if the puppet is not currently running.
    */
   operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
-    const activeSignal = this.#operationContext?.getStore()
-    if (activeSignal) {
-      return work(activeSignal)
+    const entry = this.#operationContext?.getStore()
+    if (entry?.active) {
+      return work(entry.signal)
     }
-    return this.#lifecycle.operation(signal => {
-      if (this.#operationContext) {
-        return this.#operationContext.run(signal, () => work(signal))
+    return this.#lifecycle.operation(async signal => {
+      if (!this.#operationContext) {
+        return work(signal)
       }
-      return work(signal)
+      const ctx = { signal, active: true }
+      try {
+        return await this.#operationContext.run(ctx, () => work(signal))
+      } finally {
+        ctx.active = false
+      }
     })
   }
 
   /**
    * Run a compatibility operation. Running calls use the controller, provider
    * startup calls use their startup scope, and idle calls receive no signal.
-   * Calls made within an already-admitted `operation()` context reuse that
-   * operation's signal so multi-step domain methods drain cleanly before `onStop()`.
+   * Calls made while an owning `operation()` is active reuse that operation's
+   * signal so multi-step domain methods drain cleanly before `onStop()`.
    */
   async executeOperation<T> (work: (signal?: AbortSignal) => T | PromiseLike<T>): Promise<T> {
     if (this.#startupOperation) {
       return this.#startupOperation(work)
     }
-    const activeSignal = this.#operationContext?.getStore()
-    if (activeSignal) {
-      return work(activeSignal)
+    const entry = this.#operationContext?.getStore()
+    if (entry?.active) {
+      return work(entry.signal)
     }
     const state = this.#lifecycle.state
     if (this.#run || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {

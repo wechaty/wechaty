@@ -897,6 +897,17 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
   const publishedPost = await pubP
   await stopP3
   assert.equal(publishedPost?.id, 'published-post-1')
+
+  // 4. Detached continuation scheduled inside an admitted operation expires after operation finishes
+  const bot4 = new Wechaty({ puppet: new PuppetMock() })
+  await bot4.start()
+  const p4 = bot4.puppet
+  let detachedCall!: () => Promise<unknown>
+  await p4.operation(async () => {
+    detachedCall = () => p4.operation(async () => 'should not run')
+  })
+  await bot4.stop()
+  await assert.rejects(() => detachedCall(), err => err instanceof LifecycleUnsafeStateError)
 })
 
 test('Wechaty readiness invalidates on Puppet reset and independent puppet.restart()', async () => {

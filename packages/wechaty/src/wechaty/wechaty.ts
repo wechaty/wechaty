@@ -572,7 +572,9 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
         return msgId || undefined
       })
     }
-    await this.currentUser.say(conversationOrSayable as Sayable)
+    return this.puppet.operation(async () => {
+      await this.currentUser.say(conversationOrSayable as Sayable)
+    })
   }
 
   /**

@@ -263,7 +263,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
   async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
-    return this.wechaty.puppet.operation(async () => {
+    return this.wechaty.puppet.operation(async signal => {
       if (!this.payload) {
         throw new Error('no payload')
       }
@@ -280,6 +280,9 @@ class FriendshipMixin extends MixinBase implements Accepter {
 
       try {
         const doSync = async () => {
+          if (signal.aborted) {
+            return
+          }
           await (contact as ContactImpl).ready()
           if (!contact.isReady()) {
             throw new Error('Friendship.accept() contact.ready() not ready')
