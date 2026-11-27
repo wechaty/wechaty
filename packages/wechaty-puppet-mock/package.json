@@ -9,6 +9,12 @@
       "browser": "./src/mod.ts",
       "node": "./src/mod.ts",
       "default": "./src/mod.ts"
+    },
+    "./tck": {
+      "types": "./src/tck/mod.ts",
+      "browser": "./src/tck/mod.ts",
+      "node": "./src/tck/mod.ts",
+      "default": "./src/tck/mod.ts"
     }
   },
   "types": "./src/mod.ts",

@@ -433,8 +433,9 @@ test('Wechaty say(): stop() waits for in-flight send, and say() while stopped re
   })
 
   class SlowPuppet extends PuppetMock {
-    override async messageSendText (_conversationId: string, _text: string): Promise<void> {
+    override async messageSendText (_conversationId: string, _text: string): Promise<string> {
       await wirePromise
+      return 'slow-message-id'
     }
   }
 
