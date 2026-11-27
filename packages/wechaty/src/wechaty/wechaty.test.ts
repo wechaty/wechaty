@@ -786,11 +786,111 @@ test('Wechaty bot-bound Contact classes and pools are isolated', async () => {
   }
 
   // Stopped bot entity domain methods reject immediately with LifecycleUnsafeStateError
-  await assert.rejects(() => c1.say('hi'), /LifecycleUnsafeStateError|not running/i)
-  await assert.rejects(() => c1.sync(), /LifecycleUnsafeStateError|not running/i)
+  const isUnsafeState = (err: unknown) => err instanceof LifecycleUnsafeStateError
+  await assert.rejects(() => c1.say('hi'), isUnsafeState)
+  await assert.rejects(() => c1.sync(), isUnsafeState)
   const room = (bot1.Room as any).load('room-1')
-  await assert.rejects(() => room.say('hi'), /LifecycleUnsafeStateError|not running/i)
-  await assert.rejects(() => room.sync(), /LifecycleUnsafeStateError|not running/i)
+  await assert.rejects(() => room.say('hi'), isUnsafeState)
+  await assert.rejects(() => room.sync(), isUnsafeState)
+  const friendship = (bot1.Friendship as any).load('friend-1')
+  await assert.rejects(() => friendship.accept(), isUnsafeState)
+  const invitation = (bot1.RoomInvitation as any).load('inv-1')
+  await assert.rejects(() => invitation.accept(), isUnsafeState)
+  const postEntity = (bot1.Post as any).load('post-1')
+  await assert.rejects(() => postEntity.sync(), isUnsafeState)
+})
+
+test('Entity domain methods drain multi-step puppet calls cleanly during bot.stop()', async () => {
+  const sendGate = Promise.withResolvers<void>()
+  const sendEntered = Promise.withResolvers<void>()
+
+  class DrainingPuppet extends PuppetMock {
+    override async messageSendText (_conversationId: string, _text: string): Promise<any> {
+      sendEntered.resolve()
+      await sendGate.promise
+      return 'sent-msg-1'
+    }
+    override async messagePayload (id: string): Promise<any> {
+      return { id, talkerId: 'self-1', timestamp: Date.now(), type: 7 }
+    }
+    override async contactPayloadDirty (_id: string): Promise<void> {}
+    override async contactPayload (id: string): Promise<any> {
+      return { id, name: 'Self', gender: 0, type: 1 }
+    }
+    override async friendshipAccept (_id: string): Promise<void> {
+      sendEntered.resolve()
+      await sendGate.promise
+    }
+    override async roomInvitationAccept (_id: string): Promise<void> {
+      sendEntered.resolve()
+      await sendGate.promise
+    }
+    override async roomInvitationPayload (id: string): Promise<any> {
+      return { id, inviterId: 'self-1', topic: 'Room', avatar: '', memberCount: 1, memberIdList: [], receiverId: 'self-1', timestamp: Date.now() }
+    }
+    override async postPublish (_payload: any): Promise<string> {
+      sendEntered.resolve()
+      await sendGate.promise
+      return 'published-post-1'
+    }
+    override async postPayload (id: string): Promise<any> {
+      return { id, counter: {}, sayableList: [], type: 1 }
+    }
+  }
+
+  // 1. Contact.say() returning msgId drains Message.find() mid-stop
+  const bot1 = new Wechaty({ puppet: new DrainingPuppet() })
+  const p1 = bot1.puppet as DrainingPuppet
+  await bot1.start()
+  await p1.mocker.login(p1.mocker.createContact({ id: 'self-1', name: 'Self' }))
+  const c1 = (bot1.Contact as any).load('self-1')
+  const sayPromise = c1.say('hello')
+  await sendEntered.promise
+  const stopPromise = bot1.stop()
+  sendGate.resolve()
+  const msg = await sayPromise
+  await stopPromise
+  assert.equal(msg?.id, 'sent-msg-1')
+
+  // 2. Friendship.accept() drains contact.ready() mid-stop
+  const fGate = Promise.withResolvers<void>()
+  const fEntered = Promise.withResolvers<void>()
+  class FriendPuppet extends DrainingPuppet {
+    override async friendshipAccept (_id: string): Promise<void> {
+      fEntered.resolve()
+      await fGate.promise
+    }
+  }
+  const bot2 = new Wechaty({ puppet: new FriendPuppet() })
+  await bot2.start()
+  const f = (bot2.Friendship as any).load('f-1')
+  f.payload = { id: 'f-1', contactId: 'self-1', type: 2 } // Receive = 2
+  const acceptP = f.accept()
+  await fEntered.promise
+  const stopP2 = bot2.stop()
+  fGate.resolve()
+  await acceptP
+  await stopP2
+
+  // 3. Wechaty.publish() returning postId drains Post.find()/ready() mid-stop
+  const pubGate = Promise.withResolvers<void>()
+  const pubEntered = Promise.withResolvers<void>()
+  class PubPuppet extends DrainingPuppet {
+    override async postPublish (_payload: any): Promise<string> {
+      pubEntered.resolve()
+      await pubGate.promise
+      return 'published-post-1'
+    }
+  }
+  const bot3 = new Wechaty({ puppet: new PubPuppet() })
+  await bot3.start()
+  const pubP = bot3.publish({ payload: { sayableList: [] } } as any)
+  await pubEntered.promise
+  const stopP3 = bot3.stop()
+  pubGate.resolve()
+  const publishedPost = await pubP
+  await stopP3
+  assert.equal(publishedPost?.id, 'published-post-1')
 })
 
 test('Wechaty readiness invalidates on Puppet reset and independent puppet.restart()', async () => {

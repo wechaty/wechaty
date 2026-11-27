@@ -282,16 +282,20 @@ class PostMixin extends wechatifyMixinBase() {
     return post
   }
 
+  /**
+   * Sync post payload from puppet, fenced against the active lifecycle generation.
+   */
   async sync (): Promise<void> {
     log.silly('Post', 'sync()')
+    return this.wechaty.puppet.operation(() => this.#sync())
+  }
 
-    return this.wechaty.puppet.operation(async () => {
-      if (!this.id) {
-        throw new Error('no post id found')
-      }
+  async #sync (): Promise<void> {
+    if (!this.id) {
+      throw new Error('no post id found')
+    }
 
-      this._payload = await this.wechaty.puppet.postPayload(this.id)
-    })
+    this._payload = await this.wechaty.puppet.postPayload(this.id)
   }
 
   async ready (): Promise<void> {
@@ -305,7 +309,7 @@ class PostMixin extends wechatifyMixinBase() {
       return
     }
 
-    await this.sync()
+    await this.#sync()
   }
 
   async * [Symbol.asyncIterator] (): AsyncIterableIterator<Sayable> {

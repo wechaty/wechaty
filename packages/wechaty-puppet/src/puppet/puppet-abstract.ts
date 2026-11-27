@@ -575,6 +575,9 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    */
   abstract onStop (): Promise<void>
 
+  #activeOperations = 0
+  #activeOperationSignal?: AbortSignal
+
   /**
    * Executes a Puppet domain operation for the bot against the active generation (C-COMP-03).
    * Retirement waits for all active operations to finish under stop timeout.
@@ -584,19 +587,38 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
    *          if the puppet is not currently running.
    */
   operation<T> (work: (signal: AbortSignal) => Promise<T>): Promise<T> {
-    return this.#lifecycle.operation(work)
+    if (this.#activeOperations > 0 && this.#lifecycle.state.kind === 'stopping') {
+      return work(this.#activeOperationSignal!)
+    }
+    return this.#lifecycle.operation(async signal => {
+      this.#activeOperations += 1
+      this.#activeOperationSignal = signal
+      try {
+        return await work(signal)
+      } finally {
+        this.#activeOperations -= 1
+        if (this.#activeOperations === 0) {
+          this.#activeOperationSignal = undefined
+        }
+      }
+    })
   }
 
   /**
    * Run a compatibility operation. Running calls use the controller, provider
    * startup calls use their startup scope, and idle calls receive no signal.
-   * Owned work is joined during retirement.
+   * Calls made on behalf of an already-admitted draining `operation()` during
+   * `'stopping'` reuse that operation's signal so multi-step domain methods
+   * drain cleanly before `onStop()` runs.
    */
   executeOperation<T> (work: (signal?: AbortSignal) => T | PromiseLike<T>): Promise<T> {
     if (this.#startupOperation) {
       return this.#startupOperation(work)
     }
     const state = this.#lifecycle.state
+    if (this.#activeOperations > 0 && state.kind === 'stopping') {
+      return Promise.resolve(work(this.#activeOperationSignal))
+    }
     if (this.#run || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
       return this.#lifecycle.operation(work)
     }
