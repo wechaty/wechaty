@@ -544,27 +544,32 @@ test('Wechaty startup failure in init(): emits single error event and rejects st
   assert.equal(errors.length, 1, 'should emit init failure error exactly once')
 })
 
-test('Wechaty startup failure in Io: emits single error event and rejects start()', async t => {
+test('Wechaty startup failure in Io: emits single error event and rejects start()', async () => {
   if (typeof (globalThis as any).process?.cwd !== 'function') {
     return
   }
   const { Io } = await import('../io.ts')
-  t.mock.method(Io.prototype as any, 'onStart', async () => {
+  const origOnStart = (Io.prototype as any).onStart
+  ;(Io.prototype as any).onStart = async () => {
     throw new Error('io connection refused')
-  })
+  }
 
-  const bot = new Wechaty({
-    puppet: new PuppetMock(),
-    ioToken: 'fake-token-for-test',
-  })
-  const errors: any[] = []
-  bot.addEventListener('error', event => {
-    errors.push((event.detail as any)?.gerror || event.detail)
-  })
+  try {
+    const bot = new Wechaty({
+      puppet: new PuppetMock(),
+      ioToken: 'fake-token-for-test',
+    })
+    const errors: any[] = []
+    bot.addEventListener('error', event => {
+      errors.push((event.detail as any)?.gerror || event.detail)
+    })
 
-  await assert.rejects(bot.start(), /io connection refused/)
-  await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
-  assert.equal(errors.length, 1, 'should emit io startup failure exactly once')
+    await assert.rejects(bot.start(), /io connection refused/)
+    await bot.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
+    assert.equal(errors.length, 1, 'should emit io startup failure exactly once')
+  } finally {
+    ;(Io.prototype as any).onStart = origOnStart
+  }
 })
 
 test('Wechaty start() cancellation does not emit error event', async () => {
@@ -618,6 +623,13 @@ test('Wechaty concurrent start() calls on failure emit error exactly once', asyn
 })
 
 test('Wechaty.create() resolves named puppet before returning the bot', async () => {
+  const injected = new PuppetMock()
+  const botFromInstance = await Wechaty.create({ puppet: injected })
+  assert.strictEqual(botFromInstance.puppet, injected)
+
+  if (typeof (globalThis as any).process?.cwd !== 'function') {
+    return
+  }
   const bot = await Wechaty.create({ puppet: 'wechaty-puppet-mock' })
   assert.ok(bot.puppet instanceof PuppetMock, 'Wechaty.create() should bind resolved Puppet before returning')
   await bot.start()
@@ -626,22 +638,23 @@ test('Wechaty.create() resolves named puppet before returning the bot', async ()
 })
 
 test('Wechaty starts Puppet and Io concurrently with capture armed before synchronous scan', async () => {
-  const order: string[] = []
+  if (typeof (globalThis as any).process?.cwd !== 'function') {
+    return
+  }
   const puppetGate = Promise.withResolvers<void>()
+  const puppetStarting = Promise.withResolvers<void>()
+  const ioConnecting = Promise.withResolvers<void>()
   let scanReceivedOnBot = false
 
   class ConcurrentScanPuppet extends PuppetMock {
     override async onStart (): Promise<void> {
-      order.push('puppet:onStart:begin')
       // Synchronous first scan emitted while Io is still connecting
       this.emit('scan', { qrcode: 'https://wechaty.js.org/qr/sync', status: 2 })
+      puppetStarting.resolve()
       await puppetGate.promise
-      order.push('puppet:onStart:end')
     }
   }
 
-  // Intercept Io.connect via a minimal fake WebSocket server or prototype stub?
-  // Let's test through Io's real hookWechaty by using ioToken + checking bot.io.eventBuffer!
   const { Io } = await import('../io.ts')
   const ioGate = Promise.withResolvers<void>()
   let ioConnectStarted = false
@@ -651,26 +664,24 @@ test('Wechaty starts Puppet and Io concurrently with capture armed before synchr
   // Use a local ws stub by mocking Io.prototype.connect
   ;(Io.prototype as any).connect = async function (this: any) {
     ioConnectStarted = true
-    order.push('io:connect:begin')
+    ioConnecting.resolve()
     await ioGate.promise
-    order.push('io:connect:end')
     return { ping: () => {}, close: () => {}, terminate: () => {}, readyState: 1 }
   }
   // Prevent keepalive / flush from touching fake ws
   ;(Io.prototype as any).onStop = async function () {}
 
+  const bot = new Wechaty({
+    puppet: new ConcurrentScanPuppet(),
+    ioToken: 'test-io-token',
+  })
   try {
-    const bot = new Wechaty({
-      puppet: new ConcurrentScanPuppet(),
-      ioToken: 'test-io-token',
-    })
     bot.addEventListener('scan', () => {
       scanReceivedOnBot = true
     })
 
     const starting = bot.start()
-    // Wait a tick for init() + prepare() to enter both starts concurrently
-    await new Promise(resolve => setTimeout(resolve, 10))
+    await Promise.all([ ioConnecting.promise, puppetStarting.promise ])
     assert.equal(ioConnectStarted, true, 'Io connect should start concurrently with Puppet onStart')
     assert.equal(scanReceivedOnBot, true, 'synchronous scan should be forwarded to bot immediately')
     assert.ok(
@@ -682,8 +693,10 @@ test('Wechaty starts Puppet and Io concurrently with capture armed before synchr
     puppetGate.resolve()
     await starting
     assert.equal(bot.isRunning, true)
-    await bot.stop()
   } finally {
+    ioGate.resolve()
+    puppetGate.resolve()
+    await bot.stop().catch(() => {})
     ;(Io.prototype as any).connect = origConnect
     ;(Io.prototype as any).onStop = origOnStop
   }

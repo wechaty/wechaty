@@ -55,6 +55,7 @@ import type {
 import {
   createLifecycle,
   LifecycleChildFailureError,
+  LifecycleSupersededError,
 } from 'scopelet'
 
 import {
@@ -450,7 +451,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     try {
       await this.#lifecycle.start(options)
     } catch (error) {
-      if (options?.signal?.aborted || (error as Error)?.name === 'LifecycleSupersededError') {
+      if (options?.signal?.aborted || error instanceof LifecycleSupersededError) {
         throw error
       }
       if (this.#lifecycle.state.kind === 'stopping') {
