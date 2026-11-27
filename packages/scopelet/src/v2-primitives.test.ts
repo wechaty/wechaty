@@ -36,6 +36,7 @@ import { MAX_TIMEOUT_MS, sleep } from './clock.ts'
 import { CANONICAL_LIFECYCLE, createLifecycle } from './create-lifecycle.ts'
 import {
   LifecycleOverrideError,
+  LifecycleSupersededError,
   LifecycleUnsafeStateError,
 } from './errors.ts'
 import { ManualClock } from './contract/harness.ts'
@@ -160,21 +161,22 @@ test('ADR-02: Self-sovereign condition handles support set(), clear(), when(), a
   const readyCondition = lifecycle.condition('ready')
   assert.equal(readyCondition.name, 'ready')
   assert.equal(readyCondition.isSet, false)
+  await readyCondition.whenClear()
 
   // Cannot set or clear while stopped
   assert.throws(() => readyCondition.set(), LifecycleUnsafeStateError)
   assert.throws(() => readyCondition.clear(), LifecycleUnsafeStateError)
 
-  // Invalid timeout ms throws RangeError
-  assert.throws(() => readyCondition.when(NaN), RangeError)
-  assert.throws(() => readyCondition.whenClear(NaN), RangeError)
-  assert.throws(() => readyCondition.when(-5), RangeError)
-  assert.throws(() => readyCondition.whenClear(-5), RangeError)
+  await assert.rejects(readyCondition.when(NaN), RangeError)
+  await assert.rejects(readyCondition.whenClear(NaN), RangeError)
+  await assert.rejects(readyCondition.when(-5), RangeError)
+  await assert.rejects(readyCondition.whenClear(-5), RangeError)
 
   await lifecycle.start()
 
-  // Canonical identity
-  assert.equal(innerScope.condition('ready'), readyCondition)
+  const scopedReady = innerScope.condition('ready')
+  assert.equal(innerScope.condition('ready'), scopedReady)
+  assert.notEqual(scopedReady, readyCondition)
 
   // when() resolves when set
   let whenResolved = false
@@ -213,7 +215,7 @@ test('ADR-02: Self-sovereign condition handles support set(), clear(), when(), a
   readyCondition.clear()
   await readyCondition.whenClear()
 
-  // waitClear with pre-aborted signal
+  // wait with a pre-aborted signal
   const preAc = new AbortController()
   preAc.abort(new Error('pre-aborted'))
   await assert.rejects(() => readyCondition.wait({ signal: preAc.signal }), /pre-aborted/)
@@ -234,6 +236,112 @@ test('ADR-02: Self-sovereign condition handles support set(), clear(), when(), a
   // Cannot set or clear on sealed scope
   assert.throws(() => readyCondition.set(), LifecycleUnsafeStateError)
   assert.throws(() => readyCondition.clear(), LifecycleUnsafeStateError)
+})
+
+test('scope condition handles retire with their generation and leave its replacement untouched', async () => {
+  const clock = new ManualClock()
+  let scope!: LifecycleScope
+  const lifecycle = createLifecycle({ onStart: current => { scope = current } }, { clock })
+  const ready = lifecycle.condition('ready')
+  await lifecycle.start()
+  const first = scope.condition('ready')
+  scope.set(first)
+  assert.equal(ready.isSet, true)
+
+  const clear = assert.rejects(first.whenClear(100), LifecycleSupersededError)
+  await lifecycle.restart()
+  await clear
+  assert.equal(clock.pending, 0)
+  const second = scope.condition('ready')
+  assert.notEqual(first, second)
+
+  first.set()
+  scope.set(first)
+  assert.equal(second.isSet, false)
+  second.set()
+  assert.equal(first.isSet, false)
+  first.clear()
+  scope.clear(first)
+  assert.equal(ready.isSet, true)
+
+  await assert.rejects(first.wait(), LifecycleSupersededError)
+  await assert.rejects(first.when(), LifecycleSupersededError)
+  await assert.rejects(first.whenClear(), LifecycleSupersededError)
+  const reason = new Error('caller aborted')
+  await assert.rejects(first.wait({ signal: AbortSignal.abort(reason) }), error => error === reason)
+  await lifecycle.stop()
+})
+
+test('a task starting a scope condition wait during retirement can finish before restart', async () => {
+  const lifecycle = createLifecycle({
+    onStart: scope => {
+      if (scope.generation !== 1) return
+      const ready = scope.condition('ready')
+      scope.spawn(async signal => {
+        await new Promise<void>(resolve => signal.addEventListener('abort', () => resolve(), { once: true }))
+        await assert.rejects(ready.when(), LifecycleSupersededError)
+      })
+    },
+  })
+  await lifecycle.start()
+  await lifecycle.restart()
+  assert.equal(lifecycle.state.generation, 2)
+  await lifecycle.stop()
+})
+
+test('set and clear deadlines are judged at settlement even if the timer has not fired', async () => {
+  const clock = new ManualClock()
+  const lifecycle = createLifecycle({ onStart: () => {} }, { clock })
+  const ready = lifecycle.condition('ready')
+  await lifecycle.start()
+
+  const set = assert.rejects(ready.when(10), { name: 'TimeoutError' })
+  clock.jump(10)
+  ready.set()
+  await set
+  assert.equal(clock.pending, 0)
+
+  const clear = assert.rejects(ready.whenClear(10), { name: 'TimeoutError' })
+  clock.jump(11)
+  ready.clear()
+  await clear
+  assert.equal(clock.pending, 0)
+
+  const onTime = ready.when(10)
+  clock.jump(9)
+  ready.set()
+  clock.jump(10)
+  await onTime
+  assert.equal(clock.pending, 0)
+
+  const retiredAfterDeadline = assert.rejects(ready.whenClear(5), { name: 'TimeoutError' })
+  clock.jump(5)
+  await lifecycle.stop()
+  await retiredAfterDeadline
+  assert.equal(clock.pending, 0)
+})
+
+test('a condition deadline rearms a timer delivered early by rounding', async () => {
+  let now = 0
+  let fire!: () => void
+  let delay = 0
+  const lifecycle = createLifecycle({ onStart: () => {} }, {
+    clock: {
+      now: () => now,
+      setTimeout: (callback, ms) => {
+        fire = callback
+        delay = ms
+      },
+      clearTimeout: () => {},
+    },
+  })
+  const timed = assert.rejects(lifecycle.condition('ready').when(10), { name: 'TimeoutError' })
+  now = 9.7
+  fire()
+  assert.equal(delay, 1)
+  now = 10
+  fire()
+  await timed
 })
 
 test('ADR-03: scope.acquireService() auto-rolls back partial allocation when start() throws', async () => {
@@ -293,15 +401,22 @@ test('ADR-03: scope.acquireService() allocates cleanly on success and unwinds on
 })
 
 test('ADR-03: scope.acquireService() unblocks starting during retirement interrupt (Padlocal pattern)', async () => {
+  let stopCalls = 0
+  let stopped = false
+  let allocated = false
   const { promise: stopCalled, resolve: notifyStop } = Promise.withResolvers<void>()
   const lifecycle = createLifecycle({
     onStart: async scope => {
       await scope.acquireService({
         start: async () => {
           await stopCalled
+          // The two-hook contract fences any work that resumes after stop.
+          if (!stopped) allocated = true
           return { ready: true }
         },
         stop: async () => {
+          stopCalls++
+          stopped = true
           notifyStop()
         },
       })
@@ -313,17 +428,23 @@ test('ADR-03: scope.acquireService() unblocks starting during retirement interru
   await lifecycle.stop()
   await assert.rejects(startPromise)
   assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(stopCalls, 1)
+  assert.equal(allocated, false)
 })
 
 test('ADR-03: scope.acquireService() preserves retryable cleanup debt when rollback stop() fails', async () => {
+  let stopCalls = 0
+  let abortCalls = 0
+  const cleanupError = new Error('stop exploded')
   const lifecycle = createLifecycle({
     onStart: async scope => {
       await scope.acquireService({
         start: async () => {
           throw new Error('start exploded')
         },
-        stop: async () => {
-          throw new Error('stop exploded')
+        abort: () => { abortCalls++ },
+        stop: () => {
+          if (++stopCalls === 1) throw cleanupError
         },
       })
     },
@@ -332,8 +453,122 @@ test('ADR-03: scope.acquireService() preserves retryable cleanup debt when rollb
   await assert.rejects(() => lifecycle.start(), /start exploded/)
   await lifecycle.whenState(s => s.kind === 'failed')
   assert.equal(lifecycle.state.kind, 'failed')
-  assert.equal((lifecycle.state as any).cleanupComplete, false)
-  await assert.rejects(() => lifecycle.stop(), /stop exploded/)
+  if (lifecycle.state.kind === 'failed') {
+    assert.equal(lifecycle.state.cleanupComplete, false)
+    assert.equal(lifecycle.state.cleanupError, cleanupError)
+  }
+  assert.equal(abortCalls, 0)
+  assert.equal(stopCalls, 1)
+  await lifecycle.stop()
+  assert.equal(stopCalls, 2)
+  assert.equal(lifecycle.isStopped, true)
+})
+
+test('acquireService joins pending startup after abort before disposal and retries a failed stop', async () => {
+  let scope!: LifecycleScope
+  const lifecycle = createLifecycle({ onStart: current => { scope = current } })
+  await lifecycle.start()
+
+  const startup = Promise.withResolvers<void>()
+  const aborting = Promise.withResolvers<void>()
+  const cleanupError = new Error('first stop failed')
+  const events: string[] = []
+  let stopCalls = 0
+  let allocated = false
+  const acquired = assert.rejects(scope.acquireService({
+    async start () {
+      await startup.promise
+      events.push('allocate')
+      allocated = true
+    },
+    abort () {
+      events.push('abort')
+      aborting.resolve()
+    },
+    stop () {
+      events.push('stop')
+      if (++stopCalls === 1) throw cleanupError
+      allocated = false
+    },
+  }), LifecycleSupersededError)
+
+  const firstStop = assert.rejects(lifecycle.stop(), error => error === cleanupError)
+  const concurrentStop = assert.rejects(lifecycle.stop(), error => error === cleanupError)
+  await aborting.promise
+  await flushTurns()
+  assert.deepEqual(events, ['abort'])
+
+  startup.resolve()
+  await Promise.all([acquired, firstStop, concurrentStop])
+  assert.deepEqual(events, ['abort', 'allocate', 'stop'])
+  assert.equal(lifecycle.state.kind, 'failed')
+  assert.equal(allocated, true)
+
+  await lifecycle.stop()
+  assert.equal(lifecycle.state.kind, 'stopped')
+  assert.equal(allocated, false)
+  assert.equal(stopCalls, 2)
+})
+
+test('acquireService calls abort once when cancellation rejects startup', async () => {
+  const entered = Promise.withResolvers<void>()
+  const startup = Promise.withResolvers<void>()
+  const startupError = new Error('cancelled provider startup')
+  let abortCalls = 0
+  let stopCalls = 0
+  const lifecycle = createLifecycle({
+    async onStart (scope) {
+      await scope.acquireService({
+        start () {
+          entered.resolve()
+          return startup.promise
+        },
+        abort () {
+          abortCalls++
+          startup.reject(startupError)
+          return Promise.resolve()
+        },
+        stop () { stopCalls++ },
+      })
+    },
+  })
+
+  const started = assert.rejects(lifecycle.start(), LifecycleSupersededError)
+  await entered.promise
+  await lifecycle.stop()
+  await started
+  assert.equal(abortCalls, 1)
+  assert.equal(stopCalls, 1)
+})
+
+test('a two-hook service reports its early stop failure once and retries it on the next stop', async () => {
+  const entered = Promise.withResolvers<void>()
+  const startup = Promise.withResolvers<void>()
+  const cleanupError = new Error('early stop failed')
+  let stopCalls = 0
+  const lifecycle = createLifecycle({
+    async onStart (scope) {
+      await scope.acquireService({
+        start () {
+          entered.resolve()
+          return startup.promise
+        },
+        stop () {
+          startup.resolve()
+          if (++stopCalls === 1) throw cleanupError
+        },
+      })
+    },
+  })
+
+  const started = assert.rejects(lifecycle.start(), LifecycleSupersededError)
+  await entered.promise
+  await assert.rejects(lifecycle.stop(), error => error === cleanupError)
+  await started
+  assert.equal(stopCalls, 1)
+  await lifecycle.stop()
+  assert.equal(stopCalls, 2)
+  assert.equal(lifecycle.isStopped, true)
 })
 
 test('ADR-04: scope.sleep() resolves and aborts gracefully with signal', async () => {
@@ -507,7 +742,7 @@ test('Companions: destructuring safety and options forwarding', async () => {
     onStart: scope => {
       const { listen, operation, watchdog } = scope
       listen(mockTarget, 'custom', () => {}, { capture: true })
-      assert.deepEqual(addOptions, { capture: true })
+      assert.equal(addOptions.capture, true)
 
       operation(async () => 'op-ok')
 
@@ -525,7 +760,23 @@ test('Companions: destructuring safety and options forwarding', async () => {
 
   await lifecycle.start()
   await lifecycle.stop()
-  assert.deepEqual(removeOptions, { capture: true })
+  assert.equal(removeOptions.capture, true)
+})
+
+test('scope.listen removes the actual capture registration after options mutate', async () => {
+  const target = new EventTarget()
+  const options = { capture: true }
+  let calls = 0
+  const lifecycle = createLifecycle({
+    onStart: scope => scope.listen(target, 'event', () => { calls++ }, options),
+  })
+  await lifecycle.start()
+  target.dispatchEvent(new Event('event'))
+  assert.equal(calls, 1)
+  options.capture = false
+  await lifecycle.stop()
+  target.dispatchEvent(new Event('event'))
+  assert.equal(calls, 1)
 })
 
 test('AsyncLifecycle & example classes coverage: getters, awaiters, prototype methods', async () => {

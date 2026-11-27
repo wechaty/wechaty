@@ -82,8 +82,8 @@ interface ScopeHost {
   lateRelease (generation: Generation, start: () => Promise<void>): void
   /** Set or clear a condition; throws `TypeError` for a foreign condition. */
   setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void
-  /** Look up or declare a condition on the engine. */
-  condition (name: string): LifecycleConditionHandle
+  /** Bind a named condition to this generation. */
+  condition (generation: Generation, name: string): LifecycleConditionHandle
   /** The clock used for deadlines and timers. */
   readonly clock: LifecycleClock
 }
@@ -256,6 +256,7 @@ function disposerOf (resource: AsyncDisposable | Disposable): Release {
  */
 function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
   const signal = generation.controller.signal
+  const conditions = new Map<string, LifecycleConditionHandle>()
 
   /**
    * A registration that arrives after sealing: release it now, keep it owned
@@ -458,7 +459,12 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
     },
 
     condition (name: string): LifecycleConditionHandle {
-      return host.condition(name)
+      let condition = conditions.get(name)
+      if (!condition) {
+        condition = host.condition(generation, name)
+        conditions.set(name, condition)
+      }
+      return condition
     },
 
     acquireService<T> (service: {
@@ -469,68 +475,68 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
       if (generation.sealed) {
         return Promise.reject(generation.sealReason)
       }
-      let starting!: Promise<T>
       let startSettled = false
-      let interrupting: Promise<unknown> | undefined
-      const interrupted = (result: unknown) => {
-        if (isPromiseLike(result)) {
-          interrupting = generation.ledger.addJoin(result)
-        }
-      }
+      let cleanup: Promise<void> | undefined
 
-      let cleanupPromise: Promise<void> | undefined
-      const runCleanup = async () => {
-        if (!cleanupPromise) {
-          cleanupPromise = (async () => {
-            if (interrupting) {
-              await interrupting.catch(() => {})
-            }
-            await service.stop()
-          })()
+      // Publish the shared promise before calling user code. Rollback and the
+      // interrupt can begin cleanup early, but only the release reports a
+      // failed attempt and clears it for the next ledger pass.
+      const stopService = () => {
+        if (!cleanup) {
+          const { promise, resolve, reject } = Promise.withResolvers<void>()
+          cleanup = promise
+          void (async () => { await service.stop() })().then(resolve, reject)
         }
-        await cleanupPromise
+        return cleanup
       }
-
-      const releaseEntry = async () => {
-        const cleanup = runCleanup()
+      const release = async () => {
+        await starting.catch(() => {})
         try {
-          await starting
-        } catch {}
-        await cleanup
+          await stopService()
+        } catch (error) {
+          cleanup = undefined
+          throw error
+        }
       }
 
       generation.ledger.add({
-        release: releaseEntry,
+        release,
         interrupt: () => {
+          if (startSettled) {
+            return
+          }
           if (service.abort) {
-            interrupted(service.abort())
-          } else if (!startSettled) {
-            interrupted(runCleanup())
+            const result = service.abort()
+            if (isPromiseLike(result)) {
+              generation.ledger.addJoin(result)
+            }
+          } else {
+            // A two-hook service uses stop to unblock startup. Join the
+            // attempt here, leaving its error and any retry to the release.
+            generation.ledger.addJoin(stopService().catch(() => {}))
           }
         },
       })
 
-      starting = (async () => service.start(signal))()
-      starting.catch(async () => {
-        startSettled = true
-        if (service.abort) {
-          try {
-            interrupted(service.abort())
-          } catch {}
-        }
-        try {
-          await runCleanup()
-          generation.ledger.discard(releaseEntry)
-        } catch {}
-      })
-
-      return starting.then(resource => {
-        startSettled = true
-        if (generation.sealed) {
-          throw generation.sealReason
-        }
-        return resource
-      })
+      const starting = (async () => service.start(signal))()
+      return starting.then(
+        resource => {
+          startSettled = true
+          if (generation.sealed) {
+            throw generation.sealReason
+          }
+          return resource
+        },
+        error => {
+          startSettled = true
+          if (!generation.sealed) {
+            // A caller may handle startup failure and keep the generation
+            // running. Roll back now and retain a failed attempt for retirement.
+            void stopService().then(() => generation.ledger.discard(release), () => {})
+          }
+          throw error
+        },
+      )
     },
 
     sleep (ms: number): Promise<void> {

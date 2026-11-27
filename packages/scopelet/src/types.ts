@@ -206,8 +206,8 @@ interface Lifecycle extends AsyncDisposable {
  * A generation-bound named condition such as `ready` or `login`: the module's
  * generic replacement for `ready()` (C-COND-01 to C-COND-06).
  *
- * Declared once per instance with `condition(name)`; set and cleared only
- * through the scope of a live generation. A result never crosses generations.
+ * A controller declaration is shared by name. A scope-issued handle stays
+ * bound to its issuing generation. A result never crosses generations.
  */
 interface LifecycleCondition {
 
@@ -223,9 +223,9 @@ interface LifecycleCondition {
   /**
    * Wait for the bound generation to set this condition (C-COND-02 to C-COND-04).
    *
-   * Binds to the generation that is `starting` or `running` and not retiring;
-   * otherwise to the next generation to start, so `const p = ready.wait(); await
-   * start()` works. Resolves at once if the bound generation has it set. Rejects
+   * A controller handle binds to the live or next generation, so
+   * `const p = ready.wait(); await start()` works. A scope handle binds to its
+   * issuing generation. Resolves at once if the bound generation has it set. Rejects
    * with `LifecycleSupersededError` when that generation retires first (its
    * failure, if any, is the `cause`) or when `stop()` is accepted before the
    * wait is bound, and with the caller's abort reason.
@@ -238,13 +238,20 @@ interface LifecycleCondition {
  * A self-sovereign handle for setting, clearing, and awaiting a condition (ADR-02).
  */
 interface LifecycleConditionHandle extends LifecycleCondition {
-  /** Mark this condition set for the active generation. */
+  /** Set the bound condition. A controller requires a live generation. A retired scope ignores the call. */
   set (): void
-  /** Mark this condition cleared for the active generation. */
+  /** Clear the bound condition. A controller requires a live generation. A retired scope ignores the call. */
   clear (): void
-  /** Wait until the condition is set, with an optional deadline in milliseconds. */
+  /**
+   * Same binding as `wait()`, with an optional deadline on the lifecycle clock.
+   * Rejects with `TimeoutError` on expiry or `RangeError` for an invalid duration.
+   */
   when (timeoutMs?: number): Promise<void>
-  /** Wait until the condition is cleared, with an optional deadline in milliseconds. */
+  /**
+   * Wait until the bound generation's condition is clear. A controller with no
+   * live generation resolves immediately. A bound wait rejects on retirement,
+   * even if retirement itself removes the flag. Deadlines follow `when()`.
+   */
   whenClear (timeoutMs?: number): Promise<void>
 }
 
@@ -376,16 +383,27 @@ interface LifecycleScope {
   clear (condition: LifecycleCondition): void
 
   /**
-   * Look up or declare a condition on this scope's lifecycle, returning
-   * a self-sovereign handle with .set(), .clear(), .when(), and .isSet (ADR-02).
+   * Get the named condition bound to this generation (ADR-02). The same name
+   * returns the same handle within this scope. When the scope retires, reads
+   * are clear, updates do nothing, and waits reject with LifecycleSupersededError.
    */
   condition (name: string): LifecycleConditionHandle
 
   /**
    * Acquire a paired start/stop service (ADR-03).
    *
-   * Registers the stop/abort cleanup in the ledger before starting the service.
-   * If `service.start` throws, cleanup runs immediately to unwind partial allocations.
+   * Registers `stop()` before starting the service. Startup failure rolls back
+   * partial allocation, and a failed `stop()` remains owned for retry.
+   *
+   * On retirement during startup, `abort()` requests cancellation once, then
+   * retirement joins startup and the abort hook before calling `stop()`.
+   * With only two hooks, `stop()` runs early to unblock startup. Its successful
+   * completion must prevent any further allocation by that startup, even if
+   * the startup promise settles later. Supply `abort()` when final disposal
+   * requires startup to have settled.
+   *
+   * A startup that completes during retirement rejects with the scope's
+   * retirement reason. Retirement still owns its cleanup.
    */
   acquireService<T> (service: {
     readonly start: (signal: AbortSignal) => T | PromiseLike<T>
