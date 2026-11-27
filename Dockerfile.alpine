@@ -44,6 +44,7 @@ RUN  sed -i '/chromedriver/d' package.json \
 COPY . .
 RUN  sed -i '/chromedriver/d' package.json \
   && npm run dist \
+  && for pkg in packages/*/package.json; do node scripts/pack-exports.ts prepare "$pkg"; done \
   && npm --silent --progress=false link \
   \
   && mkdir /bot \

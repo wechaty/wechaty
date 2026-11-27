@@ -8,7 +8,7 @@
       "types": "./src/mods/mod.ts",
       "browser": "./src/mods/browser.ts",
       "node": "./src/mods/mod.ts",
-      "default": "./src/mods/mod.ts"
+      "default": "./src/mods/browser.ts"
     },
     "./browser": {
       "types": "./src/mods/browser.ts",

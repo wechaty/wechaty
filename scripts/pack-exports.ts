@@ -12,18 +12,22 @@
  * consumers require standard compiled JavaScript (`dist/esm/.../*.js`) and declarations
  * (`dist/esm/.../*.d.ts`).
  *
- * This script runs during `prepack` (transforming package.json exports to point to `dist/esm/`)
- * and `postpack` (restoring the source-first package.json from a backup), ensuring that tarballs
- * publish compiled outputs while the local working tree remains source-first.
+ * This script runs during `prepack` (transforming package.json exports, imports, types, and
+ * typesVersions to point to `dist/esm/`) and `postpack` (restoring the source-first package.json
+ * from a scoped backup), ensuring that tarballs publish compiled outputs while the local
+ * working tree remains source-first.
  *
  * Architectural boundaries:
  * Owned by workspace build tooling. Invoked automatically by npm during `npm pack` or `npm publish`,
- * and callable from release scripts (`scripts/pack-release.sh`, `scripts/pack-browser-test.sh`).
+ * during Docker container builds, and callable from release scripts (`scripts/pack-release.sh`,
+ * `scripts/pack-browser-test.sh`).
  */
 
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 /**
  * Transforms a source TypeScript path to its compiled JavaScript or declaration counterpart.
@@ -46,6 +50,10 @@ export function rewriteSourcePath (sourcePath: string, isTypes: boolean): string
 
 /**
  * Transforms an exports target (string, array, or condition map) from source to dist.
+ *
+ * @param target - Export target string, array, or nested condition map
+ * @param isTypesContext - Whether the current resolution context represents type declarations
+ * @returns Transformed target with source paths mapped to dist/esm/
  */
 export function transformExportTarget (target: unknown, isTypesContext = false): unknown {
   if (typeof target === 'string') {
@@ -70,6 +78,12 @@ export function transformExportTarget (target: unknown, isTypesContext = false):
 
 /**
  * Transforms a package.json manifest object from source-first to dist-ready.
+ *
+ * Rewrites `types`, `exports`, `imports`, and `typesVersions` to point to compiled
+ * JavaScript and declaration artifacts under `./dist/esm/`.
+ *
+ * @param manifest - The raw package.json manifest object
+ * @returns A dist-ready copy of the manifest
  */
 export function transformManifestForPack (manifest: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = { ...manifest }
@@ -98,26 +112,78 @@ export function transformManifestForPack (manifest: Record<string, unknown>): Re
     result['imports'] = transformedImports
   }
 
+  if (result['typesVersions'] && typeof result['typesVersions'] === 'object') {
+    const tvMap = result['typesVersions'] as Record<string, unknown>
+    const transformedTv: Record<string, unknown> = {}
+
+    for (const [ selector, subpaths ] of Object.entries(tvMap)) {
+      if (subpaths && typeof subpaths === 'object' && !Array.isArray(subpaths)) {
+        const transformedSubpaths: Record<string, unknown> = {}
+        for (const [ key, paths ] of Object.entries(subpaths as Record<string, unknown>)) {
+          if (Array.isArray(paths)) {
+            transformedSubpaths[key] = paths.map(p =>
+              typeof p === 'string' ? rewriteSourcePath(p, true) : p,
+            )
+          } else if (typeof paths === 'string') {
+            transformedSubpaths[key] = rewriteSourcePath(paths, true)
+          } else {
+            transformedSubpaths[key] = paths
+          }
+        }
+        transformedTv[selector] = transformedSubpaths
+      } else {
+        transformedTv[selector] = subpaths
+      }
+    }
+    result['typesVersions'] = transformedTv
+  }
+
   return result
 }
 
-function backupPathForPackage (pkgName: string): string {
-  const safeName = pkgName.replace(/[^a-zA-Z0-9_.-]/g, '_')
-  return join(tmpdir(), `wechaty-pack-${safeName}.backup.json`)
+/**
+ * Computes a unique temporary backup path scoped to the absolute location of the target manifest.
+ *
+ * Guarantees that concurrent packaging operations across different workspaces or checkouts
+ * never collide or overwrite each other's backup files.
+ *
+ * @param pkgPath - Relative or absolute path to package.json
+ * @returns An absolute file path in the OS temporary directory
+ */
+export function backupPathForManifest (pkgPath: string): string {
+  const absPath = resolve(pkgPath)
+  const hash = createHash('sha256').update(absPath).digest('hex').slice(0, 16)
+  return join(tmpdir(), `wechaty-pack-${hash}.backup.json`)
 }
 
 /**
- * Executes prepack preparation in the current working directory.
+ * Executes prepack preparation for a target package.json manifest.
+ *
+ * Backs up the source manifest to a uniquely scoped temporary file and rewrites
+ * the manifest in place with dist-ready mappings. Throws if a previous backup
+ * already exists to avoid overwriting an un-restored working tree manifest.
+ *
+ * @param pkgPath - Relative or absolute path to the target package.json (defaults to 'package.json')
  */
 export function preparePack (pkgPath = 'package.json'): void {
   if (!existsSync(pkgPath)) {
     throw new Error(`Cannot prepare pack: ${pkgPath} does not exist`)
   }
 
+  const backup = backupPathForManifest(pkgPath)
+  if (existsSync(backup)) {
+    throw new Error(
+      `Cannot prepare pack: backup file already exists at ${backup}. A previous pack preparation must be restored before running prepare again.`,
+    )
+  }
+
   const raw = readFileSync(pkgPath, 'utf8')
-  const manifest = JSON.parse(raw) as Record<string, unknown>
-  const name = String(manifest['name'] ?? 'unknown-package')
-  const backup = backupPathForPackage(name)
+  let manifest: Record<string, unknown>
+  try {
+    manifest = JSON.parse(raw) as Record<string, unknown>
+  } catch (err) {
+    throw new Error(`Cannot prepare pack: failed to parse ${pkgPath}: ${String(err)}`)
+  }
 
   writeFileSync(backup, raw, 'utf8')
 
@@ -126,35 +192,35 @@ export function preparePack (pkgPath = 'package.json'): void {
 }
 
 /**
- * Executes postpack restoration in the current working directory.
+ * Executes postpack restoration for a target package.json manifest.
+ *
+ * Restores the original manifest from the scoped temporary backup and removes the backup file.
+ * Derived directly from `pkgPath` without relying on parsing the potentially corrupted manifest.
+ *
+ * @param pkgPath - Relative or absolute path to the target package.json (defaults to 'package.json')
  */
 export function restorePack (pkgPath = 'package.json'): void {
-  if (!existsSync(pkgPath)) {
+  const backup = backupPathForManifest(pkgPath)
+  if (!existsSync(backup)) {
     return
   }
 
-  const raw = readFileSync(pkgPath, 'utf8')
-  let manifest: Record<string, unknown>
-  try {
-    manifest = JSON.parse(raw) as Record<string, unknown>
-  } catch {
-    return
-  }
-
-  const name = String(manifest['name'] ?? 'unknown-package')
-  const backup = backupPathForPackage(name)
-
-  if (existsSync(backup)) {
-    const original = readFileSync(backup, 'utf8')
-    writeFileSync(pkgPath, original, 'utf8')
-    unlinkSync(backup)
-  }
+  const original = readFileSync(backup, 'utf8')
+  writeFileSync(pkgPath, original, 'utf8')
+  unlinkSync(backup)
 }
 
-// CLI entry point
-const action = process.argv[2]
-if (action === 'prepare') {
-  preparePack()
-} else if (action === 'restore') {
-  restorePack()
+// CLI entry point with entry-point guard and usage reporting
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  const action = process.argv[2]
+  const target = process.argv[3] ?? 'package.json'
+
+  if (action === 'prepare') {
+    preparePack(target)
+  } else if (action === 'restore') {
+    restorePack(target)
+  } else {
+    console.error('Usage: node scripts/pack-exports.ts prepare [package.json] | restore [package.json]')
+    process.exit(1)
+  }
 }

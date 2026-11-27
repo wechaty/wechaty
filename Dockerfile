@@ -73,6 +73,7 @@ RUN cd packages/wechaty \
   && rm -f src/package-json.test.ts
 RUN  npm test \
   && npm run dist \
+  && for pkg in packages/*/package.json; do node scripts/pack-exports.ts prepare "$pkg"; done \
   && cd packages/wechaty \
   && npm link
 

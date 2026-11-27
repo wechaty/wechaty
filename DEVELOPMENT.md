@@ -29,9 +29,11 @@ This repository is an npm workspace monorepo ([#3053](https://github.com/wechaty
 - All workspace packages follow pure WinterTC "source-first" exports:
   `exports["."]` maps `types`, `browser`, `node`, and `default` directly to
   TypeScript sources in `src/`. Node.js 26+ and Deno execute these sources
-  natively with zero custom conditions or CLI flags (`--conditions=wechaty-source`
-  is eliminated). Packaging (`npm pack` / `scripts/pack-release.sh`) compiles to
-  `dist/` and rewrites export maps in tarballs for external consumers.
+  natively with zero custom conditions or CLI flags (the custom `--conditions=wechaty-source`
+  flag was historically used during early modularization and has now been completely retired
+  monorepo-wide). Packaging (`npm pack` / `scripts/pack-release.sh`) compiles to
+  `dist/` and rewrites export maps in tarballs for external consumers via
+  `scripts/pack-exports.ts`.
 - Dependencies install once at the root (`npm ci`). Run a package script from
   its folder, or from the root with `--workspace`, for example
   `npm run test:unit:file --workspace wechaty -- src/plugin.test.ts`.

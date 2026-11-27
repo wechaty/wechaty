@@ -8,13 +8,34 @@
 set -euo pipefail
 
 PACKAGE_DIR=$(pwd)
-TMPDIR="/tmp/npm-pack-testing.$$"
-mkdir "$TMPDIR"
+TMPDIR=$(mktemp -d "/tmp/npm-pack-testing.XXXXXX")
+
+RESTORE_LIST="$TMPDIR/restore.tsv"
+: > "$RESTORE_LIST"
+
+backup_file () {
+  local file=$1
+  if [ -f "$file" ]; then
+    local backup="$TMPDIR/$(echo "$file" | tr '/.' '__')"
+    cp "$file" "$backup"
+    printf "%s\t%s\n" "$file" "$backup" >> "$RESTORE_LIST"
+  fi
+}
+
+cleanup () {
+  while IFS=$'\t' read -r file backup; do
+    [ -f "$backup" ] && cp "$backup" "$file"
+  done < "$RESTORE_LIST"
+  rm -rf "$TMPDIR"
+}
+trap cleanup EXIT INT TERM
+
 # generate-package-json.sh rewrites src/package-json.ts; put back exactly what
 # was there, including uncommitted edits.
-cp src/package-json.ts "$TMPDIR/package-json.ts.orig"
-cp package.json "$TMPDIR/package.json.orig"
-trap 'cp "$TMPDIR/package-json.ts.orig" "$PACKAGE_DIR/src/package-json.ts"; cp "$TMPDIR/package.json.orig" "$PACKAGE_DIR/package.json"; rm -rf "$TMPDIR"' EXIT
+backup_file "$PACKAGE_DIR/src/package-json.ts"
+backup_file "$PACKAGE_DIR/package.json"
+
+backup_file "$PACKAGE_DIR/../wechaty-puppet/package.json"
 
 ./scripts/generate-package-json.sh
 npm run dist
