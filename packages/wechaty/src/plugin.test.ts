@@ -303,4 +303,58 @@ test('useScoped() restart, mid-run uninstall, batch throw, re-entrancy & retirin
   bot3.useScoped(() => () => { rolledBack = true })
   await assert.rejects(() => bot3.start(), /puppet start boom/)
   assert.equal(rolledBack, true, 'scoped plugin should roll back when start() fails')
+
+  // 7. Re-entrant self-uninstall during installScoped, re-entrant handle inside cleanup,
+  //    aborted stop/restart signal, and scope.recover() retiring window
+  const bot4 = WechatyBuilder.build({ puppet: new PuppetMock() })
+  let selfUninstallCleanupCount = 0
+  let unsubSelf: (() => void) | undefined
+  unsubSelf = bot4.useScoped(() => {
+    unsubSelf?.()
+    return () => { selfUninstallCleanupCount += 1 }
+  })
+
+  let reentrantCleanupRuns = 0
+  let unsubReentrant: (() => void) | undefined
+  unsubReentrant = bot4.useScoped(() => () => {
+    reentrantCleanupRuns += 1
+    unsubReentrant?.()
+  })
+
+  let capturedScope: import('scopelet').LifecycleScope | undefined
+  bot4.useScoped((_bot, scope) => {
+    capturedScope = scope
+  })
+
+  try {
+    await bot4.start()
+    assert.equal(selfUninstallCleanupCount, 1, 'self-uninstall during setup should run cleanup once')
+
+    unsubReentrant()
+    assert.equal(reentrantCleanupRuns, 1, 're-entrant uninstall inside cleanup should run once')
+
+    // Aborted stop/restart signal rejects without clearing active scope
+    const aborted = AbortSignal.abort(new Error('already aborted'))
+    await assert.rejects(() => bot4.stop({ signal: aborted }))
+    await assert.rejects(() => bot4.restart({ signal: aborted }))
+    let stillActiveInstalls = 0
+    bot4.useScoped(() => { stillActiveInstalls += 1 })
+    assert.equal(stillActiveInstalls, 1, 'aborted stop/restart should leave active scope usable')
+
+    // scope.recover() seals the generation synchronously before scope.signal.aborted
+    let recoverWindowInstalls = 0
+    let onRecoveredInstall!: () => void
+    const recoveredInstalled = new Promise<void>(resolve => { onRecoveredInstall = resolve })
+    capturedScope!.recover('test recover')
+    bot4.useScoped(() => {
+      recoverWindowInstalls += 1
+      onRecoveredInstall()
+    })
+    assert.equal(recoverWindowInstalls, 0, 'should not install onto scope.recover() retiring generation')
+    await recoveredInstalled
+    assert.equal(recoverWindowInstalls, 1, 'should install on recovered generation')
+    assert.equal(selfUninstallCleanupCount, 1, 'self-uninstalled plugin should not re-install on recover')
+  } finally {
+    await bot4.stop().catch(() => {})
+  }
 })

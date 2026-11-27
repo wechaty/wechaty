@@ -494,7 +494,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
 
   stop (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'stop()')
-    this.#pluginManager.clearActiveScope()
     return this.#lifecycle.stop(options)
   }
 
@@ -505,7 +504,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
    */
   restart (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'restart()')
-    this.#pluginManager.clearActiveScope()
     return this.#lifecycle.restart(options)
   }
 
