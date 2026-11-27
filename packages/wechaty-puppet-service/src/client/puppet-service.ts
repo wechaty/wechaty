@@ -210,7 +210,7 @@ class PuppetService extends PUPPET.Puppet {
               if (this.currentUserId === loginPayload.contactId) {
                 return
               }
-              await this.logout('re-login')
+              await super.logout('re-login')
             }
             await this.login(loginPayload.contactId)
           })().catch(e =>
