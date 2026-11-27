@@ -4,10 +4,10 @@ import { test } from 'node:test'
 import openGraph from 'open-graph'
 
 import type { Wechaty } from '../mods/mod.ts'
-import { wechatifyUserModule } from './mod.ts'
+import { bindUserModule } from './mod.ts'
 import { UrlLinkImpl } from './url-link.ts'
 
-const UrlLinkTest = wechatifyUserModule(UrlLinkImpl)({ puppet: {} } as Wechaty)
+const UrlLinkTest = bindUserModule(UrlLinkImpl)({ puppet: {} } as Wechaty)
 
 test('UrlLink.create() for wechaty.js.org', async t => {
   const URL = 'https://wechaty.js.org/2020/07/02/wechat-bot-in-ten-minutes'

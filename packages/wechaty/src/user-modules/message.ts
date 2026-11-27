@@ -67,13 +67,11 @@ import type {
 import type {
   Image,
 }                       from './image.ts'
-import {
-  type Post,
-  PostImpl,
+import type {
+  Post,
 }                       from './post.ts'
-import {
-  type Location,
-  LocationImpl,
+import type {
+  Location,
 }                       from './location.ts'
 
 import { validationMixin } from '../user-mixins/validation.ts'
@@ -1072,7 +1070,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
     const locationPayload = await this.wechaty.puppet.messageLocation(this.id)
 
-    return new LocationImpl(locationPayload)
+    return new this.wechaty.Location(locationPayload)
   }
 
   public async toPost (): Promise<Post> {
@@ -1086,7 +1084,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
       throw new Error('message type not a Post')
     }
 
-    const post = PostImpl.load(this.id)
+    const post = this.wechaty.Post.load(this.id)
     await post.ready()
     return post
   }

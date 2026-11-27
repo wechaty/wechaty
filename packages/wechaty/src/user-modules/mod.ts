@@ -114,7 +114,7 @@ import {
   type DelayConstructor,
 }                           from './delay.ts'
 
-import { wechatifyUserModule } from '../user-mixins/wechatify.ts'
+import { bindUserModule } from '../user-mixins/wechatify.ts'
 
 export type {
   Contact,
@@ -172,7 +172,7 @@ export type {
 }
 
 export {
-  wechatifyUserModule,
+  bindUserModule,
 
   ContactImpl,
   ContactSelfImpl,

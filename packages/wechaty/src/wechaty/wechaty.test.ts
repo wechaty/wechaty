@@ -744,6 +744,46 @@ test('Wechaty bot-bound Contact classes and pools are isolated', async () => {
   assert.notStrictEqual(bot1.Contact, bot2.Contact)
   assert.notStrictEqual(bot1.Room, bot2.Room)
   assert.notStrictEqual(bot1.Message, bot2.Message)
+
+  const c1 = (bot1.Contact as any).load('id-1')
+  const c2 = (bot2.Contact as any).load('id-1')
+  assert.notStrictEqual(c1, c2)
+  assert.equal(c1.wechaty, bot1)
+  assert.equal(c2.wechaty, bot2)
+  assert.ok(c1 instanceof bot1.Contact)
+  assert.ok(c1 instanceof bot2.Contact, 'canonical Contact preserves instanceof across bots')
+
+  const delay = bot1.Delay.create(1)
+  assert.equal(delay.wechaty, bot1)
+  await delay.wait()
+
+  // Bound Message.toLocation() and Message.toPost() route through bot1
+  const puppet1 = bot1.puppet as PuppetMock
+  const self = puppet1.mocker.createContact({ name: 'self' })
+  await bot1.start()
+  try {
+    await puppet1.mocker.login(self)
+    puppet1.messagePayload = async id => ({
+      id,
+      talkerId: self.id,
+      timestamp: Date.now(),
+      type: id === 'loc-msg' ? bot1.Message.Type.Location : bot1.Message.Type.Post,
+    } as any)
+    puppet1.messageLocation = async () => ({ accuracy: 1, address: 'addr', latitude: 0, longitude: 0, name: 'loc' })
+    puppet1.postPayload = async id => ({ id, counter: {}, sayableList: [], type: 1 } as any)
+
+    const locMsg = (bot1.Message as any).load('loc-msg')
+    await locMsg.ready()
+    const loc = await locMsg.toLocation()
+    assert.equal(loc.wechaty, bot1)
+
+    const postMsg = (bot1.Message as any).load('post-msg')
+    await postMsg.ready()
+    const post = await postMsg.toPost()
+    assert.equal(post.wechaty, bot1)
+  } finally {
+    await bot1.stop()
+  }
 })
 
 test('Wechaty readiness invalidates on Puppet reset and independent puppet.restart()', async () => {
