@@ -98,6 +98,7 @@ export type {
   LifecycleDiagnosticState,
   LifecycleFailurePhase,
   LifecycleHooks,
+  LifecycleOperationOptions,
   LifecycleOptions,
   LifecycleRecoverResult,
   LifecycleScope,
