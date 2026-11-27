@@ -810,11 +810,11 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
       await sendGate.promise
       return 'sent-msg-1'
     }
-    override async messagePayload (id: string): Promise<any> {
+    override async messageRawPayload (id: string): Promise<any> {
       return { id, talkerId: 'self-1', timestamp: Date.now(), type: 7 }
     }
     override async contactPayloadDirty (_id: string): Promise<void> {}
-    override async contactPayload (id: string): Promise<any> {
+    override async contactRawPayload (id: string): Promise<any> {
       return { id, name: 'Self', gender: 0, type: 1 }
     }
     override async friendshipAccept (_id: string): Promise<void> {
@@ -825,7 +825,7 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
       sendEntered.resolve()
       await sendGate.promise
     }
-    override async roomInvitationPayload (id: string): Promise<any> {
+    override async roomInvitationRawPayload (id: string): Promise<any> {
       return { id, inviterId: 'self-1', topic: 'Room', avatar: '', memberCount: 1, memberIdList: [], receiverId: 'self-1', timestamp: Date.now() }
     }
     override async postPublish (_payload: any): Promise<string> {
@@ -833,7 +833,7 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
       await sendGate.promise
       return 'published-post-1'
     }
-    override async postPayload (id: string): Promise<any> {
+    override async postRawPayload (id: string): Promise<any> {
       return { id, counter: {}, sayableList: [], type: 1 }
     }
   }
@@ -900,19 +900,16 @@ test('Entity domain methods drain multi-step puppet calls cleanly during bot.sto
   await stopP3
   assert.equal(publishedPost?.id, 'published-post-1')
 
-  // 4. Detached continuation scheduled inside an admitted operation inherits ALS store
-  //    but expires once the owning operation finishes
+  // 4. Admitted signal expires once the owning operation finishes
   const bot4 = new Wechaty({ puppet: new PuppetMock() })
   await bot4.start()
   const p4 = bot4.puppet
-  const gate4 = Promise.withResolvers<void>()
-  let detachedPromise!: Promise<unknown>
-  await p4.operation(async () => {
-    detachedPromise = gate4.promise.then(() => p4.operation(async () => 'should not run'))
+  let capturedSignal!: AbortSignal
+  await p4.operation(async signal => {
+    capturedSignal = signal
   })
   await bot4.stop()
-  gate4.resolve()
-  await assert.rejects(() => detachedPromise, err => err instanceof LifecycleUnsafeStateError)
+  await assert.rejects(() => p4.operation(async () => 'should not run', capturedSignal), err => err instanceof LifecycleUnsafeStateError)
 })
 
 test('Wechaty readiness invalidates on Puppet reset and independent puppet.restart()', async () => {

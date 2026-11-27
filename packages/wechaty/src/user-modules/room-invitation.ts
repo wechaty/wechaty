@@ -110,12 +110,12 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
   async accept (): Promise<void> {
     log.verbose('RoomInvitation', 'accept()')
 
-    return this.wechaty.puppet.operation(async () => {
+    return this.wechaty.puppet.operation(async signal => {
       try {
         await this.wechaty.puppet.roomInvitationAccept(this.id)
 
-        const inviter = await this.inviter()
-        const topic   = await this.topic()
+        const inviter = await this.inviter(signal)
+        const topic   = await this.topic(signal)
 
         log.verbose('RoomInvitation', 'accept() with room(%s) & inviter(%s) ready()',
           topic,
@@ -143,11 +143,11 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    * }
    * .start()
    */
-  async inviter (): Promise<Contact> {
+  async inviter (admittedSignal?: AbortSignal): Promise<Contact> {
     log.verbose('RoomInvitation', 'inviter()')
 
-    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
-    const inviter = await this.wechaty.Contact.find({ id: payload.inviterId })
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id, undefined, admittedSignal)
+    const inviter = await (this.wechaty.Contact as any).find({ id: payload.inviterId }, admittedSignal)
 
     if (!inviter) {
       throw new Error('can not found inviter with id: ' + payload.inviterId)
@@ -167,8 +167,8 @@ class RoomInvitationMixin extends wechatifyMixinBase() implements Accepter {
    * }
    * .start()
    */
-  async topic (): Promise<string> {
-    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id)
+  async topic (admittedSignal?: AbortSignal): Promise<string> {
+    const payload = await this.wechaty.puppet.roomInvitationPayload(this.id, undefined, admittedSignal)
 
     return payload.topic || payload.topic || ''
   }

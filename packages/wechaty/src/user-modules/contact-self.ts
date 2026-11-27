@@ -171,7 +171,7 @@ class ContactSelfMixin extends MixinBase {
       throw new Error('only can set name for user self')
     }
 
-    return this.wechaty.puppet.contactSelfName(name).then(this.sync.bind(this))
+    return this.wechaty.puppet.contactSelfName(name).then(() => this.sync())
   }
 
   /**
@@ -196,7 +196,7 @@ class ContactSelfMixin extends MixinBase {
       throw new Error('only can change signature for user self')
     }
 
-    return this.wechaty.puppet.contactSelfSignature(signature).then(this.sync.bind(this))
+    return this.wechaty.puppet.contactSelfSignature(signature).then(() => this.sync())
   }
 
 }

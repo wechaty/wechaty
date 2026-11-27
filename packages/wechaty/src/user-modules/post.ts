@@ -156,6 +156,7 @@ class PostMixin extends wechatifyMixinBase() {
 
   static async find (
     filter: PUPPET.filters.Post,
+    admittedSignal?: AbortSignal,
   ): Promise<undefined | Post> {
     log.verbose('Post', 'find(%s)',
       JSON.stringify(filter),
@@ -163,7 +164,7 @@ class PostMixin extends wechatifyMixinBase() {
 
     if (filter.id) {
       const post = this.wechaty.Post.load(filter.id)
-      await post.ready()
+      await (post as PostImpl).ready(admittedSignal)
       return post
     }
 
@@ -298,21 +299,21 @@ class PostMixin extends wechatifyMixinBase() {
    * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
    *   in-flight calls drain before `stop()` completes.
    */
-  async sync (): Promise<void> {
+  async sync (admittedSignal?: AbortSignal): Promise<void> {
     log.silly('Post', 'sync()')
-    return this.wechaty.puppet.operation(() => this.#sync())
+    return this.wechaty.puppet.operation(signal => this.#sync(signal), admittedSignal)
   }
 
   /** Fetch and store the post payload without opening a new `operation()` fence. */
-  async #sync (): Promise<void> {
+  async #sync (admittedSignal?: AbortSignal): Promise<void> {
     if (!this.id) {
       throw new Error('no post id found')
     }
 
-    this._payload = await this.wechaty.puppet.postPayload(this.id)
+    this._payload = await this.wechaty.puppet.postPayload(this.id, admittedSignal)
   }
 
-  async ready (): Promise<void> {
+  async ready (admittedSignal?: AbortSignal): Promise<void> {
     log.silly('Post', 'ready()')
 
     if (!this.id) {
@@ -323,7 +324,7 @@ class PostMixin extends wechatifyMixinBase() {
       return
     }
 
-    await this.#sync()
+    await this.#sync(admittedSignal)
   }
 
   async * [Symbol.asyncIterator] (): AsyncIterableIterator<Sayable> {

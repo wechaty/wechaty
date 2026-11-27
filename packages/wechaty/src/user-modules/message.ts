@@ -106,6 +106,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   static async find (
     query : string | PUPPET.filters.Message,
+    admittedSignal?: AbortSignal,
   ): Promise<undefined | Message> {
     log.verbose('Message', 'find(%s)', JSON.stringify(query))
 
@@ -113,7 +114,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
       query = { text: query }
     }
 
-    const messageList = await this.findAll(query)
+    const messageList = await this.findAll(query, admittedSignal)
     if (messageList.length < 1) {
       return undefined
     }
@@ -130,6 +131,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    */
   static async findAll (
     query? : PUPPET.filters.Message,
+    admittedSignal?: AbortSignal,
   ): Promise<Message[]> {
     log.verbose('Message', 'findAll(%s)', JSON.stringify(query) || '')
 
@@ -138,11 +140,11 @@ class MessageMixin extends MixinBase implements SayableSayer {
     const invalidDict: { [id: string]: true } = {}
 
     try {
-      const MessageIdList = await this.wechaty.puppet.messageSearch(query)
+      const MessageIdList = await this.wechaty.puppet.messageSearch(query, admittedSignal)
       const messageList = MessageIdList.map(id => this.load(id))
       await Promise.all(
         messageList.map(
-          message => message.ready()
+          message => (message as MessageImpl).ready(admittedSignal)
             .catch(e => {
               log.warn('Room', 'findAll() message.ready() rejection: %s', e)
               invalidDict[message.id] = true
@@ -804,14 +806,14 @@ class MessageMixin extends MixinBase implements SayableSayer {
   /**
    * @ignore
    */
-  async ready (): Promise<void> {
+  async ready (admittedSignal?: AbortSignal): Promise<void> {
     log.verbose('Message', 'ready()')
 
     if (this.isReady()) {
       return
     }
 
-    this.payload = await this.wechaty.puppet.messagePayload(this.id)
+    this.payload = await this.wechaty.puppet.messagePayload(this.id, admittedSignal)
 
     let talkerId = this.payload.talkerId
     if (!talkerId) {
@@ -847,10 +849,10 @@ class MessageMixin extends MixinBase implements SayableSayer {
       await this.wechaty.Room.find({ id: roomId })
     }
     if (talkerId) {
-      await this.wechaty.Contact.find({ id: talkerId })
+      await (this.wechaty.Contact as any).find({ id: talkerId }, admittedSignal)
     }
     if (listenerId) {
-      await this.wechaty.Contact.find({ id: listenerId })
+      await (this.wechaty.Contact as any).find({ id: listenerId }, admittedSignal)
     }
   }
 

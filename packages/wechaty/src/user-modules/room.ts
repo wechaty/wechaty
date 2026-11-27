@@ -298,12 +298,12 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @example
    * await room.sync()
    */
-  async sync (): Promise<void> {
-    return this.wechaty.puppet.operation(async () => {
+  async sync (admittedSignal?: AbortSignal): Promise<void> {
+    return this.wechaty.puppet.operation(async signal => {
       await this.wechaty.puppet.roomPayloadDirty(this.id)
       await this.wechaty.puppet.roomMemberPayloadDirty(this.id)
-      await this.ready(true)
-    })
+      await this.ready(true, signal)
+    }, admittedSignal)
   }
 
   /**
@@ -316,6 +316,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    */
   async ready (
     forceSync = false,
+    admittedSignal?: AbortSignal,
   ): Promise<void> {
     log.silly('Room', 'ready()')
 
@@ -323,7 +324,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       return
     }
 
-    this.payload = await this.wechaty.puppet.roomPayload(this.id)
+    this.payload = await this.wechaty.puppet.roomPayload(this.id, admittedSignal)
 
     /**
      * Sync all room member contacts
@@ -332,7 +333,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
     const doReady = async (id: string): Promise<void> => {
       try {
-        await this.wechaty.Contact.find({ id })
+        await (this.wechaty.Contact as any).find({ id }, admittedSignal)
       } catch (e) {
         this.wechaty.emitError(e)
       }
@@ -456,13 +457,14 @@ class RoomMixin extends MixinBase implements SayableSayer {
       varList.join(', '),
     )
 
-    return this.wechaty.puppet.operation(async () => {
+    return this.wechaty.puppet.operation(async signal => {
       let msgId
       let text: string
 
       if (isTemplateStringArray(sayable)) {
         msgId = await this.sayTemplateStringsArray(
           sayable as TemplateStringsArray,
+          signal,
           ...varList,
         )
       } else if (typeof sayable === 'string') {
@@ -481,7 +483,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
           const AT_SEPARATOR = FOUR_PER_EM_SPACE
           const mentionAlias = await Promise.all(mentionList.map(async contact =>
-            '@' + (await this.alias(contact) || contact.name()),
+            '@' + (await this.alias(contact, signal) || contact.name()),
           ))
           const mentionText = mentionAlias.join(AT_SEPARATOR)
 
@@ -499,7 +501,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       }
 
       if (msgId) {
-        const msg = await this.wechaty.Message.find({ id: msgId })
+        const msg = await (this.wechaty.Message as any).find({ id: msgId }, signal)
         return msg
       }
       return undefined
@@ -508,6 +510,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
 
   private async sayTemplateStringsArray (
     textList: TemplateStringsArray,
+    admittedSignal: AbortSignal,
     ...varList: unknown[]
   ) {
     const mentionList = varList.filter(c => ContactImpl.valid(c)) as Contact[]
@@ -554,7 +557,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
       for (; i < varListLength; i++) {
         if (ContactImpl.valid(varList[i])) {
           const mentionContact: Contact = varList[i] as any
-          const mentionName = await this.alias(mentionContact) || mentionContact.name()
+          const mentionName = await this.alias(mentionContact, admittedSignal) || mentionContact.name()
           finalText += textList[i] + '@' + mentionName
         } else {
           finalText += textList[i]! + varList[i]!
@@ -900,8 +903,8 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * })
    * .start()
    */
-  async alias (contact: Contact): Promise<undefined | string> {
-    const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id)
+  async alias (contact: Contact, admittedSignal?: AbortSignal): Promise<undefined | string> {
+    const memberPayload = await this.wechaty.puppet.roomMemberPayload(this.id, contact.id, admittedSignal)
 
     if (memberPayload.roomAlias) {
       return memberPayload.roomAlias

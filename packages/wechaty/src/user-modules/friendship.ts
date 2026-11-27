@@ -283,7 +283,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
           if (signal.aborted) {
             return
           }
-          await (contact as ContactImpl).ready()
+          await (contact as ContactImpl).ready(false, signal)
           if (!contact.isReady()) {
             throw new Error('Friendship.accept() contact.ready() not ready')
           }
@@ -303,7 +303,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
       }
 
       // try to fix issue #293 - https://github.com/wechaty/wechaty/issues/293
-      await contact.sync()
+      await (contact as ContactImpl).sync(signal)
     })
   }
 
