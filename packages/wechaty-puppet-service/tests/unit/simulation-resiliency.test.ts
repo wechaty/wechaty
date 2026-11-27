@@ -3,8 +3,10 @@
  * between `PuppetServer` and `PuppetService` as part of the Phase 4.1 Safety Net Test Suite (#3123).
  */
 import assert from 'node:assert/strict'
+import net from 'node:net'
 import { test } from 'node:test'
 
+import { UniformResourceNameRegistry } from 'file-box'
 import type { LifecycleClock } from 'scopelet'
 import type { PuppetOptions } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
@@ -12,6 +14,7 @@ import { PuppetMock } from 'wechaty-puppet-mock'
 import { freePort } from '../fixtures/free-port.ts'
 import { useTempHome } from '../fixtures/temp-home.ts'
 
+import { GrpcManager } from '../../src/client/grpc-manager.ts'
 import {
   PuppetService,
   PuppetServer,
@@ -423,6 +426,161 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       })
     } finally {
       await service.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
+
+  await t.test('GrpcManager start -> stop -> start resets reconnectAttempt cleanly', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const clock = new ManualClock()
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const manager = new GrpcManager({
+      endpoint,
+      token,
+      clock,
+      reconnect: { baseDelayMs: 60_000, maxDelayMs: 60_000 },
+    })
+    manager.on('error', () => {})
+
+    try {
+      await server.start()
+      await manager.start()
+      assert.equal(manager.isRunning, true)
+
+      await server.stop()
+      await manager.whenState(s => s.kind === 'starting')
+      assert.equal(clock.pendingCount, 1)
+
+      await manager.stop()
+      assert.equal(manager.isStopped, true)
+      assert.equal(clock.pendingCount, 0)
+
+      await server.start()
+      // Subsequent start() must connect immediately without waiting on 60s backoff
+      await manager.start()
+      assert.equal(manager.isRunning, true)
+      assert.equal(clock.pendingCount, 0)
+    } finally {
+      await manager.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
+
+  await t.test('GrpcManager maxAttempts exhaustion fails and allows subsequent start()', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const clock = new ManualClock()
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const manager = new GrpcManager({
+      endpoint,
+      token,
+      clock,
+      reconnect: { baseDelayMs: 100, maxDelayMs: 400, maxAttempts: 2 },
+    })
+    manager.on('error', () => {})
+
+    try {
+      await server.start()
+      await manager.start()
+
+      await server.stop()
+      await manager.whenState(s => s.kind === 'starting')
+
+      // Advance through attempt 1 (100ms) -> fails -> schedules attempt 2 (200ms) -> fails -> failed
+      while (clock.pendingCount === 0) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      await clock.advanceBy(100)
+      while (clock.pendingCount === 0 && !manager.isFailed) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+      await clock.advanceBy(200)
+      await manager.whenState(s => s.kind === 'failed')
+
+      await server.start()
+      await manager.start()
+      assert.equal(manager.isRunning, true)
+    } finally {
+      await manager.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
+
+  await t.test('PuppetServer with stopTimeoutMs force-closes lingering socket before deadline', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const clock = new ManualClock()
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({
+      endpoint,
+      puppet: backend,
+      token,
+      clock,
+      stopTimeoutMs: 200,
+      tls: { disable: true },
+    })
+
+    let socket: net.Socket | undefined
+    try {
+      await server.start()
+      socket = net.connect(port, '127.0.0.1')
+      await new Promise<void>((resolve, reject) => {
+        socket!.once('connect', resolve)
+        socket!.once('error', reject)
+      })
+
+      const stopping = server.stop()
+      await new Promise(resolve => setImmediate(resolve))
+      // graceMs = floor(200 * 0.5) = 100ms; advancing 100ms force-destroys the socket before 200ms deadline
+      await clock.advanceBy(100)
+      await stopping
+      assert.equal(server.isStopped, true)
+    } finally {
+      socket?.destroy()
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
+    }
+  })
+
+  await t.test('PuppetServer clears uninitialized urnRegistry on init() failure and allows retry', async (sub) => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+
+    let calls = 0
+    const initMock = sub.mock.method(UniformResourceNameRegistry.prototype, 'init', async function (this: UniformResourceNameRegistry) {
+      calls += 1
+      if (calls === 1) {
+        throw new Error('simulated urnRegistry init failure')
+      }
+      initMock.mock.restore()
+      return this.init()
+    })
+
+    try {
+      await assert.rejects(
+        () => server.start(),
+        /simulated urnRegistry init failure/,
+      )
+      await server.start()
+      assert.equal(server.isRunning, true)
+    } finally {
+      initMock.mock.restore()
       await server.stop().catch(() => {})
       await backend.stop().catch(() => {})
     }

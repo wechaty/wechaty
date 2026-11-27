@@ -57,7 +57,9 @@ export interface PuppetServerOptions {
   endpoint      : string,
   puppet        : Puppet,
   token         : string,
+  /** Optional clock for deterministic grace-period and stop-timeout testing. */
   clock?        : LifecycleClock,
+  /** Maximum milliseconds to wait for `stop()` before force-closing connections. */
   stopTimeoutMs?: number,
   tls?: {
     serverCert? : string,
@@ -100,6 +102,7 @@ export class PuppetServer extends AsyncLifecycle {
     return VERSION
   }
 
+  /** Start the ConnectRPC/gRPC server and register all owned resources on `scope`. */
   protected override async onStart (scope: LifecycleScope): Promise<void> {
     log.verbose('PuppetServer', 'onStart()')
 
@@ -178,7 +181,6 @@ export class PuppetServer extends AsyncLifecycle {
       log.verbose('PuppetServer', 'onStart() initializing FileBox UUID URN Registry ...')
       const urnRegistry = new UniformResourceNameRegistry()
       this.urnRegistry = urnRegistry
-      await urnRegistry.init()
       scope.defer(async () => {
         log.verbose('PuppetServer', 'onStop() destroy URN Registry ...')
         if (this.urnRegistry === urnRegistry) {
@@ -187,6 +189,7 @@ export class PuppetServer extends AsyncLifecycle {
         await urnRegistry.destroy()
         log.verbose('PuppetServer', 'onStop() destroy URN Registry ... done')
       })
+      await urnRegistry.init()
       log.verbose('PuppetServer', 'onStart() initializing FileBox UUID URN Registry ... done')
     }
 
@@ -336,6 +339,7 @@ export class PuppetServer extends AsyncLifecycle {
     log.verbose('PuppetServer', 'onStart() server starting ... done')
   }
 
+  /** Gracefully close HTTP/HTTP2/net servers, force-destroying lingering connections before `stopTimeoutMs`. */
   private async closeServers (): Promise<void> {
     for (const session of this.sessions) {
       if (!session.destroyed && !session.closed) {
@@ -351,7 +355,9 @@ export class PuppetServer extends AsyncLifecycle {
     this.h2CleartextServer = undefined
 
     if (s) {
-      const graceMs = Math.min(1000, this.options.stopTimeoutMs ?? 1000)
+      const graceMs = this.options.stopTimeoutMs !== undefined
+        ? Math.min(1000, Math.max(1, Math.floor(this.options.stopTimeoutMs * 0.5)))
+        : 1000
       const clock = this.options.clock
       await new Promise<void>((resolve) => {
         const forceDestroy = () => {

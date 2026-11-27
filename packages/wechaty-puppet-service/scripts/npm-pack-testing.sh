@@ -56,14 +56,14 @@ trap 'cleanup TERM' TERM
 backup_file "$PACKAGE_DIR/src/package-json.ts"
 backup_file "$PACKAGE_DIR/package.json"
 
-for workspace in wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-mock; do
+for workspace in scopelet wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-mock; do
   backup_file "$PACKAGE_DIR/../$workspace/package.json"
 done
 
 ./scripts/generate-package-json.sh
 npm run dist
 npm pack --pack-destination "$TMPDIR"
-for workspace in wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-mock; do
+for workspace in scopelet wechaty-puppet wechaty-grpc wechaty-token wechaty-puppet-mock; do
   npm run dist --workspace "$workspace"
   npm pack --workspace "$workspace" --pack-destination "$TMPDIR"
 done
@@ -72,7 +72,7 @@ cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 cd "$TMPDIR"
 npm init -y > /dev/null
 npm pkg set type=module
-npm install ./wechaty-*.tgz \
+npm install ./scopelet-*.tgz ./wechaty-*.tgz \
   @types/node \
   @typescript/native@npm:typescript@^7.0.2
 

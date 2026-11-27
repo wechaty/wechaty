@@ -123,15 +123,17 @@ class PuppetService extends PUPPET.Puppet {
     this._cleanupCallbackList.map(setImmediate)
     this._cleanupCallbackList.length = 0
 
-    if (this._grpcManager) {
-      log.verbose('PuppetService', 'onStop() stopping grpc manager ...')
-      const grpcManager = this._grpcManager
-      this._grpcManager = undefined
-      await grpcManager.stop()
-      log.verbose('PuppetService', 'onStop() stopping grpc manager ... done')
+    try {
+      if (this._grpcManager) {
+        log.verbose('PuppetService', 'onStop() stopping grpc manager ...')
+        const grpcManager = this._grpcManager
+        this._grpcManager = undefined
+        await grpcManager.stop()
+        log.verbose('PuppetService', 'onStop() stopping grpc manager ... done')
+      }
+    } finally {
+      await this._payloadStore.stop()
     }
-
-    await this._payloadStore.stop()
     log.verbose('PuppetService', 'onStop() ... done')
   }
 
