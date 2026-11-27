@@ -55,7 +55,6 @@ interface PuppetEventBridgeDependencies {
   dispatchEvent: (event: Event) => boolean
   emit?: PuppetEventBridgeEmit
   emitError: (error: GError) => void
-  recordPuppetError?: (error: unknown) => void
 }
 
 /**
@@ -121,6 +120,11 @@ function registerPuppetEventBridge (
 
       case 'error':
         addListener((payload: PUPPET.payloads.EventError) => {
+          // Terminal puppet failures escalate through ScopeLet child supervision
+          // and are emitted once by Wechaty.#onLifecycleStateChange.
+          if (puppet.isFailed) {
+            return
+          }
           /**
            * Huan(202112):
            *  1. remove `payload.data` after it has been sunset (after Dec 31, 2022)
@@ -128,8 +132,6 @@ function registerPuppetEventBridge (
            */
           const raw = payload.gerror || (payload as any).data || payload
           const gerror = GError.from(raw)
-          dependencies.recordPuppetError?.(raw)
-          dependencies.recordPuppetError?.(gerror)
           dependencies.emitError(gerror)
         })
         break

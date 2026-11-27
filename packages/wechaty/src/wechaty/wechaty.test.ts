@@ -36,7 +36,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { PuppetMock } from 'wechaty-puppet-mock'
+import { mock, PuppetMock } from 'wechaty-puppet-mock'
 import {
   LifecycleSupersededError,
   LifecycleUnsafeStateError,
@@ -615,6 +615,122 @@ test('Wechaty concurrent start() calls on failure emit error exactly once', asyn
 
   await Promise.allSettled([ bot.start(), bot.start() ])
   assert.equal(errors.length, 1, 'concurrent start() failures must emit error exactly once')
+})
+
+test('Wechaty.create() resolves named puppet before returning the bot', async () => {
+  const bot = await Wechaty.create({ puppet: 'wechaty-puppet-mock' })
+  assert.ok(bot.puppet instanceof PuppetMock, 'Wechaty.create() should bind resolved Puppet before returning')
+  await bot.start()
+  assert.equal(bot.isRunning, true)
+  await bot.stop()
+})
+
+test('Wechaty starts Puppet and Io concurrently with capture armed before synchronous scan', async () => {
+  const order: string[] = []
+  const puppetGate = Promise.withResolvers<void>()
+  let scanReceivedOnBot = false
+
+  class ConcurrentScanPuppet extends PuppetMock {
+    override async onStart (): Promise<void> {
+      order.push('puppet:onStart:begin')
+      // Synchronous first scan emitted while Io is still connecting
+      this.emit('scan', { qrcode: 'https://wechaty.js.org/qr/sync', status: 2 })
+      await puppetGate.promise
+      order.push('puppet:onStart:end')
+    }
+  }
+
+  // Intercept Io.connect via a minimal fake WebSocket server or prototype stub?
+  // Let's test through Io's real hookWechaty by using ioToken + checking bot.io.eventBuffer!
+  const { Io } = await import('../io.ts')
+  const ioGate = Promise.withResolvers<void>()
+  let ioConnectStarted = false
+  const origConnect = (Io.prototype as any).connect
+  const origOnStop = (Io.prototype as any).onStop
+
+  // Use a local ws stub by mocking Io.prototype.connect
+  ;(Io.prototype as any).connect = async function (this: any) {
+    ioConnectStarted = true
+    order.push('io:connect:begin')
+    await ioGate.promise
+    order.push('io:connect:end')
+    return { ping: () => {}, close: () => {}, terminate: () => {}, readyState: 1 }
+  }
+  // Prevent keepalive / flush from touching fake ws
+  ;(Io.prototype as any).onStop = async function () {}
+
+  try {
+    const bot = new Wechaty({
+      puppet: new ConcurrentScanPuppet(),
+      ioToken: 'test-io-token',
+    })
+    bot.addEventListener('scan', () => {
+      scanReceivedOnBot = true
+    })
+
+    const starting = bot.start()
+    // Wait a tick for init() + prepare() to enter both starts concurrently
+    await new Promise(resolve => setTimeout(resolve, 10))
+    assert.equal(ioConnectStarted, true, 'Io connect should start concurrently with Puppet onStart')
+    assert.equal(scanReceivedOnBot, true, 'synchronous scan should be forwarded to bot immediately')
+    assert.ok(
+      (bot.io as any).eventBuffer.some((e: any) => e.name === 'scan'),
+      'Io capture must already be armed before Puppet starts so synchronous scan is buffered',
+    )
+
+    ioGate.resolve()
+    puppetGate.resolve()
+    await starting
+    assert.equal(bot.isRunning, true)
+    await bot.stop()
+  } finally {
+    ;(Io.prototype as any).connect = origConnect
+    ;(Io.prototype as any).onStop = origOnStop
+  }
+})
+
+test('Wechaty bot lifecycle contract: start, scan, ready, send, stop, and restart', async () => {
+  const mocker = new mock.Mocker()
+  const puppet = new PuppetMock({ mocker })
+  await using bot = new Wechaty({ puppet })
+
+  const events: string[] = []
+  bot.addEventListener('start', () => events.push('start'))
+  bot.addEventListener('scan', () => events.push('scan'))
+  bot.addEventListener('ready', () => events.push('ready'))
+  bot.addEventListener('stop', () => events.push('stop'))
+
+  const ready1 = bot.ready()
+  await bot.start()
+  puppet.emit('scan', { qrcode: 'qr-1', status: 2 })
+  puppet.emit('ready')
+  await ready1
+
+  const user = mocker.createContact({ name: 'Alice' })
+  mocker.login(user)
+  const msgId = await bot.say(user.id, 'hello v2')
+  assert.ok(typeof msgId === 'string' || msgId === undefined)
+
+  await bot.restart()
+  assert.equal(bot.isRunning, true)
+  const ready2 = bot.ready()
+  puppet.emit('ready')
+  await ready2
+
+  await bot.stop()
+  assert.equal(bot.isStopped, true)
+  assert.ok(events.includes('start'))
+  assert.ok(events.includes('scan'))
+  assert.ok(events.includes('ready'))
+  assert.ok(events.includes('stop'))
+})
+
+test('Wechaty bot-bound Contact classes and pools are isolated', async () => {
+  const bot1 = new Wechaty({ puppet: new PuppetMock() })
+  const bot2 = new Wechaty({ puppet: new PuppetMock() })
+  assert.notStrictEqual(bot1.Contact, bot2.Contact)
+  assert.notStrictEqual(bot1.Room, bot2.Room)
+  assert.notStrictEqual(bot1.Message, bot2.Message)
 })
 
 
