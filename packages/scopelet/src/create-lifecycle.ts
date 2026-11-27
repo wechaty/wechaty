@@ -42,7 +42,7 @@ const CANONICAL_LIFECYCLE = Symbol.for('scopelet.canonical-lifecycle')
  *
  * @param hooks   `onStart`, and optionally `onStop` and `onStateChange`.
  * @param options Diagnostics name, deadlines and timer source.
- * @returns A frozen {@link LifecycleController}: the caller API plus `condition`.
+ * @returns A frozen {@link LifecycleController} with the caller API and owner capabilities.
  * @throws TypeError when `hooks.onStart` is not a function, or `onStop` /
  *   `onStateChange` is present but not a function (C-SHELL-03): a mistake in
  *   JavaScript, or in hooks built at runtime, surfaces here instead of at the
@@ -83,9 +83,10 @@ function createLifecycle (
 }
 
 /**
- * Composition attachment (ADR-04):
- * Attach a lifecycle directly to a target object, defining standard delegation
- * getters and methods (state, isRunning, start, stop, operation, etc.) directly on `target`.
+ * Attach the {@link Lifecycle} caller API to an extensible target (ADR-04).
+ *
+ * @returns The controller that owns this lifecycle, including `condition()` and `operation()`.
+ * @throws TypeError for a non-extensible target, or LifecycleOverrideError for a member collision.
  */
 function attach<T extends object> (
   target: T,
@@ -97,7 +98,7 @@ function attach<T extends object> (
   }
   const members = [
     'state', 'isRunning', 'isActive', 'isStarting', 'isStopping', 'isStopped', 'isFailed',
-    'start', 'stop', 'restart', 'whenState', 'whenRunning', 'whenStopped', 'operation',
+    'start', 'stop', 'restart', 'whenState', 'whenRunning', 'whenStopped',
     Symbol.asyncDispose,
     CANONICAL_LIFECYCLE,
   ]
@@ -176,11 +177,6 @@ function attach<T extends object> (
       configurable: false,
       writable: false,
       value: (callOptions?: any) => controller.whenStopped(callOptions),
-    },
-    operation: {
-      configurable: false,
-      writable: false,
-      value: (work: any) => controller.operation(work),
     },
     [Symbol.asyncDispose]: {
       configurable: false,

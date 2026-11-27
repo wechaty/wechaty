@@ -522,10 +522,18 @@ Callers state **intent** (`start`, `stop`, `restart`). One **reconciler** per in
 // Tier 1: callers
 interface Lifecycle extends AsyncDisposable {
   readonly state: LifecycleState
+  readonly isRunning: boolean
+  readonly isActive: boolean
+  readonly isStarting: boolean
+  readonly isStopping: boolean
+  readonly isStopped: boolean
+  readonly isFailed: boolean
   start (options?: LifecycleWaitOptions): Promise<void>
   stop (options?: LifecycleWaitOptions): Promise<void>
   restart (options?: LifecycleWaitOptions): Promise<void>
   whenState (predicate: (state: LifecycleState) => boolean, options?: LifecycleWaitOptions): Promise<LifecycleState>
+  whenRunning (options?: LifecycleWaitOptions): Promise<void>
+  whenStopped (options?: LifecycleWaitOptions): Promise<void>
   [Symbol.asyncDispose] (): Promise<void>
 }
 
@@ -551,14 +559,22 @@ interface LifecycleScope {
 }
 
 // Entry points (create-lifecycle.ts, async-lifecycle.ts)
+interface LifecycleController extends Lifecycle {
+  condition (name: string): LifecycleConditionHandle
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
+}
 function createLifecycle (hooks: LifecycleHooks, options?: LifecycleOptions): LifecycleController
-abstract class AsyncLifecycle implements Lifecycle { /* protected onStart, onStop, onStateChange, condition */ }
+abstract class AsyncLifecycle implements Lifecycle { /* protected onStart, onStop, onStateChange, condition, operation */ }
 
 // Companions (companions/, §15)
 function listen (scope: LifecycleScope, target: EmitterLike | EventTargetLike, event: string, listener: (...args: any[]) => void): void
 function operation<T> (scope: LifecycleScope, work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
 function watchdog (scope: LifecycleScope, options: { timeoutMs: number, onTimeout: 'fail' | 'recover', clock?: LifecycleClock }): { feed (): void, disarm (): void }
 ```
+
+`createLifecycle.attach(target, hooks, options)` installs the caller API on an extensible target and returns the controller. The controller supplies the composition owner with `condition()` and `operation()`. Subclasses of `AsyncLifecycle` access both through protected methods.
+
+The state getters reflect `state.kind`. `isActive` is true during `starting` and `running`. `whenRunning()` and `whenStopped()` resolve with `void` and follow the same matching and caller cancellation rules as `whenState()`. Use `whenState()` to receive the matching snapshot.
 
 `src/types.ts` has the full signatures with TSDoc. `src/examples/` shows `Io`, a `Puppet` base and `Wechaty` written against them, and each runs as a test (`src/examples/*.test.ts`) under Node.js and Deno.
 
@@ -632,6 +648,8 @@ Adapted from the matrix in [#2905](https://github.com/wechaty/wechaty/issues/290
 | `stop()` | The generation it captured is released | Retirement reports errors (the cleanup error) · caller abort |
 | `restart()` | The replacement commits `running` | Retirement or replacement fails · a later `stop()` supersedes it · dirty state · caller abort |
 | `whenState()` | The predicate matches | Caller abort · the predicate throws |
+| `whenRunning()` / `whenStopped()` | The current or a later snapshot has the requested state | Caller abort |
+| Owner `operation()` | Work in the running generation completes | Lifecycle is outside a live running generation · work rejects or throws |
 | `condition.wait()` | The bound generation sets the condition | The bound generation retires first · `stop()` before the wait is bound · caller abort |
 | `scope.acquire()` | `create` resolved while the scope is live | `create` rejects (its error) · retirement began (the retirement reason) |
 | `scope.start(child)` | The child commits `running` | The child's start fails · the child is not idle and clean, or already owned · this scope is sealed · this scope's signal aborts while the child is starting (C-CHILD-03) |
@@ -728,7 +746,7 @@ Usage notes, not rules:
 ## 13. Entry points
 
 - **C-SHELL-01** `createLifecycle(hooks, options)` and `abstract class AsyncLifecycle` share one engine and behave identically; the entry points add no behavior.
-- **C-SHELL-02** The caller-API members of `AsyncLifecycle` (`state`, `start`, `stop`, `restart`, `whenState`, `Symbol.asyncDispose`) cannot be overridden; either kind of override fails `new`. An override declared as a **method** on a subclass is detected by the base constructor, which throws `LifecycleOverrideError`. An override declared as a **class field** is defined only after the base constructor returns, so the base cannot detect it. Instead, the base constructor installs these members as own, non-writable, non-configurable properties: defining the field then throws a native `TypeError`, and assigning to one fails.
+- **C-SHELL-02** The caller API and protected `operation()` on `AsyncLifecycle` are sealed. The base constructor rejects a subclass prototype override with `LifecycleOverrideError`. The constructor installs the sealed members as own, non-configurable properties. Methods are non-writable and getters have no setters. A class field defined over one of these members after the base constructor returns throws a native `TypeError`.
 - **C-SHELL-03** `createLifecycle` throws `TypeError` when `hooks.onStart` is not a function, or `onStop` / `onStateChange` is present but not a function.
 - **C-SHELL-04** The `name` option is a diagnostics label. It is published (C-OBS-04), so it must not contain secrets.
 
@@ -755,7 +773,7 @@ Helpers built only on the public scope; they need nothing private (D17). Their s
 
 - **C-COMP-01** `listen(scope, target, event, listener)` adds `listener` to an EventEmitter-like target (`on`, with `off` or `removeListener`) or an `EventTarget`, and registers its removal on the scope before adding it. Retirement removes it, so re-adding it on every start never accumulates duplicates. On a sealed scope it adds nothing and throws the retirement reason (C-SCOPE-02). The target holds a wrapper made for that registration, which keeps the target's `this` and every argument; only that registration's removal detaches it, so a stale registration never removes the same handler a newer generation added. A target with both APIs (a `ws` WebSocket, say) is used as an `EventTarget`, so its listener gets one event object, not the emitter's arguments. An EventEmitter-like target with neither `off` nor `removeListener` is refused with `TypeError`. It replaces the repeated `on` plus `defer(off)` pairs.
 - **C-COMP-02** `watchdog(scope, { timeoutMs, onTimeout, clock? })` arms a timer for the generation and returns `{ feed, disarm }`. Unless fed within `timeoutMs`, it calls `scope.fail(error)` (`onTimeout: 'fail'`) or `scope.recover(error)` (`'recover'`) once, with a `LifecycleTimeoutError` whose `phase` is `'watchdog'`. `feed()` restarts the countdown; `disarm()` stops it until the next `feed()`. Once it fired or its generation began retiring, nothing arms it again, and the generation's retirement clears its timer. `timeoutMs` is required and follows C-TIME-01 (`RangeError` otherwise). `onTimeout` is required; any other value is refused with `TypeError`. On a sealed scope it arms nothing and throws the retirement reason. `clock` defaults to the global timers, because the scope does not expose the lifecycle's clock.
-- **C-COMP-03** `operation(scope, work)` runs `work(signal)` as an operation of the generation and returns its result (D24). It runs as a spawned task, so `stop()`, `restart()` and a recovery wait for it: retirement joins it with the tasks, before any resource is released, under the stop deadline. `signal` is `scope.signal`, which aborts when the generation starts retiring; an operation that should finish anyway may ignore it. Its result and its error, a synchronous throw included, go only to its caller: a failed operation never fails the generation. On a sealed scope it rejects at once with the retirement reason and does not call `work`. The owner keeps the scope from `onStart` and runs its public operations, such as `messageSend`, through it.
+- **C-COMP-03** `operation(scope, work)` runs `work(signal)` as an operation of the generation and returns its result (D24). It runs as a spawned task, so `stop()`, `restart()` and a recovery wait for it: retirement joins it with the tasks, before any resource is released, under the stop deadline. `signal` is `scope.signal`, which aborts when the generation starts retiring; an operation that should finish anyway may ignore it. Its result and its error, a synchronous throw included, go only to its caller: a failed operation never fails the generation. On a sealed scope it rejects at once with the retirement reason and does not call `work`. An owner can run domain work in the current running generation through `LifecycleController.operation()` or protected `AsyncLifecycle.operation()`. These entry points reject outside a live running generation. Work that belongs to a particular scope, including initialization, can use `scope.operation()` or the companion.
 
 ## 16. Decisions in this document
 

@@ -305,11 +305,16 @@ test('Wechaty lifecycle: legacy events follow state transitions across start, re
   bot.addEventListener('stop', () => events.push('stop'))
 
   assert.equal(bot.state.active(), false)
+  assert.equal(bot.isStopped, true)
+  assert.equal(bot.isActive, false)
   assert.equal(bot.state.inactive(), true)
   assert.equal(bot.legacyState.active(), false)
   assert.equal(bot.legacyState.inactive(), true)
 
+  const running = bot.whenRunning()
   await bot.start()
+  await running
+  assert.equal(bot.isRunning, true)
   assert.deepEqual(events, [ 'start' ])
   assert.equal(bot.state.active(), true)
   assert.equal(bot.state.inactive(), false)
@@ -321,7 +326,10 @@ test('Wechaty lifecycle: legacy events follow state transitions across start, re
   assert.equal(bot.state.active(), true)
   assert.equal(bot.state.inactive(), false)
 
+  const stopped = bot.whenStopped()
   await bot.stop()
+  await stopped
+  assert.equal(bot.isStopped, true)
   assert.deepEqual(events, [ 'start', 'start', 'stop' ])
   assert.equal(bot.state.active(), false)
   assert.equal(bot.state.inactive(), true)

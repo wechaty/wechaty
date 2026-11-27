@@ -489,6 +489,46 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     return this.#options
   }
 
+  /** See {@link Lifecycle.isRunning}. */
+  get isRunning (): boolean {
+    return this.#lifecycle.isRunning
+  }
+
+  /** See {@link Lifecycle.isActive}. */
+  get isActive (): boolean {
+    return this.#lifecycle.isActive
+  }
+
+  /** See {@link Lifecycle.isStarting}. */
+  get isStarting (): boolean {
+    return this.#lifecycle.isStarting
+  }
+
+  /** See {@link Lifecycle.isStopping}. */
+  get isStopping (): boolean {
+    return this.#lifecycle.isStopping
+  }
+
+  /** See {@link Lifecycle.isStopped}. */
+  get isStopped (): boolean {
+    return this.#lifecycle.isStopped
+  }
+
+  /** See {@link Lifecycle.isFailed}. */
+  get isFailed (): boolean {
+    return this.#lifecycle.isFailed
+  }
+
+  /** See {@link Lifecycle.whenRunning}. */
+  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#lifecycle.whenRunning(options)
+  }
+
+  /** See {@link Lifecycle.whenStopped}. */
+  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#lifecycle.whenStopped(options)
+  }
+
   /**
    * Provider-specific startup logic. Called during puppet startup after core infrastructure is ready.
    */
@@ -500,7 +540,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   abstract onStop  (): Promise<void>
 
   /**
-   * Executes an asynchronous domain operation bound to the active puppet generation (C-COMP-03).
+   * Executes a Puppet domain operation for the bot against the active generation (C-COMP-03).
    * Retirement waits for all active operations to finish under stop timeout.
    *
    * @param work - Callback receiving an AbortSignal that aborts when retirement begins.

@@ -220,7 +220,6 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
   get isFailed (): boolean { return this.#lifecycle.isFailed }
   whenRunning (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.whenRunning(options) }
   whenStopped (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.whenStopped(options) }
-  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> { return this.#lifecycle.operation(work) }
   /** See `Lifecycle.start`. */
   start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
   /**
