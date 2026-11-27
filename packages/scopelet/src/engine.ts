@@ -305,6 +305,7 @@ class LifecycleEngine {
    */
   #idleBefore: LifecycleState | undefined = undefined
   #reconciling = false
+  readonly #admittedSignals = new WeakMap<AbortSignal, number>()
 
   constructor (hooks: LifecycleHooks, options?: LifecycleOptions) {
     this.#hooks = hooks
@@ -355,6 +356,10 @@ class LifecycleEngine {
     return this.#state.kind === 'failed'
   }
 
+  get isSettled (): boolean {
+    return this.#state.kind === 'stopped' || (this.#state.kind === 'failed' && this.#state.cleanupComplete)
+  }
+
   whenRunning (options?: LifecycleWaitOptions): Promise<void> {
     return this.whenState(s => s.kind === 'running', options).then(() => {})
   }
@@ -363,10 +368,17 @@ class LifecycleEngine {
     return this.whenState(s => s.kind === 'stopped', options).then(() => {})
   }
 
+  whenSettled (options?: LifecycleWaitOptions): Promise<void> {
+    return this.whenState(s => s.kind === 'stopped' || (s.kind === 'failed' && s.cleanupComplete), options).then(() => {})
+  }
+
   operation<T> (
     work: (signal: AbortSignal) => T | PromiseLike<T>,
     options?: LifecycleOperationOptions,
   ): Promise<T> {
+    if (options?.signal && (this.#admittedSignals.get(options.signal) ?? 0) > 0) {
+      return (async () => work(options.signal!))()
+    }
     const current = this.#current
     const allowed = this.#state.kind === 'running'
       || (options?.allowStarting === true && this.#state.kind === 'starting')
@@ -375,7 +387,19 @@ class LifecycleEngine {
         `Cannot run operation: lifecycle is in state '${this.#state.kind}', expected 'running'`,
       ))
     }
-    return current.scope.operation(work)
+    return current.scope.operation(async signal => {
+      this.#admittedSignals.set(signal, (this.#admittedSignals.get(signal) ?? 0) + 1)
+      try {
+        return await work(signal)
+      } finally {
+        const remaining = (this.#admittedSignals.get(signal) ?? 1) - 1
+        if (remaining <= 0) {
+          this.#admittedSignals.delete(signal)
+        } else {
+          this.#admittedSignals.set(signal, remaining)
+        }
+      }
+    })
   }
 
   /** See {@link Lifecycle.start}. */

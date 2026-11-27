@@ -718,6 +718,43 @@ test('AsyncLifecycle.operation() forwards allowStarting option during onStart()'
   await service.stop()
 })
 
+test('isSettled and whenSettled() resolve on both stopped and failed-settled lifecycles', async () => {
+  const failing = createLifecycle({
+    onStart () {
+      throw new Error('boom')
+    },
+  })
+  assert.equal(failing.isSettled, true)
+  await assert.rejects(() => failing.start(), /boom/)
+  await failing.whenSettled()
+  assert.equal(failing.isSettled, true)
+})
+
+test('controller.operation() supports re-entrancy via admitted outer signal during stopping', async () => {
+  let releaseOuter!: () => void
+  const outerGate = new Promise<void>(resolve => { releaseOuter = resolve })
+  const enteredOuter = Promise.withResolvers<void>()
+
+  const lc = createLifecycle({ onStart () {} })
+  await lc.start()
+
+  const outer = lc.operation(async signal => {
+    enteredOuter.resolve()
+    await outerGate
+    return lc.operation(async innerSignal => {
+      assert.strictEqual(innerSignal, signal)
+      return 'nested-ok'
+    }, { signal })
+  })
+
+  await enteredOuter.promise
+  const stopping = lc.stop()
+  releaseOuter()
+
+  assert.equal(await outer, 'nested-ok')
+  await stopping
+})
+
 test('Semantic state awaiters: whenRunning() and whenStopped()', async () => {
   const lifecycle = createLifecycle({
     onStart: async () => {},

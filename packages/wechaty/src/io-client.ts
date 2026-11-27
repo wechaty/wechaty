@@ -74,12 +74,14 @@ export class IoClient {
   declare readonly isStopping: boolean
   declare readonly isStopped: boolean
   declare readonly isFailed: boolean
+  declare readonly isSettled: boolean
   declare start: Lifecycle['start']
   declare stop: Lifecycle['stop']
   declare restart: Lifecycle['restart']
   declare whenState: Lifecycle['whenState']
   declare whenRunning: Lifecycle['whenRunning']
   declare whenStopped: Lifecycle['whenStopped']
+  declare whenSettled: Lifecycle['whenSettled']
   declare [Symbol.asyncDispose]: Lifecycle[typeof Symbol.asyncDispose]
 
   /** The Io link of the current run, if any. */
