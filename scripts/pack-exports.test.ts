@@ -79,7 +79,6 @@ test('transformManifestForPack transforms full package manifest with typesVersio
       '*': {
         browser: [ './src/mods/browser.ts' ],
         users: [ './src/mods/users.ts' ],
-        impls: [ './src/mods/impls.ts' ],
       },
     },
   }
@@ -115,7 +114,6 @@ test('transformManifestForPack transforms full package manifest with typesVersio
       '*': {
         browser: [ './dist/esm/src/mods/browser.d.ts' ],
         users: [ './dist/esm/src/mods/users.d.ts' ],
-        impls: [ './dist/esm/src/mods/impls.d.ts' ],
       },
     },
   })

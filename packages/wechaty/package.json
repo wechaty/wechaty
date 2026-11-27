@@ -16,12 +16,6 @@
       "node": "./src/mods/browser.ts",
       "default": "./src/mods/browser.ts"
     },
-    "./impls": {
-      "types": "./src/mods/impls.ts",
-      "browser": "./src/mods/impls.ts",
-      "node": "./src/mods/impls.ts",
-      "default": "./src/mods/impls.ts"
-    },
     "./users": {
       "types": "./src/mods/users.ts",
       "browser": "./src/mods/users.ts",
@@ -36,9 +30,6 @@
       ],
       "users": [
         "./src/mods/users.ts"
-      ],
-      "impls": [
-        "./src/mods/impls.ts"
       ]
     }
   },

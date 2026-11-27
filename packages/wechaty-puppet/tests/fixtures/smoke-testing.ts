@@ -1,8 +1,8 @@
 /**
  * Smoke test for the packed tarball (run by scripts/npm-pack-testing.sh in a
  * temporary ESM project): a provider puppet extends the published abstract
- * `Puppet`, every public entry point (`types`, `payloads`, `filters`,
- * `impls`) loads, and the embedded package.json is the real one.
+ * `Puppet`, every public entry point (`types`, `payloads`, `filters`) loads,
+ * and the embedded package.json is the real one.
  */
 import assert from 'node:assert/strict'
 
@@ -12,7 +12,6 @@ import type {
 }                     from 'file-box'
 
 import * as FILTERS   from 'wechaty-puppet/filters'
-import * as IMPLS     from 'wechaty-puppet/impls'
 import * as PAYLOADS  from 'wechaty-puppet/payloads'
 import * as TYPES     from 'wechaty-puppet/types'
 
@@ -174,14 +173,10 @@ async function main () {
   const payload: PAYLOADS.EventHeartbeat = { data: 'payload' }
   const type: TYPES.ContactGender        = TYPES.ContactGender.Male
   const filter: FILTERS.Contact              = { id: 'id' }
-  const puppet: IMPLS.Puppet                 = puppetInstance
-  const puppetAbstract: IMPLS.PuppetAbstract = new PuppetTest()
 
   assert.ok(payload,        'should get valid PAYLOADS')
   assert.ok(type,           'should get valid TYPES')
   assert.ok(filter,         'should get valid FilTERS')
-  assert.ok(puppet,         'should get valid IMPLS.Puppet')
-  assert.ok(puppetAbstract, 'should get valid IMPLS.PuppetAbstract')
 
   if (PUPPET.VERSION === '0.0.0' || puppetInstance.name() === 'NONAME') {
     throw new Error('the `src/package-json.ts` has not been generated correctly.')

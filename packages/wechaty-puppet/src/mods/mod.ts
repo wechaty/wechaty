@@ -79,6 +79,5 @@ export {
 export type { WrapAsync } from '../pure-functions/async-error.ts'
 export * as filters  from './filters.ts'
 export * as helpers  from './helpers.ts'
-export * as impls    from './impls.ts'
 export * as payloads from './payloads.ts'
 export * as types    from './types.ts'

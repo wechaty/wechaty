@@ -31,7 +31,6 @@ import {
 }                   from 'wechaty'
 
 import * as USERS from 'wechaty/users'
-import * as IMPLS from 'wechaty/impls'
 
 import assert from 'assert'
 
@@ -46,8 +45,8 @@ function publicTypeContract (bot: Wechaty, contact: USERS.Contact) {
   const sayable: import('wechaty').Sayable = contact
   void bot.say(sayable)
 
-  const implementationConstructor: typeof IMPLS.WechatyImpl = IMPLS.WechatyImpl
-  void implementationConstructor
+  const contactCtor: typeof USERS.Contact = USERS.Contact
+  void contactCtor
 
   // @ts-expect-error Internal options are not part of the public interface.
   bot.__options

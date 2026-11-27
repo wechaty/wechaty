@@ -27,7 +27,7 @@ test('wechaty/browser exports browser-safe SDK components', () => {
   assert.ok(BROWSER.types, 'types must be exported')
   assert.ok(BROWSER.payloads, 'payloads must be exported')
   assert.ok(BROWSER.users, 'users must be exported')
-  assert.ok(BROWSER.impls, 'impls must be exported')
+  assert.equal((BROWSER as any).impls, undefined, 'impls must not be exported')
   assert.ok(BROWSER.log, 'log must be exported')
   assert.equal((BROWSER as any).IoClient, undefined, 'IoClient must not be exported in browser entry')
 })

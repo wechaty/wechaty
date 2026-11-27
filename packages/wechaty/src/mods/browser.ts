@@ -33,7 +33,6 @@ export * as payloads from 'wechaty-puppet/payloads'
 
 export * from './users.ts'
 export * as users from './users.ts'
-export * as impls from './impls.ts'
 export * as helpers from './helpers.ts'
 export {
   ScanStatus,

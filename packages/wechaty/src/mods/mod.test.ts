@@ -6,8 +6,6 @@ import assert from 'node:assert/strict'
 import * as WECHATY from './mod.ts'
 import type { Sayable } from './mod.ts'
 import type { Contact } from './users.ts'
-import type { ContactImpl } from './impls.ts'
-import type { WechatyImpl } from './impls.ts'
 
 function publicTypeContract (bot: WECHATY.Wechaty, contact: Contact) {
   bot.addEventListener('message', event => {
@@ -24,11 +22,7 @@ function publicTypeContract (bot: WECHATY.Wechaty, contact: Contact) {
   void bot.say(sayableText)
   void bot.say(contact)
 
-  type BoundContactImplementation = ContactImpl
-  type ImplementationConstructor = typeof WechatyImpl
-  const implementationConstructor: ImplementationConstructor = WECHATY.impls.WechatyImpl
-  void implementationConstructor
-  type PublicContactHasId = BoundContactImplementation['id']
+  type PublicContactHasId = Contact['id']
   const publicContactHasId: PublicContactHasId = contact.id
   void publicContactHasId
 
@@ -38,7 +32,7 @@ function publicTypeContract (bot: WECHATY.Wechaty, contact: Contact) {
 void publicTypeContract
 
 test('Export of the Framework', async _t => {
-  assert.ok(WECHATY.impls,     'should export impls.*')
+  assert.equal((WECHATY as any).impls, undefined, 'should not export impls.*')
   assert.ok(WECHATY.types,     'should export types.*')
   assert.ok(WECHATY.IoClient,  'should export IoClient')
   assert.ok(WECHATY.log,       'should export log')
