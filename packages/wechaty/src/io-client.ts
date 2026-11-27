@@ -35,9 +35,9 @@ import {
 
 import {
   createLifecycle,
-  listen,
-  type LifecycleController,
+  type Lifecycle,
   type LifecycleScope,
+  type LifecycleState,
 }                       from 'scopelet'
 import type { Message }           from './user-modules/mod.ts'
 import type { Wechaty }           from './wechaty/mod.ts'
@@ -67,10 +67,23 @@ export type IoPuppetServer = Pick<PuppetServer, 'start' | 'stop'>
  */
 export class IoClient {
 
+  declare readonly state: LifecycleState
+  declare readonly isRunning: boolean
+  declare readonly isActive: boolean
+  declare readonly isStarting: boolean
+  declare readonly isStopping: boolean
+  declare readonly isStopped: boolean
+  declare readonly isFailed: boolean
+  declare start: Lifecycle['start']
+  declare stop: Lifecycle['stop']
+  declare restart: Lifecycle['restart']
+  declare whenState: Lifecycle['whenState']
+  declare whenRunning: Lifecycle['whenRunning']
+  declare whenStopped: Lifecycle['whenStopped']
+  declare [Symbol.asyncDispose]: Lifecycle[typeof Symbol.asyncDispose]
+
   /** The Io link of the current run, if any. */
   private io?: Io
-
-  readonly #lifecycle: LifecycleController
 
   protected options: Required<IoClientOptions>
 
@@ -92,7 +105,7 @@ export class IoClient {
 
     this.options = normalizedOptions
 
-    this.#lifecycle = createLifecycle({
+    createLifecycle.attach(this, {
       onStart: scope => this.onStart(scope),
     }, { name: 'IoClient' })
   }
@@ -155,22 +168,22 @@ export class IoClient {
   private hookWechaty (scope: LifecycleScope, wechaty: Wechaty): void {
     log.verbose('IoClient', 'hookWechaty()')
 
-    listen(scope, wechaty, 'login',   ((event: any) => {
+    scope.listen(wechaty, 'login',   ((event: any) => {
       const user = event.detail ?? event
       log.info('IoClient', `${user.name()} logged in`)
     }) as any)
 
-    listen(scope, wechaty, 'logout',  ((event: any) => {
+    scope.listen(wechaty, 'logout',  ((event: any) => {
       const user = event.detail?.contact ?? event.detail ?? event
       log.info('IoClient', `${user.name()} logged out`)
     }) as any)
 
-    listen(scope, wechaty, 'message', ((event: any) => {
+    scope.listen(wechaty, 'message', ((event: any) => {
       const msg: Message = event.detail ?? event
       this.onMessage(msg).catch(e => log.warn('IoClient', 'onMessage() failed: %s', (e as Error).message))
     }) as any)
 
-    listen(scope, wechaty, 'scan',    ((event: any) => {
+    scope.listen(wechaty, 'scan',    ((event: any) => {
       const detail = event.detail ?? event
       const url = detail?.qrcode || (typeof detail === 'string' ? detail : '')
       const code = detail?.status ?? (typeof detail === 'number' ? detail : 0)
@@ -199,28 +212,6 @@ export class IoClient {
     //   await m.say('https://www.chatie.io')
     //     .then(_ => log.info('Bot', 'REPLIED to magic word "chatie"'))
     // }
-  }
-
-  /**
-   * Start the client: the Io link, the bot, then the PuppetServer. Resolves at
-   * once while already running; rejects if any of them fails to start, after
-   * releasing the ones already started.
-   */
-  public async start (): Promise<void> {
-    log.verbose('IoClient', 'start()')
-    await this.#lifecycle.start()
-  }
-
-  /** Stop the PuppetServer, the bot and the Io link, in that order. */
-  public async stop (): Promise<void> {
-    log.verbose('IoClient', 'stop()')
-    await this.#lifecycle.stop()
-  }
-
-  /** Stop, then start again with a new Io link. */
-  public async restart (): Promise<void> {
-    log.verbose('IoClient', 'restart()')
-    await this.#lifecycle.restart()
   }
 
   /**

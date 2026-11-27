@@ -55,6 +55,7 @@ import type {
 import {
   createLifecycle,
   LifecycleChildFailureError,
+  sleep,
 } from 'scopelet'
 
 import {
@@ -214,11 +215,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     log.verbose('Wechaty', 'lifecycle onStart()')
 
     await this.init()
-
-    const lifeTimer = setInterval(() => {
-      log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
-    }, 1000 * 60 * 60)
-    scope.defer(() => clearInterval(lifeTimer))
 
     // Arm Io event capture and scoped plugins before either child starts.
     this.#pluginManager.installScoped(scope)
@@ -463,7 +459,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   }
 
   async sleep (milliseconds: number): Promise<void> {
-    await new Promise<void>(resolve => setTimeout(resolve, milliseconds))
+    await sleep(milliseconds)
   }
 
   emitError (e: unknown): void {
