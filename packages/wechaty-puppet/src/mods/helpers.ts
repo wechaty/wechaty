@@ -1,6 +1,8 @@
 /**
- * Public `wechaty-puppet/helpers` entry point: `resolvePuppet()` and
- * `typeName()`.
+ * Public `wechaty-puppet/helpers` entry point (also exposed via the root
+ * `helpers` namespace): `parseGErrorPayload()`, `resolvePuppet()`,
+ * `timeoutPromise()`, `TimeoutPromiseGError`, `typeName()`, `WrapAsync`, and
+ * `wrapAsyncError()`.
  */
 /**
  * We must import `instance-of.js` first, to prevent the following error:

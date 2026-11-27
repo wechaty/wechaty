@@ -6,7 +6,7 @@
 import type { Interceptor } from '@connectrpc/connect'
 import { ConnectError, Code } from '@connectrpc/connect'
 import { log } from 'wechaty-puppet'
-import { Code as GErrorCode, GError } from 'gerror'
+import { GError } from 'gerror'
 import { toConnectError as gerrorToConnectError } from 'gerror-connect'
 
 function mapGrpcCode (code: unknown): Code {
@@ -20,25 +20,6 @@ function mapGrpcCode (code: unknown): Code {
     }
   }
   return Code.Internal
-}
-
-const CONNECT_TO_GERROR_CODE: Record<Code, GErrorCode> = {
-  [Code.Canceled]: GErrorCode.Cancelled,
-  [Code.Unknown]: GErrorCode.Unknown,
-  [Code.InvalidArgument]: GErrorCode.InvalidArgument,
-  [Code.DeadlineExceeded]: GErrorCode.DeadlineExceeded,
-  [Code.NotFound]: GErrorCode.NotFound,
-  [Code.AlreadyExists]: GErrorCode.AlreadyExists,
-  [Code.PermissionDenied]: GErrorCode.PermissionDenied,
-  [Code.ResourceExhausted]: GErrorCode.ResourceExhausted,
-  [Code.FailedPrecondition]: GErrorCode.FailedPrecondition,
-  [Code.Aborted]: GErrorCode.Aborted,
-  [Code.OutOfRange]: GErrorCode.OutOfRange,
-  [Code.Unimplemented]: GErrorCode.Unimplemented,
-  [Code.Internal]: GErrorCode.Internal,
-  [Code.Unavailable]: GErrorCode.Unavailable,
-  [Code.DataLoss]: GErrorCode.DataLoss,
-  [Code.Unauthenticated]: GErrorCode.Unauthenticated,
 }
 
 export function toConnectError (
@@ -62,18 +43,22 @@ export function toConnectError (
 
   const rawCode = (error as any)?.code ?? gerr.code
   const connectCode = mapGrpcCode(rawCode)
-  const targetCode = CONNECT_TO_GERROR_CODE[connectCode]
-  const normalized =
-    GError.isGError(error) && error.code === targetCode
-      ? error
-      : new GError(gerr.message, {
-          code: targetCode,
-          details: gerr.details,
-          ...('cause' in gerr ? { cause: gerr.cause } : {}),
-        })
 
   try {
-    return gerrorToConnectError(normalized)
+    const converted = gerrorToConnectError(gerr)
+    if (converted.code === connectCode) {
+      return converted
+    }
+    const outgoing = converted.details.filter(
+      (d): d is Extract<typeof converted.details[number], { desc: unknown }> => 'desc' in d,
+    )
+    return new ConnectError(
+      converted.rawMessage,
+      connectCode,
+      converted.metadata,
+      outgoing,
+      converted.cause,
+    )
   } catch {
     return new ConnectError(gerr.message.slice(0, 4096), connectCode)
   }

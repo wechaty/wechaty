@@ -116,3 +116,21 @@ test('dispatchEvent("error") normalizes payload, preserves cancelable, and propa
   assert.equal(typeof receivedDetail.gerror, 'string', 'normalized detail should contain gerror JSON string')
 })
 
+test('emit(error, ...) safely truncates oversized ASCII and multi-byte UTF-8 messages', async _t => {
+  class PuppetSkeletonImpl extends PuppetSkeleton {}
+  const puppet = new PuppetSkeletonImpl()
+
+  const received: any[] = []
+  puppet.on('error', (payload) => received.push(payload))
+
+  puppet.emit('error', new Error('a'.repeat(10_000)))
+  puppet.emit('error', new Error('中'.repeat(4000)))
+
+  assert.equal(received.length, 2)
+  for (const payload of received) {
+    assert.equal(typeof payload.gerror, 'string')
+    const parsed = GError.parse(payload.gerror)
+    assert.equal(new TextEncoder().encode(parsed.message).byteLength <= 4096, true)
+  }
+})
+

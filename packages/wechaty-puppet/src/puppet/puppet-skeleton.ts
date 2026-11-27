@@ -56,6 +56,32 @@ import {
  * @param error - Error instance, existing EventErrorPayload, or arbitrary error value.
  * @returns Canonical EventErrorPayload containing serialized GError.
  */
+const utf8Encoder = new TextEncoder()
+const utf8Decoder = new TextDecoder('utf-8', { fatal: false })
+
+function truncateUtf8Bytes (text: string, maxBytes: number): string {
+  const bytes = utf8Encoder.encode(text)
+  if (bytes.byteLength <= maxBytes) {
+    return text
+  }
+  let end = maxBytes
+  if (end > 0 && (bytes[end - 1]! & 0x80) !== 0) {
+    let lead = end - 1
+    while (lead > 0 && (bytes[lead]! & 0xc0) === 0x80) {
+      lead -= 1
+    }
+    const leadByte = bytes[lead]!
+    const seqLen =
+      (leadByte & 0xe0) === 0xc0 ? 2 :
+      (leadByte & 0xf0) === 0xe0 ? 3 :
+      (leadByte & 0xf8) === 0xf0 ? 4 : 1
+    if (lead + seqLen > maxBytes) {
+      end = lead
+    }
+  }
+  return utf8Decoder.decode(bytes.subarray(0, end))
+}
+
 function normalizeErrorPayload (error: unknown): EventErrorPayload {
   let gerr: GError
 
@@ -73,7 +99,7 @@ function normalizeErrorPayload (error: unknown): EventErrorPayload {
     }
   } catch {
     return {
-      gerror: JSON.stringify(new GError(gerr.message.slice(0, 4096), { code: gerr.code })),
+      gerror: JSON.stringify(new GError(truncateUtf8Bytes(gerr.message, 4096), { code: gerr.code })),
     }
   }
 }

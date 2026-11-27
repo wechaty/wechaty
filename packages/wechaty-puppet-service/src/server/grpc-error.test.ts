@@ -38,6 +38,16 @@ test('toConnectError() preserves valid gRPC status codes from GError', () => {
   const hugeConnectErr = toConnectError('testHuge', hugeErr)
   assert.equal(hugeConnectErr.code, Code.Internal)
   assert.equal(hugeConnectErr.rawMessage.length, 4096)
+
+  // ConnectError passthrough preserves existing code and details
+  const existingConnect = new ConnectError('already-connect', Code.NotFound)
+  assert.equal(toConnectError('testPassthrough', existingConnect), existingConnect)
+
+  // AggregateError metadata survives Code.Unknown -> Code.Internal mapping
+  const agg = new AggregateError([new Error('m1'), new Error('m2')], 'agg-failure')
+  const aggConnect = toConnectError('testAgg', agg)
+  assert.equal(aggConnect.code, Code.Internal)
+  assert.equal(aggConnect.details.length > 0, true)
 })
 
 test('serverErrorInterceptor() converts unary thrown error to Code.Internal', async () => {

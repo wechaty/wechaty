@@ -5,6 +5,7 @@
  */
 import * as PUPPET from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
+import { Code as GErrorCode, GError } from 'gerror'
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
@@ -94,6 +95,24 @@ test('registers every puppet event once and keeps reset unhandled', async () => 
       `should register ${event} intentionally`,
     )
   }
+})
+
+test('error event parses serialized GErrorData and forwards legacy error payloads', async () => {
+  const puppet = new PuppetMock()
+  const { dependencies, errorList } = createBridgeTestContext()
+
+  registerPuppetEventBridge(puppet, dependencies)
+
+  const serialized = JSON.stringify(new GError('upstream down', { code: GErrorCode.Unavailable }))
+  puppet.emit('error', { gerror: serialized })
+  puppet.emit('error', new Error('legacy error'))
+  await flushEvents()
+
+  assert.equal(errorList.length, 2)
+  assert.equal((errorList[0] as GError).code, GErrorCode.Unavailable)
+  assert.equal(errorList[0]?.message, 'upstream down')
+  assert.equal((errorList[1] as GError).code, GErrorCode.Unknown)
+  assert.equal(errorList[1]?.message, 'legacy error')
 })
 
 test('message event hydrates then forwards the same object in order', async () => {
