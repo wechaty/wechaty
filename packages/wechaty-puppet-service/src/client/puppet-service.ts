@@ -53,6 +53,7 @@ class PuppetService extends PUPPET.Puppet {
 
   protected _cleanupCallbackList: (() => void)[]
   protected _payloadStore: PayloadStore
+  private authQueue: Promise<void> = Promise.resolve()
 
   protected _grpcManager?: GrpcManager
   get grpcManager (): GrpcManager {
@@ -132,6 +133,7 @@ class PuppetService extends PUPPET.Puppet {
         log.verbose('PuppetService', 'onStop() stopping grpc manager ... done')
       }
     } finally {
+      await this.authQueue.catch(() => {})
       await this._payloadStore.stop()
     }
     log.verbose('PuppetService', 'onStop() ... done')
@@ -172,6 +174,22 @@ class PuppetService extends PUPPET.Puppet {
       })
   }
 
+  /** Serialize stream-driven login/logout transitions and skip them once stopped. */
+  private enqueueAuthTransition (fn: () => Promise<void>): void {
+    this.authQueue = this.authQueue
+      .then(async () => {
+        if (!this.isActive) {
+          return
+        }
+        await fn()
+      })
+      .catch(e => {
+        log.error('PuppetService', 'onGrpcStreamEvent() auth transition rejection %s',
+          (e as Error).message,
+        )
+      })
+  }
+
   private onGrpcStreamEvent (event: EventResponse): void {
     const type    = event.type
     const payload = event.payload
@@ -205,29 +223,26 @@ class PuppetService extends PUPPET.Puppet {
       case EventType.LOGIN:
         {
           const loginPayload = JSON.parse(payload) as PUPPET.payloads.EventLogin
-          ;(async () => {
+          this.enqueueAuthTransition(async () => {
             if (this.isLoggedIn) {
               if (this.currentUserId === loginPayload.contactId) {
                 return
               }
               await super.logout('re-login')
             }
+            if (!this.isActive) {
+              return
+            }
             await this.login(loginPayload.contactId)
-          })().catch(e =>
-            log.error('PuppetService', 'onGrpcStreamEvent() this.login() rejection %s',
-              (e as Error).message,
-            ),
-          )
+          })
         }
         break
       case EventType.LOGOUT:
         {
           const logoutPayload = JSON.parse(payload) as PUPPET.payloads.EventLogout
-          ;(async () => this.logout(logoutPayload.data))().catch(e =>
-            log.error('PuppetService', 'onGrpcStreamEvent() this.logout() rejection %s',
-              (e as Error).message,
-            ),
-          )
+          this.enqueueAuthTransition(async () => {
+            await this.logout(logoutPayload.data)
+          })
         }
         break
       case EventType.DIRTY:

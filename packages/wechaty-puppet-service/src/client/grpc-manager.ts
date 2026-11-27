@@ -276,16 +276,13 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     return Math.min(this.reconnectOptions.maxDelayMs, this.reconnectOptions.baseDelayMs * (2 ** exp))
   }
 
-  /** Trigger ScopeLet recovery on unexpected stream loss while running, or fail if `maxAttempts` is exceeded. */
+  /** Trigger ScopeLet recovery on unexpected stream loss, or fail if recovery is disabled or `maxAttempts` is exceeded. */
   private handleStreamLoss (scope: LifecycleScope, reason: unknown): void {
-    if (
-      scope.signal.aborted
-      || !this.isRunning
-      || this.isStopping
-    ) {
+    if (scope.signal.aborted || this.isStopping) {
       return
     }
-    if (!this.reconnectOptions.enabled) {
+    if (!this.reconnectOptions.enabled || !this.isRunning) {
+      scope.fail(reason)
       return
     }
     const nextAttempt = this.reconnectAttempt + 1
