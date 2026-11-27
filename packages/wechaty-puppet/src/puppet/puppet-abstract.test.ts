@@ -813,6 +813,7 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
     throw new Error('boom onStart')
   })
   await assert.rejects(async () => failingPuppet.start(), /boom onStart/)
+  await failingPuppet.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
   assert.equal(failingPuppet.isFailed, true)
 
   // Test stop exception handling
@@ -823,6 +824,7 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
     throw new Error('boom onStop')
   })
   await assert.rejects(async () => failingStopPuppet.stop(), /boom onStop/)
+  await failingStopPuppet.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
   assert.equal(failingStopPuppet.isFailed, true)
 })
 
@@ -841,6 +843,7 @@ test('start() failure teardown, error identity without error listeners, and retr
     assert.equal(err.message, 'boom onStart')
     return true
   })
+  await puppet.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
 
   // 2. State settles to inactive/failed with complete cleanup
   assert.equal(puppet.isFailed, true)
