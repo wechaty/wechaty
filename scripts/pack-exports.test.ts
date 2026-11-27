@@ -155,18 +155,31 @@ test('preparePack and restorePack lifecycle cycle preserves file content', () =>
     const backupFile = backupPathForManifest(pkgFile)
     assert.ok(existsSync(backupFile), 'Backup file must exist after preparePack')
 
-    // 2. An interrupted preparation with an existing backup automatically recovers the original manifest
+    // 2. An interrupted preparation (where pkgFile holds the prepared state) auto-recovers the original manifest
     preparePack(pkgFile)
     assert.ok(existsSync(backupFile), 'Backup file must exist after auto-recovered preparePack')
-    const rePreparedContent = JSON.parse(readFileSync(pkgFile, 'utf8'))
-    assert.equal(rePreparedContent.exports['.'].node, './dist/esm/src/mod.js')
+    assert.equal(readFileSync(backupFile, 'utf8'), originalContent, 'Backup must preserve the original source manifest')
 
-    // 3. restorePack restores original content and unlinks backup
+    // 3. A diverged manifest (conflicting with an existing backup) must reject to protect data
+    const divergedContent = JSON.stringify({ name: 'diverged-pkg', version: '2.0.0' }, null, 2) + '\n'
+    writeFileSync(pkgFile, divergedContent, 'utf8')
+    assert.throws(
+      () => preparePack(pkgFile),
+      /current manifest has diverged/,
+      'preparePack must throw and protect diverged manifests',
+    )
+    assert.equal(readFileSync(pkgFile, 'utf8'), divergedContent, 'Diverged manifest must not be overwritten')
+
+    // Restore to prepared state so restorePack can clean up
+    const preparedDist = JSON.stringify(transformManifestForPack(JSON.parse(originalContent)), null, 2) + '\n'
+    writeFileSync(pkgFile, preparedDist, 'utf8')
+
+    // 4. restorePack restores original content and unlinks backup
     restorePack(pkgFile)
     assert.equal(readFileSync(pkgFile, 'utf8'), originalContent, 'Original content must be restored')
     assert.ok(!existsSync(backupFile), 'Backup file must be cleaned up after restorePack')
 
-    // 4. Calling restorePack again when no backup exists is a safe no-op
+    // 5. Calling restorePack again when no backup exists is a safe no-op
     restorePack(pkgFile)
     assert.equal(readFileSync(pkgFile, 'utf8'), originalContent, 'Content remains unchanged')
   } finally {

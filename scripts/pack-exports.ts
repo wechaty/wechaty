@@ -160,23 +160,17 @@ export function backupPathForManifest (pkgPath: string): string {
  * Executes prepack preparation for a target package.json manifest.
  *
  * Backs up the source manifest to a uniquely scoped temporary file and rewrites
- * the manifest in place with dist-ready mappings. Throws if a previous backup
- * already exists to avoid overwriting an un-restored working tree manifest.
+ * the manifest in place with dist-ready mappings. If a backup already exists from
+ * an interrupted prior pack where the manifest was left in the prepared state,
+ * automatically recovers the original source manifest before preparing anew.
+ * Throws if the backup cannot be parsed or if the current manifest has diverged
+ * from the backup's prepared state to prevent accidental data loss.
  *
  * @param pkgPath - Relative or absolute path to the target package.json (defaults to 'package.json')
  */
 export function preparePack (pkgPath = 'package.json'): void {
   if (!existsSync(pkgPath)) {
     throw new Error(`Cannot prepare pack: ${pkgPath} does not exist`)
-  }
-
-  const backup = backupPathForManifest(pkgPath)
-  if (existsSync(backup)) {
-    // A previous pack preparation was interrupted (e.g. SIGKILL/crash) before restorePack ran.
-    // Automatically restore the original source manifest from backup so preparation starts clean.
-    const original = readFileSync(backup, 'utf8')
-    writeFileSync(pkgPath, original, 'utf8')
-    unlinkSync(backup)
   }
 
   const raw = readFileSync(pkgPath, 'utf8')
@@ -187,7 +181,37 @@ export function preparePack (pkgPath = 'package.json'): void {
     throw new Error(`Cannot prepare pack: failed to parse ${pkgPath}: ${String(err)}`)
   }
 
-  writeFileSync(backup, raw, 'utf8')
+  const backup = backupPathForManifest(pkgPath)
+  if (existsSync(backup)) {
+    let backupRaw: string
+    let backupManifest: Record<string, unknown>
+    try {
+      backupRaw = readFileSync(backup, 'utf8')
+      backupManifest = JSON.parse(backupRaw) as Record<string, unknown>
+    } catch (err) {
+      throw new Error(
+        `Cannot prepare pack: backup file exists at ${backup} but is corrupted: ${String(err)}. Remove or inspect the backup before continuing.`,
+      )
+    }
+
+    // Check if the current manifest matches the transformed output of the backup
+    const expectedPrepared = JSON.stringify(transformManifestForPack(backupManifest), null, 2) + '\n'
+    if (raw === expectedPrepared) {
+      // The current manifest was left in the prepared state from an interrupted pack.
+      // Auto-recover the original source manifest from the backup before proceeding.
+      writeFileSync(pkgPath, backupRaw, 'utf8')
+      manifest = backupManifest
+      unlinkSync(backup)
+    } else {
+      // The current manifest has diverged from the backup's prepared state.
+      // Refuse to overwrite to prevent silent data loss.
+      throw new Error(
+        `Cannot prepare pack: backup file already exists at ${backup} and current manifest has diverged. Remove or restore ${backup} to prevent data loss.`,
+      )
+    }
+  }
+
+  writeFileSync(backup, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
 
   const transformed = transformManifestForPack(manifest)
   writeFileSync(pkgPath, JSON.stringify(transformed, null, 2) + '\n', 'utf8')

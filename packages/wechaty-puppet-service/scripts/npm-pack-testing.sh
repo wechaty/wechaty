@@ -26,7 +26,7 @@ backup_file () {
 }
 
 cleanup () {
-  local sig=${1:-0}
+  local sig=${1:-}
   trap - EXIT INT TERM
   if [ -f "$RESTORE_LIST" ]; then
     while IFS=$'\t' read -r file backup; do
@@ -34,8 +34,13 @@ cleanup () {
     done < "$RESTORE_LIST"
   fi
   [ -d "$TMPDIR" ] && rm -rf "$TMPDIR"
-  if [ "$sig" -ne 0 ]; then
-    kill -s "$sig" $$
+  if [ -n "$sig" ]; then
+    kill -s "$sig" $$ 2>/dev/null || true
+    case "$sig" in
+      INT)  exit 130 ;;
+      TERM) exit 143 ;;
+      *)    exit 1 ;;
+    esac
   fi
 }
 trap 'cleanup' EXIT
