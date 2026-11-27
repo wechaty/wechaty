@@ -46,7 +46,7 @@ const MixinBase = poolifyMixin(
  *
  * > Tips: this class is extends Contact
  * @example
- * const bot = WechatyBuilder.build()
+ * const bot = new Wechaty()
  * await bot.start()
  * bot.on('login', (user: ContactSelf) => {
  *   console.log(`user ${user} login`)

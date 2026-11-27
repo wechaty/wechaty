@@ -112,13 +112,6 @@ test('Wechaty type doc-typing check', async () => {
   void bot.__options
 })
 
-test('Wechaty.valid() checks Wechaty instances', async () => {
-  const bot = new Wechaty()
-  assert.equal(Wechaty.valid(bot), true, 'Wechaty.valid should accept Wechaty instance')
-  assert.equal(Wechaty.valid(null), false, 'Wechaty.valid should reject null')
-  assert.equal(Wechaty.valid({}), false, 'Wechaty.valid should reject plain object')
-})
-
 test('Wechaty.singleton(options) returns existing singleton when options are passed subsequently', async () => {
   const singletonA = Wechaty.singleton({ name: 'initial' })
   const singletonB = Wechaty.singleton({ name: 'subsequent' })

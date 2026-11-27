@@ -16,9 +16,9 @@ npm install wechaty
 ```
 
 ```javascript
-import { WechatyBuilder } from 'wechaty'
+import { Wechaty } from 'wechaty'
 
-const wechaty = WechatyBuilder.build()
+const wechaty = new Wechaty()
 wechaty
   .on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
   .on('login',            user => console.log(`User ${user} logged in`))

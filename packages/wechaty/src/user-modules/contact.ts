@@ -90,7 +90,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @param {string | ContactQueryFilter} query `string` will search `name` & `alias`
    * @returns {(Promise<undefined | Contact>)} If can find the contact, return Contact, or return null
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
@@ -164,7 +164,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @param {string | ContactQueryFilter} [queryArg] `string` will search `name` & `alias`
    * @returns {Promise<Contact[]>}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * const contactList = await bot.Contact.findAll()                      // get the contact list of the bot
    * const contactList = await bot.Contact.findAll({ name: 'ruirui' })    // find all of the contacts whose name is 'ruirui'
@@ -275,7 +275,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @returns {Promise<void | Message>}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * const contact = await bot.Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
    *
@@ -575,7 +575,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @returns {ContactType.Unknown | ContactType.Personal | ContactType.Official}
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
@@ -731,7 +731,7 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * @param { undefined | boolean } hasRead
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * const contact = await bot.Contact.find({name: 'xxx'})
    * await contact.readMark()
    */

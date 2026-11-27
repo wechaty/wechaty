@@ -133,7 +133,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {RoomQueryFilter} [query]
    * @returns {Promise<Room[]>}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in
    * const roomList = await bot.Room.findAll()                    // get the room list of the bot
@@ -185,7 +185,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {RoomQueryFilter} query
    * @returns {Promise<undefined | Room>} If can find the room, return Room, or return null
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const roomList = await bot.Room.find()
@@ -376,7 +376,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<void | Message>}
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'wechaty'})
@@ -597,7 +597,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @return  {this}                          - this for chain
    *
    * @example <caption>Event:join </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -609,7 +609,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:leave </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -621,7 +621,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:message </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -632,7 +632,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:topic </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -643,7 +643,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * }
    *
    * @example <caption>Event:invite </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your WeChat
@@ -670,7 +670,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your WeChat
@@ -700,7 +700,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'WeChat'})          // change 'WeChat' to any room topic in your WeChat
@@ -767,7 +767,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<string | void>}
    *
    * @example <caption>When you say anything in a room, it will get room topic. </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const room = m.room()
@@ -779,7 +779,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * .start()
    *
    * @example <caption>When you say anything in a room, it will change room topic. </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const room = m.room()
@@ -842,7 +842,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {(Promise<void | string>)}
    *
    * @example <caption>When you say anything in a room, it will get room announce. </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'your room'})
@@ -850,7 +850,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * console.log(`room announce is : ${announce}`)
    *
    * @example <caption>When you say anything in a room, it will change room announce. </caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'your room'})
@@ -891,7 +891,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {Contact} contact
    * @returns {Promise<string | null>} - If a contact has an alias in room, return string, otherwise return null
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const room = m.room()
@@ -921,7 +921,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param { undefined | boolean } hasRead
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * const room = await bot.Room.find({topic: 'xxx'})
    * await room.readMark()
    */
@@ -944,7 +944,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {Contact} contact
    * @returns {Promise<boolean>} Return `true` if has contact, else return `false`.
    * @example <caption>Check whether 'lijiarui' is in the room 'wechaty'</caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your WeChat
@@ -1029,7 +1029,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<undefined | Contact>}
    *
    * @example <caption>Find member by name</caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your WeChat
@@ -1037,7 +1037,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    *   const member = await room.member('lijiarui')             // change 'lijiarui' to any room member in your WeChat
    *   if (member) {load
    * @example <caption>Find member by MemberQueryFilter</caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
    * const room = await bot.Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your WeChat

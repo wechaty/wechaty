@@ -256,7 +256,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Get the talker of a message.
    * @returns {Contact}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const talker = msg.talker()
@@ -372,7 +372,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    *
    * @returns {(Room | null)}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const contact = msg.from()
@@ -405,7 +405,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    *
    * @returns {string}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const contact = msg.from()
@@ -432,7 +432,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * Get the recalled message
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   if (m.type() === PUPPET.types.Message.Recalled) {
@@ -482,7 +482,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    *
    * @example
    * import { FileBox }  from 'file-box'
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *
@@ -577,7 +577,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @returns {Promise<boolean>}
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const recallMessage = await msg.say('123')
@@ -608,7 +608,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * @returns {PUPPET.types.Message}
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * if (message.type() === bot.Message.Type.Text) {
    *   console.log('This is a text message')
    * }
@@ -898,7 +898,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
    * The recipient of the message, the room, or the contact
    * @returns {Promise<void>}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   const room = await bot.Room.find({topic: 'wechaty'})

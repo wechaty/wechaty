@@ -122,9 +122,9 @@ Wechaty has hosted many talks and inspired many blog posts over the years. Here 
 
 ```javascript
 
-import { WechatyBuilder } from 'wechaty'
+import { Wechaty } from 'wechaty'
 
-const wechaty = WechatyBuilder.build() // the puppet comes from WECHATY_PUPPET
+const wechaty = new Wechaty() // the puppet comes from WECHATY_PUPPET
 wechaty
   .on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
   .on('login',            user => console.log(`User ${user} logged in`))
@@ -134,8 +134,8 @@ wechaty.start()
 
 > **Notice:** Wechaty 2.0 requires Node.js 26 or newer and has no default puppet.
 > Set one with the `WECHATY_PUPPET` environment variable (see
-> [Switch Protocol](#3-switch-protocolpuppet)), or pass it to the builder:
-> `WechatyBuilder.build({ puppet: 'wechaty-puppet-service', puppetOptions: { token } })`.
+> [Switch Protocol](#3-switch-protocolpuppet)), or pass it to `Wechaty`:
+> `new Wechaty({ puppet: 'wechaty-puppet-service', puppetOptions: { token } })`.
 
 After you scan the QR code and log in, this bot logs all messages to the console.
 
@@ -239,7 +239,7 @@ Main bot class.
 
 A `Bot` is a Wechaty instance that controls a specific [wechaty-puppet](https://wechaty.js.org/docs/specs/puppet).
 
-- `WechatyBuilder.build(options?: WechatyOptions)`
+- `new Wechaty(options?: WechatyOptions)` / `Wechaty.create(options?: WechatyOptions)`
     1. `options.name?: string` the name of this bot(optional)
     2. `options.puppet?: string | Puppet` the puppet provider to use, by npm name or as an instance. There is no default: without it, `WECHATY_PUPPET` names it. Known names:
         1. [wechaty-puppet-neo](https://github.com/wechaty/puppet-neo) - standalone WeChat protocol
