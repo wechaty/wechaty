@@ -385,7 +385,7 @@ jobs:
           gh auth setup-git
           if [[ "$MODE" == review ]]; then
             cat > "$private_dir/prompt.md" <<EOF
-          You are a senior engineer and principle architect. Understand the code base first, then do a deep review on $TARGET_URL - think hard, 3-pass.
+          You are a senior engineer and principle architect. Understand the code base first, then do a deep review on $TARGET_URL .
 
           Check existing inline threads. Refresh them immediately before posting to catch findings added during this review. Add new evidence to the matching thread or link to it if replies are unavailable. Post only distinct new findings inline.
 
