@@ -694,13 +694,14 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       await client.grpcManager.whenState(s => s.kind === 'starting')
       await backend.logout('logged-out-offline')
 
+      const logoutReconciled = new Promise<void>(resolve => client.once('logout', () => resolve()))
       await server.start()
       while (clock.pendingCount === 0) {
         await new Promise(resolve => setImmediate(resolve))
       }
       await clock.advanceBy(100)
       await client.grpcManager.whenRunning()
-      await new Promise(resolve => setTimeout(resolve, 40))
+      await logoutReconciled
 
       assert.equal(client.isLoggedIn, false)
     } finally {

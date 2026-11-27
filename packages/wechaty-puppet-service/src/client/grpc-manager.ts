@@ -274,6 +274,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   /** Dispose the gRPC lifecycle asynchronously. */
   [Symbol.asyncDispose] (): Promise<void> {
     this.reconnectAttempt = 0
+    this.recovering = false
     return this.lifecycle[Symbol.asyncDispose]()
   }
 
@@ -485,7 +486,6 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   protected async onStop (stop: LifecycleStop): Promise<void> {
     log.verbose('GrpcManager', 'onStop(reason=%s)', stop.reason)
     if (stop.reason === 'recover') {
-      this.remoteStopPending = false
       return
     }
 

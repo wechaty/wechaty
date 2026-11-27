@@ -73,6 +73,13 @@ class EventStreamManager {
         contactId: this.puppet.currentUserId,
       } as PUPPET.payloads.EventLogin
       this.grpcEmit(EventType.LOGIN, payload)
+    } else {
+      log.verbose('EventStreamManager', 'start() puppet is logged out, emit a logout event for downstream reconciliation')
+      const payload = {
+        contactId: '',
+        data: 'reconcile',
+      } as PUPPET.payloads.EventLogout
+      this.grpcEmit(EventType.LOGOUT, payload)
     }
 
     if (this.puppet.readyIndicator.value()) {

@@ -57,7 +57,6 @@ class PuppetService extends PUPPET.Puppet {
   protected _cleanupCallbackList: (() => void)[]
   protected _payloadStore: PayloadStore
   private authQueue: Promise<void> = Promise.resolve()
-  private sawLoginSinceReconnect = false
 
   protected _grpcManager?: GrpcManager
   get grpcManager (): GrpcManager {
@@ -170,18 +169,6 @@ class PuppetService extends PUPPET.Puppet {
 
     client
       .on('data', this.onGrpcStreamEvent.bind(this))
-      .on('reconnecting', () => {
-        this.sawLoginSinceReconnect = false
-      })
-      .on('reconnect', () => {
-        this.enqueueAuthTransition(async () => {
-          // Yield a short turn so async iterator.next() can deliver any replayed LOGIN before reconciling.
-          await new Promise(resolve => setTimeout(resolve, 20))
-          if (this.isActive && this.isLoggedIn && !this.sawLoginSinceReconnect) {
-            await super.logout('reconcile')
-          }
-        })
-      })
       .on('end', () => {
         log.verbose('PuppetService', 'bridgeGrpcEventStream() eventStream.on(end)')
       })
@@ -238,7 +225,6 @@ class PuppetService extends PUPPET.Puppet {
         break
       case EventType.LOGIN:
         {
-          this.sawLoginSinceReconnect = true
           const loginPayload = JSON.parse(payload) as PUPPET.payloads.EventLogin
           this.enqueueAuthTransition(async () => {
             if (this.isLoggedIn) {
@@ -258,7 +244,7 @@ class PuppetService extends PUPPET.Puppet {
         {
           const logoutPayload = JSON.parse(payload) as PUPPET.payloads.EventLogout
           this.enqueueAuthTransition(async () => {
-            await this.logout(logoutPayload.data)
+            await super.logout(logoutPayload.data)
           })
         }
         break
