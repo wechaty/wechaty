@@ -560,6 +560,15 @@ interface LifecycleOptions {
 
 }
 
+/** Options for {@link LifecycleController.operation}. */
+interface LifecycleOperationOptions {
+  /**
+   * Allow the operation to run while the lifecycle is in `'starting'` as well
+   * as `'running'` (defaults to `false`).
+   */
+  readonly allowStarting?: boolean
+}
+
 /**
  * What the owner of a lifecycle holds: the caller API plus condition
  * declaration. Returned by `createLifecycle`; `AsyncLifecycle` offers
@@ -570,12 +579,16 @@ interface LifecycleController extends Lifecycle {
   condition (name: string): LifecycleConditionHandle
 
   /**
-   * Run `work` as an owned operation of the running generation (ADR-01).
+   * Run `work` as an owned operation of the active generation (ADR-01).
    * Retirement aborts its signal and joins the operation before releasing resources.
-   * Rejects with {@link LifecycleUnsafeStateError} outside a live running generation.
+   * Rejects with {@link LifecycleUnsafeStateError} outside a live running generation
+   * unless `options.allowStarting` is `true` while `'starting'`.
    * A failure from `work` rejects the returned promise and leaves the lifecycle running.
    */
-  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
+  operation<T> (
+    work: (signal: AbortSignal) => T | PromiseLike<T>,
+    options?: LifecycleOperationOptions,
+  ): Promise<T>
 }
 
 // ---------------------------------------------------------------------------
@@ -618,6 +631,7 @@ export type {
   LifecycleDiagnosticState,
   LifecycleFailurePhase,
   LifecycleHooks,
+  LifecycleOperationOptions,
   LifecycleOptions,
   LifecycleRecoverResult,
   LifecycleScope,

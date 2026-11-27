@@ -1228,6 +1228,37 @@ test('executeOperation() succeeds in the handoff window between onStart() settli
   await puppet.stop()
 })
 
+test('ready and login writes after synchronous stop() seal do not throw', async () => {
+  const puppet = new PuppetTest()
+  await puppet.start()
+
+  const stopping = puppet.stop()
+  assert.doesNotThrow(() => puppet.emit('ready'))
+  assert.doesNotThrow(() => puppet.login('late-user'))
+  await stopping
+  assert.equal(puppet.isReady, false)
+  assert.equal(puppet.isLoggedIn, false)
+})
+
+test('logout() during async onStop() keeps currentUserId fenced until shutdown completes', async () => {
+  let userDuringStop: string | undefined
+
+  class LogoutOnStopPuppet extends PuppetTest {
+    override async onStop (): Promise<void> {
+      await this.logout('stopping')
+      userDuringStop = this.isLoggedIn ? this.currentUserId : undefined
+    }
+  }
+
+  const puppet = new LogoutOnStopPuppet()
+  await puppet.start()
+  puppet.login('user-stop')
+  await puppet.stop()
+
+  assert.equal(userDuringStop, 'user-stop')
+  assert.equal(puppet.isLoggedIn, false)
+})
+
 
 
 

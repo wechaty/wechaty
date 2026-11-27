@@ -24,6 +24,7 @@ import type {
 }                       from 'scopelet'
 import {
   createLifecycle,
+  LifecycleUnsafeStateError,
 }                       from 'scopelet'
 
 import {
@@ -103,13 +104,6 @@ import { typeName }               from '../schemas/type-name.ts'
 const filebox = (fb: string | FileBoxInterface): FileBoxInterface =>
   typeof fb === 'string' ? FileBox.fromJSON(fb) : fb
 
-/** Generation-bound authentication captured by provider event handlers. */
-interface PuppetRun {
-  readonly login: LifecycleConditionHandle
-  readonly ready: LifecycleConditionHandle
-  readonly signal: AbortSignal
-}
-
 let PUPPET_COUNTER = 0
 
 /**
@@ -141,9 +135,8 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   // --- ECMAScript Hard Private Brands (Node 26+ / TS 7+) ---
   readonly #options: PuppetOptions
   readonly #lifecycle: LifecycleController
+  readonly #login: LifecycleConditionHandle
   readonly #ready: LifecycleConditionHandle
-  #run: PuppetRun | undefined
-  #startupOperation: LifecycleScope['operation'] | undefined
 
   readonly #watchdog: WatchdogAgent
   readonly #cache: CacheAgent
@@ -173,6 +166,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
       onStart: scope => this.#lifecycleStart(scope),
       onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
     }, { name: 'Puppet', stopTimeoutMs: 15_000 })
+    this.#login = this.#lifecycle.condition('login')
     this.#ready = this.#lifecycle.condition('ready')
   }
 
@@ -251,7 +245,7 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     ++this.#loginToken
     this.#loggedOut = false
     this.#currentUserId = userId
-    this.#run?.login.set()
+    this.#writeCondition(this.#login, true)
     this.dispatchEvent(new WechatyEvent('login', {
       detail: { contactId: userId },
     }))
@@ -266,7 +260,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
     this.#loggedOut = true
     const currentToken = this.#loginToken
-    const run = this.#run
+    const state = this.#lifecycle.state
+    const generation = (state.kind === 'stopped' || state.kind === 'failed')
+      ? undefined
+      : state.generation
 
     this.dispatchEvent(new WechatyEvent('logout', {
       detail: {
@@ -276,33 +273,48 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }))
 
     await new Promise<void>(resolve => setTimeout(() => {
-      this.#finishLogout(run, currentToken)
+      this.#finishLogout(generation, currentToken)
       resolve()
     }, 0))
   }
 
-  /** Mirror a generation's readiness into the generation-scoped ready condition. */
-  #setReady (run: PuppetRun | undefined, ready: boolean): void {
-    if (run?.signal.aborted) {
+  /** Set or clear a condition only while the active generation is unsealed. */
+  #writeCondition (handle: LifecycleConditionHandle, value: boolean): void {
+    if (!this.#lifecycle.isActive) {
       return
     }
-    if (ready) {
-      run?.ready.set()
-    } else {
-      run?.ready.clear()
+    try {
+      if (value) {
+        handle.set()
+      } else {
+        handle.clear()
+      }
+    } catch (error) {
+      if (!(error instanceof LifecycleUnsafeStateError)) {
+        throw error
+      }
     }
   }
 
+  /** Mirror a generation's readiness into the generation-scoped ready condition. */
+  #setReady (ready: boolean): void {
+    this.#writeCondition(this.#ready, ready)
+  }
+
   /** Clear only the login and generation that scheduled this logout. */
-  #finishLogout (run: PuppetRun | undefined, token: number): void {
-    const current = this.#run
-    // An idle logout can finish after startup adopts the same login token.
-    // A logout from a generation stays with that generation.
-    if ((run && run !== current) || current?.signal.aborted || this.#loginToken !== token) {
+  #finishLogout (generation: number | undefined, token: number): void {
+    const state = this.#lifecycle.state
+    if (state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
       return
     }
-    current?.login.clear()
-    this.#setReady(current, false)
+    const current = this.#lifecycle.isActive ? state.generation : undefined
+    // An idle logout can finish after startup adopts the same login token.
+    // A logout from a generation stays with that generation.
+    if ((generation !== undefined && generation !== current) || this.#loginToken !== token) {
+      return
+    }
+    this.#writeCondition(this.#login, false)
+    this.#writeCondition(this.#ready, false)
     this.#currentUserId = undefined
     this.#loggedOut = false
   }
@@ -507,15 +519,12 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     work: (signal?: AbortSignal) => T | PromiseLike<T>,
     admittedSignal?: AbortSignal,
   ): Promise<T> {
-    if (this.#startupOperation) {
-      return this.#startupOperation(work)
-    }
     if (admittedSignal && this.#admittedSignals.has(admittedSignal)) {
       return work(admittedSignal)
     }
     const state = this.#lifecycle.state
-    if (this.#run || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
-      return this.#lifecycle.operation(work)
+    if (state.kind === 'starting' || state.kind === 'running' || state.kind === 'stopping' || (state.kind === 'failed' && !state.cleanupComplete)) {
+      return this.#lifecycle.operation(work, { allowStarting: true })
     }
     return work()
   }
@@ -536,11 +545,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   /** Register Puppet infrastructure and give the ledger ownership of provider startup. */
   async #lifecycleStart (scope: LifecycleScope): Promise<void> {
-    scope.defer(() => {
-      this.#run = undefined
-      this.#startupOperation = undefined
-    })
-
     // Authentication cleanup follows provider stop and the cache releases.
     const cleanAuthQrCode = () => {
       this.#authQrCode = undefined
@@ -627,13 +631,9 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }
     scope.signal.throwIfAborted()
 
-    const run: PuppetRun = {
-      login: scope.condition('login'),
-      ready: scope.condition('ready'),
-      signal: scope.signal,
-    }
+    const generation = this.#lifecycle.state.generation
     if (this.#currentUserId) {
-      run.login.set()
+      this.#login.set()
     }
 
     scope.listen(this, 'dirty', (e: any) => {
@@ -665,10 +665,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     scope.listen(this, 'stop', cleanAuthQrCode)
 
     scope.listen(this, 'login', (e: any) => {
-      if (run.signal.aborted) {
+      if (scope.isSealed || scope.signal.aborted) {
         return
       }
-      run.login.set()
+      this.#writeCondition(this.#login, true)
       const payload = (e instanceof CustomEvent) ? e.detail : (e?.detail ?? e)
       if (payload?.contactId) {
         this.#currentUserId = payload.contactId
@@ -676,20 +676,14 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     })
     scope.listen(this, 'logout', () => {
       const token = this.#loginToken
-      setTimeout(() => this.#finishLogout(run, token), 0)
+      setTimeout(() => this.#finishLogout(generation, token), 0)
     })
-    scope.listen(this, 'ready', () => this.#setReady(run, true))
-    scope.listen(this, 'scan', () => this.#setReady(run, false))
-    scope.listen(this, 'reset', () => this.#setReady(run, false))
-
-    this.#run = run
-    this.#startupOperation = scope.operation
+    scope.listen(this, 'ready', () => this.#setReady(true))
+    scope.listen(this, 'scan', () => this.#setReady(false))
+    scope.listen(this, 'reset', () => this.#setReady(false))
   }
 
   #onLifecycleStateChange (state: LifecycleState, previous: LifecycleState): void {
-    if (state.kind !== 'starting') {
-      this.#startupOperation = undefined
-    }
     if (state.kind === 'running' && previous.kind !== 'running') {
       this.dispatchEvent(new WechatyEvent('start'))
     } else if (state.kind === 'stopped' && previous.kind !== 'stopped') {

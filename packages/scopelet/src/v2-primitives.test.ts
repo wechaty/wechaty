@@ -697,6 +697,27 @@ test('ADR-06: AsyncLifecycle.operation() routes directly to active generation wi
   )
 })
 
+test('AsyncLifecycle.operation() forwards allowStarting option during onStart()', async () => {
+  class StartupOpService extends AsyncLifecycle {
+
+    public startupResult: string | undefined
+
+    public constructor () {
+      super()
+    }
+
+    protected override async onStart (): Promise<void> {
+      this.startupResult = await this.operation(async () => 'started-op', { allowStarting: true })
+    }
+
+  }
+
+  const service = new StartupOpService()
+  await service.start()
+  assert.equal(service.startupResult, 'started-op')
+  await service.stop()
+})
+
 test('Semantic state awaiters: whenRunning() and whenStopped()', async () => {
   const lifecycle = createLifecycle({
     onStart: async () => {},

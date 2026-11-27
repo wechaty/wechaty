@@ -40,6 +40,7 @@ import type {
   LifecycleConditionHandle,
   LifecycleController,
   LifecycleHooks,
+  LifecycleOperationOptions,
   LifecycleOptions,
   LifecycleScope,
   LifecycleState,
@@ -127,7 +128,10 @@ abstract class AsyncLifecycle implements Lifecycle {
       operation: {
         configurable: false,
         writable: false,
-        value: <T>(work: (signal: AbortSignal) => T | PromiseLike<T>) => this.#engine.operation(work),
+        value: <T>(
+          work: (signal: AbortSignal) => T | PromiseLike<T>,
+          callOptions?: LifecycleOperationOptions,
+        ) => this.#engine.operation(work, callOptions),
       },
       isRunning: {
         configurable: false,
@@ -266,8 +270,11 @@ abstract class AsyncLifecycle implements Lifecycle {
   }
 
   /** See {@link LifecycleController.operation}. */
-  protected operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
-    return this.#engine.operation(work)
+  protected operation<T> (
+    work: (signal: AbortSignal) => T | PromiseLike<T>,
+    options?: LifecycleOperationOptions,
+  ): Promise<T> {
+    return this.#engine.operation(work, options)
   }
 
   /** Ask for a running generation. See {@link Lifecycle.start} (C-CMD-01 to C-CMD-06). */

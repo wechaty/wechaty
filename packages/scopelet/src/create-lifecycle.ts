@@ -69,7 +69,7 @@ function createLifecycle (
     whenState   : (predicate, callOptions) => engine.whenState(predicate, callOptions),
     whenRunning : callOptions => engine.whenRunning(callOptions),
     whenStopped : callOptions => engine.whenStopped(callOptions),
-    operation   : work => engine.operation(work),
+    operation   : (work, callOptions) => engine.operation(work, callOptions),
     condition   : name => engine.condition(name),
     [Symbol.asyncDispose]: () => engine[Symbol.asyncDispose](),
   }

@@ -88,6 +88,7 @@ import type {
   LifecycleCondition,
   LifecycleConditionHandle,
   LifecycleHooks,
+  LifecycleOperationOptions,
   LifecycleOptions,
   LifecycleState,
   LifecycleStopReason,
@@ -362,9 +363,14 @@ class LifecycleEngine {
     return this.whenState(s => s.kind === 'stopped', options).then(() => {})
   }
 
-  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+  operation<T> (
+    work: (signal: AbortSignal) => T | PromiseLike<T>,
+    options?: LifecycleOperationOptions,
+  ): Promise<T> {
     const current = this.#current
-    if (this.#state.kind !== 'running' || !current || current.sealed) {
+    const allowed = this.#state.kind === 'running'
+      || (options?.allowStarting === true && this.#state.kind === 'starting')
+    if (!allowed || !current || current.sealed) {
       return Promise.reject(new LifecycleUnsafeStateError(
         `Cannot run operation: lifecycle is in state '${this.#state.kind}', expected 'running'`,
       ))
