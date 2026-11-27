@@ -23,8 +23,8 @@
  * Why this module exists:
  * Replaces dynamic runtime subclassing (`WechatifiedContact extends ContactImpl`)
  * with a canonical `Proxy` facade (`bindUserModule`) and synchronous constructor
- * injection (`#wechaty`), preserving `instanceof` identity across bots while keeping
- * per-bot `pool` and `wechaty` contexts isolated.
+ * injection (`instanceWechatyMap` `WeakMap`), preserving `instanceof` identity
+ * across bots while keeping per-bot `pool` and `wechaty` contexts isolated.
  */
 import { log }              from 'wechaty-puppet'
 import type { Constructor } from 'clone-class'
@@ -38,12 +38,24 @@ interface WechatyMinxin {
   }
 }
 
-const wechatyStack: Wechaty[] = []
+interface WechatyStackEntry {
+  target: Function
+  wechaty: Wechaty
+}
+
+const wechatyStack: WechatyStackEntry[] = []
 const boundModules = new WeakSet<object>()
 const instanceWechatyMap = new WeakMap<object, Wechaty>()
 
-function withWechaty<R> (wechaty: Wechaty, fn: () => R): R {
-  wechatyStack.push(wechaty)
+/**
+ * Push `{ target, wechaty }` onto the synchronous constructor-context stack while
+ * running `fn`, then pop it in `finally`.
+ *
+ * Precondition: `fn` must construct the target synchronously; the context is
+ * popped as soon as `fn` returns (or throws), before any async continuation runs.
+ */
+function withWechaty<R> (target: Function, wechaty: Wechaty, fn: () => R): R {
+  wechatyStack.push({ target, wechaty })
   try {
     return fn()
   } finally {
@@ -61,9 +73,12 @@ const throwWechatifyError = (WechatyUserClass: Function): never => {
 /**
  * Bind a canonical User Class constructor to a specific {@link Wechaty} bot instance.
  *
- * Returns a `Proxy` facade with an isolated `pool`, `wechaty` getter, and `construct`
- * trap so instances remain canonical (`obj instanceof ContactImpl === true`) across bots
- * without generating runtime subclasses.
+ * Returns a `Proxy` facade with an isolated `pool` (on poolified modules), `wechaty`
+ * getter, and `construct` trap so instances remain canonical
+ * (`obj instanceof ContactImpl === true`) across bots without generating runtime
+ * subclasses. Note that `instance.constructor` is the canonical `UserClass` (not the
+ * proxy), so instance methods must use `this.wechaty.<Module>` rather than
+ * `this.constructor` to access per-bot `wechaty` or `pool`.
  */
 const bindUserModule = <T extends WechatyMinxin> (UserClass: T) => {
   log.verbose('WechatifyMixin', 'bindUserModule(%s)', UserClass.name)
@@ -72,25 +87,34 @@ const bindUserModule = <T extends WechatyMinxin> (UserClass: T) => {
     log.verbose('WechatifyMixin', 'bindUserModule(%s)(%s)', UserClass.name, wechaty)
 
     const pool = new Map<string, InstanceType<T>>()
-    const boundFnCache = new WeakMap<Function, Function>()
+    const boundFnCacheByReceiver = new WeakMap<object, WeakMap<Function, Function>>()
 
     const proxy = new Proxy(UserClass, {
-      construct (target, args) {
-        return withWechaty(wechaty, () => Reflect.construct(target, args, target))
+      construct (target, args, newTarget) {
+        return withWechaty(target, wechaty, () => Reflect.construct(target, args, newTarget))
       },
       get (target, prop, receiver) {
         if (prop === 'wechaty') {
           return wechaty
         }
-        if (prop === 'pool') {
+        if (prop === 'pool' && prop in target) {
           return pool
         }
-        const value = Reflect.get(target, prop, target)
-        if (typeof value === 'function') {
-          let bound = boundFnCache.get(value)
+        const value = Reflect.get(target, prop, receiver)
+        if (
+          typeof value === 'function'
+          && prop !== Symbol.hasInstance
+          && !Object.hasOwn(value, 'prototype')
+        ) {
+          let receiverCache = boundFnCacheByReceiver.get(receiver as object)
+          if (!receiverCache) {
+            receiverCache = new WeakMap<Function, Function>()
+            boundFnCacheByReceiver.set(receiver as object, receiverCache)
+          }
+          let bound = receiverCache.get(value)
           if (!bound) {
-            bound = (...args: unknown[]) => value.apply(receiver, args)
-            boundFnCache.set(value, bound)
+            bound = value.bind(receiver)
+            receiverCache.set(value, bound!)
           }
           return bound
         }
@@ -106,7 +130,10 @@ const bindUserModule = <T extends WechatyMinxin> (UserClass: T) => {
 /** Return true if `klass` is a bot-bound module proxy created by {@link bindUserModule}. */
 const isWechatified = (klass: Function): boolean => boundModules.has(klass)
 
-/** Mixin injecting `#wechaty` on construction and rejecting direct unbound instantiation. */
+/**
+ * Mixin injecting per-instance `wechaty` binding into `instanceWechatyMap` on
+ * construction and rejecting direct unbound instantiation.
+ */
 const wechatifyMixin = <TBase extends Constructor> (Base: TBase) => {
   log.verbose('WechatifyMixin', 'wechatifyMixin(%s)', Base.name || '')
 
@@ -120,8 +147,11 @@ const wechatifyMixin = <TBase extends Constructor> (Base: TBase) => {
 
     constructor (...args: any[]) {
       super(...args)
-      const wechaty = wechatyStack.at(-1)
-      instanceWechatyMap.set(this, wechaty ?? throwWechatifyError(this.constructor))
+      const entry = wechatyStack.at(-1)
+      const wechaty = entry && this instanceof entry.target
+        ? entry.wechaty
+        : throwWechatifyError(this.constructor)
+      instanceWechatyMap.set(this, wechaty)
     }
 
   }

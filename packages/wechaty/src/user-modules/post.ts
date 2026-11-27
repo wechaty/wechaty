@@ -48,7 +48,6 @@ import {
   payloadToSayableWechaty,
 }                       from '../sayable/mod.ts'
 
-import { ContactImpl } from './contact.ts'
 import type { Contact } from './contact.ts'
 import { concurrencyExecuter } from 'rx-queue'
 
@@ -253,7 +252,7 @@ class PostMixin extends wechatifyMixinBase() {
       return this.wechaty.currentUser
     }
 
-    const author = await ContactImpl.find(this.payload.contactId)
+    const author = await this.wechaty.Contact.find(this.payload.contactId)
     if (!author) {
       throw new Error('no author for id: ' + this.payload.contactId)
     }

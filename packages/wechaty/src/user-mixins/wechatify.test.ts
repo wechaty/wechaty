@@ -29,4 +29,39 @@ test('isWechatified() and canonical instanceof', async _t => {
   assert.equal(user.wechaty, wechaty, 'instance should receive wechaty via constructor injection')
   assert.ok(user instanceof UserClassTest, 'instanceof canonical class should be true')
   assert.ok(user instanceof BoundUserClass, 'instanceof bound module should be true')
+  assert.equal((BoundUserClass as any).pool, undefined, 'non-poolified module should not synthesize pool')
+})
+
+test('bindUserModule() stack unwinding, cross-class guard, and subclass instanceof', async _t => {
+  class InnerClass extends wechatifyMixin(Object) {}
+  class OuterClass extends wechatifyMixin(Object) {
+    constructor (shouldThrow = false, callInner = false) {
+      super()
+      if (callInner) {
+        new InnerClass()
+      }
+      if (shouldThrow) {
+        throw new Error('constructor boom')
+      }
+    }
+  }
+
+  const BoundOuter = bindUserModule(OuterClass)(wechaty)
+
+  // 1. Stack unwinds when bound constructor throws
+  assert.throws(() => new BoundOuter(true), /constructor boom/)
+  assert.throws(() => new OuterClass(), /can not be instantiated directly/)
+
+  // 2. Synchronous direct new InnerClass() inside BoundOuter constructor still throws
+  assert.throws(() => new BoundOuter(false, true), /can not be instantiated directly/)
+
+  // 3. Subclassing bound module preserves prototype chain and instanceof in both orders
+  class CustomOuter extends BoundOuter {}
+  const base = new BoundOuter()
+  const sub = new CustomOuter()
+  assert.ok(base instanceof BoundOuter)
+  assert.ok(!(base instanceof CustomOuter))
+  assert.ok(sub instanceof CustomOuter)
+  assert.ok(sub instanceof BoundOuter)
+  assert.ok(sub instanceof OuterClass)
 })
