@@ -86,6 +86,7 @@ import {
 import type {
   LifecycleClock,
   LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleHooks,
   LifecycleOptions,
   LifecycleState,
@@ -313,6 +314,8 @@ class LifecycleEngine {
       recover           : (generation, reason) => this.#recover(generation, reason),
       lateRelease       : (generation, run) => this.#lateRelease(generation, run),
       setCondition      : (generation, condition, value) => this.#setCondition(generation, condition, value),
+      condition         : name => this.condition(name),
+      clock             : this.#clock,
     }
   }
 
@@ -322,6 +325,48 @@ class LifecycleEngine {
 
   get state (): LifecycleState {
     return this.#state
+  }
+
+  get isRunning (): boolean {
+    return this.#state.kind === 'running'
+  }
+
+  get isActive (): boolean {
+    return this.#state.kind === 'starting' || this.#state.kind === 'running'
+  }
+
+  get isStarting (): boolean {
+    return this.#state.kind === 'starting'
+  }
+
+  get isStopping (): boolean {
+    return this.#state.kind === 'stopping'
+  }
+
+  get isStopped (): boolean {
+    return this.#state.kind === 'stopped'
+  }
+
+  get isFailed (): boolean {
+    return this.#state.kind === 'failed'
+  }
+
+  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
+    return this.whenState(s => s.kind === 'running', options).then(() => {})
+  }
+
+  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
+    return this.whenState(s => s.kind === 'stopped', options).then(() => {})
+  }
+
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+    const current = this.#current
+    if (this.#state.kind !== 'running' || !current || current.sealed) {
+      return Promise.reject(new LifecycleUnsafeStateError(
+        `Cannot run operation: lifecycle is in state '${this.#state.kind}', expected 'running'`,
+      ))
+    }
+    return current.scope.operation(work)
   }
 
   /** See {@link Lifecycle.start}. */
@@ -474,8 +519,65 @@ class LifecycleEngine {
   // ===========================================================================
 
   /** See {@link LifecycleController.condition}. */
-  condition (name: string): LifecycleCondition {
-    return this.#board.declare(name, (condition, options) => this.#waitCondition(condition, options))
+  condition (name: string): LifecycleConditionHandle {
+    return this.#board.declare(
+      name,
+      (condition, options) => this.#waitCondition(condition, options),
+      condition => {
+        const current = this.#current
+        if (!current || current.sealed) {
+          throw new LifecycleUnsafeStateError(`cannot set condition '${name}' while lifecycle is in state '${this.#state.kind}'`)
+        }
+        this.#setCondition(current, condition, true)
+      },
+      condition => {
+        const current = this.#current
+        if (!current || current.sealed) {
+          throw new LifecycleUnsafeStateError(`cannot clear condition '${name}' while lifecycle is in state '${this.#state.kind}'`)
+        }
+        this.#setCondition(current, condition, false)
+      },
+      (condition, timeoutMs) => this.#whenCondition(condition, timeoutMs),
+      (condition, timeoutMs) => this.#whenClearCondition(condition, timeoutMs),
+    )
+  }
+
+  #whenCondition (condition: Condition, timeoutMs?: number): Promise<void> {
+    validTimeout('condition.when timeoutMs', timeoutMs)
+    if (timeoutMs === undefined) {
+      return this.#waitCondition(condition)
+    }
+    const controller = new AbortController()
+    const timer = this.#clock.setTimeout(() => {
+      controller.abort(
+        typeof globalThis.DOMException === 'function'
+          ? new globalThis.DOMException('The operation was aborted due to timeout', 'TimeoutError')
+          : Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }),
+      )
+    }, timeoutMs)
+    return this.#waitCondition(condition, { signal: controller.signal }).finally(() => {
+      this.#clock.clearTimeout(timer)
+    })
+  }
+
+  #whenClearCondition (condition: Condition, timeoutMs?: number): Promise<void> {
+    validTimeout('condition.whenClear timeoutMs', timeoutMs)
+    const current = this.#current
+    const target = current && !current.sealed ? current.number : 'next'
+    if (timeoutMs === undefined) {
+      return this.#board.waitClear(condition, target)
+    }
+    const controller = new AbortController()
+    const timer = this.#clock.setTimeout(() => {
+      controller.abort(
+        typeof globalThis.DOMException === 'function'
+          ? new globalThis.DOMException('The operation was aborted due to timeout', 'TimeoutError')
+          : Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }),
+      )
+    }, timeoutMs)
+    return this.#board.waitClear(condition, target, { signal: controller.signal }).finally(() => {
+      this.#clock.clearTimeout(timer)
+    })
   }
 
   #waitCondition (condition: Condition, options?: LifecycleWaitOptions): Promise<void> {
@@ -485,16 +587,17 @@ class LifecycleEngine {
   }
 
   #setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void {
-    if (!this.#board.owns(condition)) {
+    const canonical = (condition as any)?.canonical ?? condition
+    if (!this.#board.owns(canonical)) {
       throw new TypeError(`condition '${condition.name}' was not declared on this lifecycle`)
     }
     if (generation.sealed) {
       return
     }
     if (value) {
-      this.#board.set(generation.number, condition)
+      this.#board.set(generation.number, canonical)
     } else {
-      this.#board.clear(generation.number, condition)
+      this.#board.clear(generation.number, canonical)
     }
   }
 

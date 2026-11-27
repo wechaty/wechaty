@@ -62,6 +62,7 @@ export type {
   WatchdogOptions,
 }                             from './companions/watchdog.ts'
 export {
+  CANONICAL_LIFECYCLE,
   createLifecycle,
 }                             from './create-lifecycle.ts'
 export {
@@ -81,6 +82,9 @@ export type {
   LifecycleErrorLike,
 }                             from './errors.ts'
 export {
+  sleep,
+}                             from './clock.ts'
+export {
   VERSION,
 }                             from './version.ts'
 export type {
@@ -88,6 +92,7 @@ export type {
   LifecycleAcquireOptions,
   LifecycleClock,
   LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleController,
   LifecycleDiagnosticRecord,
   LifecycleDiagnosticState,

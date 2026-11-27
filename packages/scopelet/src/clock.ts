@@ -59,8 +59,58 @@ function validTimeout (name: string, value: number | undefined): number | undefi
   return value
 }
 
+/**
+ * A cancellation- and clock-aware delay (ADR-05).
+ *
+ * Automatically resolves after `ms` milliseconds using the provided {@link LifecycleClock}
+ * (defaulting to {@link defaultClock}). If `signal` aborts before the timer expires, the timer
+ * is cancelled immediately and the returned promise rejects with `signal.reason`.
+ *
+ * @param ms Delay in milliseconds. Finite number at most 2³¹−1. Values <= 0 resolve immediately.
+ * @param signal Optional AbortSignal. If aborted, rejects with signal.reason.
+ * @param clock Timer source, defaults to `defaultClock`.
+ * @throws RangeError when `ms` is not a finite number or is greater than 2³¹−1 (MAX_TIMEOUT_MS).
+ */
+function sleep (
+  ms: number,
+  signal?: AbortSignal,
+  clock: LifecycleClock = defaultClock,
+): Promise<void> {
+  if (Number.isNaN(ms) || !Number.isFinite(ms) || ms > MAX_TIMEOUT_MS) {
+    throw new RangeError(`sleep ms must be a finite number <= ${MAX_TIMEOUT_MS}, got ${String(ms)}`)
+  }
+  if (signal?.aborted) {
+    return Promise.reject(signal.reason)
+  }
+  if (ms <= 0) {
+    return Promise.resolve()
+  }
+
+  const { promise, resolve, reject } = Promise.withResolvers<void>()
+  let timerHandle: unknown
+
+  const onAbort = () => {
+    clock.clearTimeout(timerHandle)
+    reject(signal!.reason)
+  }
+
+  if (signal) {
+    signal.addEventListener('abort', onAbort, { once: true })
+  }
+
+  timerHandle = clock.setTimeout(() => {
+    if (signal) {
+      signal.removeEventListener('abort', onAbort)
+    }
+    resolve()
+  }, ms)
+
+  return promise
+}
+
 export {
   defaultClock,
   MAX_TIMEOUT_MS,
+  sleep,
   validTimeout,
 }

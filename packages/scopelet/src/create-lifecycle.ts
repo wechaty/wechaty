@@ -28,11 +28,14 @@
  */
 
 import { LifecycleEngine } from './engine.ts'
+import { LifecycleOverrideError } from './errors.ts'
 import type {
   LifecycleController,
   LifecycleHooks,
   LifecycleOptions,
 }                           from './types.ts'
+
+const CANONICAL_LIFECYCLE = Symbol.for('scopelet.canonical-lifecycle')
 
 /**
  * Create a lifecycle in composition form.
@@ -52,16 +55,149 @@ function createLifecycle (
 ): LifecycleController {
   assertHooks(hooks)
   const engine = new LifecycleEngine(hooks, options)
-  return Object.freeze<LifecycleController>({
+  const controller: LifecycleController = {
     get state () { return engine.state },
-    start     : callOptions => engine.start(callOptions),
-    stop      : callOptions => engine.stop(callOptions),
-    restart   : callOptions => engine.restart(callOptions),
-    whenState : (predicate, callOptions) => engine.whenState(predicate, callOptions),
-    condition : name => engine.condition(name),
+    get isRunning () { return engine.isRunning },
+    get isActive () { return engine.isActive },
+    get isStarting () { return engine.isStarting },
+    get isStopping () { return engine.isStopping },
+    get isStopped () { return engine.isStopped },
+    get isFailed () { return engine.isFailed },
+    start       : callOptions => engine.start(callOptions),
+    stop        : callOptions => engine.stop(callOptions),
+    restart     : callOptions => engine.restart(callOptions),
+    whenState   : (predicate, callOptions) => engine.whenState(predicate, callOptions),
+    whenRunning : callOptions => engine.whenRunning(callOptions),
+    whenStopped : callOptions => engine.whenStopped(callOptions),
+    operation   : work => engine.operation(work),
+    condition   : name => engine.condition(name),
     [Symbol.asyncDispose]: () => engine[Symbol.asyncDispose](),
+  }
+  Object.defineProperty(controller, CANONICAL_LIFECYCLE, {
+    value        : controller,
+    configurable : false,
+    enumerable   : false,
+    writable     : false,
   })
+  return Object.freeze(controller)
 }
+
+/**
+ * Composition attachment (ADR-04):
+ * Attach a lifecycle directly to a target object, defining standard delegation
+ * getters and methods (state, isRunning, start, stop, operation, etc.) directly on `target`.
+ */
+function attach<T extends object> (
+  target: T,
+  hooks: LifecycleHooks,
+  options?: LifecycleOptions,
+): LifecycleController {
+  if ((typeof target !== 'object' && typeof target !== 'function') || target === null || !Object.isExtensible(target)) {
+    throw new TypeError('createLifecycle.attach() needs an extensible object or function target')
+  }
+  const members = [
+    'state', 'isRunning', 'isActive', 'isStarting', 'isStopping', 'isStopped', 'isFailed',
+    'start', 'stop', 'restart', 'whenState', 'whenRunning', 'whenStopped', 'operation',
+    Symbol.asyncDispose,
+    CANONICAL_LIFECYCLE,
+  ]
+  for (const member of members) {
+    let curr: object | null = target
+    while (curr && curr !== Object.prototype) {
+      if (Object.hasOwn(curr, member)) {
+        throw new LifecycleOverrideError(typeof member === 'symbol' ? member.toString() : member)
+      }
+      curr = Object.getPrototypeOf(curr)
+    }
+  }
+  const controller = createLifecycle(hooks, options)
+  Object.defineProperties(target, {
+    state: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.state,
+    },
+    isRunning: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.isRunning,
+    },
+    isActive: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.isActive,
+    },
+    isStarting: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.isStarting,
+    },
+    isStopping: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.isStopping,
+    },
+    isStopped: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.isStopped,
+    },
+    isFailed: {
+      configurable: false,
+      enumerable: true,
+      get: () => controller.isFailed,
+    },
+    start: {
+      configurable: false,
+      writable: false,
+      value: (callOptions?: any) => controller.start(callOptions),
+    },
+    stop: {
+      configurable: false,
+      writable: false,
+      value: (callOptions?: any) => controller.stop(callOptions),
+    },
+    restart: {
+      configurable: false,
+      writable: false,
+      value: (callOptions?: any) => controller.restart(callOptions),
+    },
+    whenState: {
+      configurable: false,
+      writable: false,
+      value: (predicate: any, callOptions?: any) => controller.whenState(predicate, callOptions),
+    },
+    whenRunning: {
+      configurable: false,
+      writable: false,
+      value: (callOptions?: any) => controller.whenRunning(callOptions),
+    },
+    whenStopped: {
+      configurable: false,
+      writable: false,
+      value: (callOptions?: any) => controller.whenStopped(callOptions),
+    },
+    operation: {
+      configurable: false,
+      writable: false,
+      value: (work: any) => controller.operation(work),
+    },
+    [Symbol.asyncDispose]: {
+      configurable: false,
+      writable: false,
+      value: () => controller[Symbol.asyncDispose](),
+    },
+    [CANONICAL_LIFECYCLE]: {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: controller,
+    },
+  })
+  return controller
+}
+
+createLifecycle.attach = attach
 
 /** C-SHELL-03: throw `TypeError` for a missing `onStart` or a non-function hook. */
 function assertHooks (hooks: LifecycleHooks): void {
@@ -79,5 +215,6 @@ function assertHooks (hooks: LifecycleHooks): void {
 }
 
 export {
+  CANONICAL_LIFECYCLE,
   createLifecycle,
 }

@@ -209,9 +209,18 @@ export class Wechaty extends EventEmitter<WechatyEvents> implements Lifecycle {
   /** Today's `state.active()` / `state.inactive()`, derived from `state` (D24). */
   readonly legacyState: LegacyStateView = legacyStateView(this)
 
-  // The caller API, delegated (same six members as Puppet).
+  // The caller API, delegated.
   /** See `Lifecycle.state`. */
   get state (): LifecycleState { return this.#lifecycle.state }
+  get isRunning (): boolean { return this.#lifecycle.isRunning }
+  get isActive (): boolean { return this.#lifecycle.isActive }
+  get isStarting (): boolean { return this.#lifecycle.isStarting }
+  get isStopping (): boolean { return this.#lifecycle.isStopping }
+  get isStopped (): boolean { return this.#lifecycle.isStopped }
+  get isFailed (): boolean { return this.#lifecycle.isFailed }
+  whenRunning (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.whenRunning(options) }
+  whenStopped (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.whenStopped(options) }
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> { return this.#lifecycle.operation(work) }
   /** See `Lifecycle.start`. */
   start (options?: LifecycleWaitOptions): Promise<void> { return this.#lifecycle.start(options) }
   /**

@@ -32,11 +32,12 @@
  * prototype overrides and for class-field overrides (v1 design §8).
  */
 
+import { CANONICAL_LIFECYCLE } from './create-lifecycle.ts'
 import { LifecycleEngine } from './engine.ts'
 import { LifecycleOverrideError } from './errors.ts'
 import type {
   Lifecycle,
-  LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleHooks,
   LifecycleOptions,
   LifecycleScope,
@@ -54,7 +55,17 @@ const SEALED_MEMBERS: readonly (string | symbol)[] = [
   'stop',
   'restart',
   'whenState',
+  'whenRunning',
+  'whenStopped',
+  'operation',
+  'isRunning',
+  'isActive',
+  'isStarting',
+  'isStopping',
+  'isStopped',
+  'isFailed',
   Symbol.asyncDispose,
+  CANONICAL_LIFECYCLE,
 ]
 
 /**
@@ -102,10 +113,61 @@ abstract class AsyncLifecycle implements Lifecycle {
           callOptions?: LifecycleWaitOptions,
         ) => this.#engine.whenState(predicate, callOptions),
       },
+      whenRunning: {
+        configurable: false,
+        writable: false,
+        value: (callOptions?: LifecycleWaitOptions) => this.#engine.whenRunning(callOptions),
+      },
+      whenStopped: {
+        configurable: false,
+        writable: false,
+        value: (callOptions?: LifecycleWaitOptions) => this.#engine.whenStopped(callOptions),
+      },
+      operation: {
+        configurable: false,
+        writable: false,
+        value: (work: any) => this.#engine.operation(work),
+      },
+      isRunning: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isRunning,
+      },
+      isActive: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isActive,
+      },
+      isStarting: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isStarting,
+      },
+      isStopping: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isStopping,
+      },
+      isStopped: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isStopped,
+      },
+      isFailed: {
+        configurable: false,
+        enumerable: true,
+        get: () => this.#engine.isFailed,
+      },
       [Symbol.asyncDispose]: {
         configurable: false,
         writable: false,
         value: () => this.#engine[Symbol.asyncDispose](),
+      },
+      [CANONICAL_LIFECYCLE]: {
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        value: this,
       },
     })
   }
@@ -122,7 +184,7 @@ abstract class AsyncLifecycle implements Lifecycle {
     while (proto && proto !== base) {
       for (const member of SEALED_MEMBERS) {
         if (Object.hasOwn(proto, member)) {
-          throw new LifecycleOverrideError(typeof member === 'symbol' ? 'Symbol.asyncDispose' : member)
+          throw new LifecycleOverrideError(typeof member === 'symbol' ? member.toString() : member)
         }
       }
       proto = Object.getPrototypeOf(proto) as object | null
@@ -151,7 +213,7 @@ abstract class AsyncLifecycle implements Lifecycle {
   /**
    * Declare a generation-bound condition. See {@link LifecycleController.condition}.
    */
-  protected condition (name: string): LifecycleCondition {
+  protected condition (name: string): LifecycleConditionHandle {
     return this.#engine.condition(name)
   }
 
@@ -160,6 +222,42 @@ abstract class AsyncLifecycle implements Lifecycle {
   /** The current frozen snapshot. See {@link Lifecycle.state} (C-STATE-01). */
   get state (): LifecycleState {
     return this.#engine.state
+  }
+
+  get isRunning (): boolean {
+    return this.#engine.isRunning
+  }
+
+  get isActive (): boolean {
+    return this.#engine.isActive
+  }
+
+  get isStarting (): boolean {
+    return this.#engine.isStarting
+  }
+
+  get isStopping (): boolean {
+    return this.#engine.isStopping
+  }
+
+  get isStopped (): boolean {
+    return this.#engine.isStopped
+  }
+
+  get isFailed (): boolean {
+    return this.#engine.isFailed
+  }
+
+  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#engine.whenRunning(options)
+  }
+
+  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#engine.whenStopped(options)
+  }
+
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+    return this.#engine.operation(work)
   }
 
   /** Ask for a running generation. See {@link Lifecycle.start} (C-CMD-01 to C-CMD-06). */
