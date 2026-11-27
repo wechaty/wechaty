@@ -21,7 +21,7 @@ import * as BROWSER from './browser.ts'
 
 test('wechaty/browser exports browser-safe SDK components', () => {
   assert.ok(typeof BROWSER.Wechaty === 'function', 'Wechaty constructor must be exported')
-  assert.ok(typeof BROWSER.WechatyBuilder.build === 'function', 'WechatyBuilder.build must be exported')
+  assert.equal((BROWSER as any).WechatyBuilder, undefined, 'WechatyBuilder must not be exported')
   assert.ok(BROWSER.ScanStatus, 'ScanStatus must be exported')
   assert.ok(BROWSER.VERSION, 'VERSION must be exported')
   assert.ok(BROWSER.types, 'types must be exported')

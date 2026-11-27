@@ -17,7 +17,7 @@ import {
   VERSION as MOCK_VERSION,
 }                             from 'wechaty-puppet-mock'
 import {
-  WechatyBuilder,
+  Wechaty,
   VERSION as WECHATY_VERSION,
 }                             from 'wechaty'
 
@@ -42,7 +42,7 @@ assert.deepEqual({
 }, 'every package should embed the release version')
 
 const mocker = new mock.Mocker()
-const bot = WechatyBuilder.build({ puppet: new PuppetMock({ mocker }) })
+const bot = new Wechaty({ puppet: new PuppetMock({ mocker }) })
 bot.addEventListener('message', async (event: any) => {
   const message = event.detail
   if (message.text() === 'ding') {

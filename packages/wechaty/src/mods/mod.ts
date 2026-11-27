@@ -26,11 +26,6 @@ export {
   Wechaty,
   type WechatyOptions,
 }                               from '../wechaty/mod.ts'
-export {
-  WechatyBuilder,
-  type BuilderInterface,
-}                               from '../wechaty-builder.ts'
-
 export type {
   SayableSayer,
   Sayable,

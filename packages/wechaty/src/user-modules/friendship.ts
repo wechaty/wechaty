@@ -234,7 +234,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * @returns {Promise<void>}
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
    *   try {
    *     console.log(`received friend event.`)
@@ -312,7 +312,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    *
    * @returns {string}
    * @example <caption>If request content is `ding`, then accept the friendship</caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
    *   try {
    *     console.log(`received friend event from ${friendship.contact().name()}`)
@@ -337,7 +337,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    *
    * @returns {Contact}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
    *   const contact = friendship.contact()
    *   const name = contact.name()
@@ -365,7 +365,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * @returns {FriendshipType}
    *
    * @example <caption>If request content is `ding`, then accept the friendship</caption>
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
    *   try {
    *     if (friendship.type() === Friendship.Type.Receive && friendship.hello() === 'ding') {
@@ -388,7 +388,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
    * @returns {FriendshipPayload}
    *
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot.on('friendship', async friendship => {
    *   try {
    *     // JSON.stringify(friendship) as well.
@@ -411,7 +411,7 @@ class FriendshipMixin extends MixinBase implements Accepter {
   /**
    * create friendShip by friendshipJson
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * bot.start()
    *
    * const payload = '{...}'  // your saved JSON payload

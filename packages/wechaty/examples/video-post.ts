@@ -2,10 +2,10 @@ import * as PUPPET from 'wechaty-puppet'
 import { FileBox } from 'file-box'
 
 import {
-  WechatyBuilder,
+  Wechaty,
 }                     from '../src/mods/mod.ts'
 
-const bot = WechatyBuilder.build({
+const bot = new Wechaty({
   name : 'video-post-bot',
 })
 

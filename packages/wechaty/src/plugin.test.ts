@@ -23,7 +23,7 @@ import assert from 'node:assert/strict'
 
 import { PuppetMock } from 'wechaty-puppet-mock'
 
-import { WechatyBuilder } from './wechaty-builder.ts'
+import { Wechaty } from './wechaty/mod.ts'
 
 import {
   isWechatyPluginUninstaller,
@@ -42,7 +42,7 @@ test('isWechatyPluginUninstaller()', async _t => {
 
 test('Wechaty.useScoped() installs on start, uninstalls LIFO on stop, and reinstalls on restart', async () => {
   const order: string[] = []
-  const bot = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const bot = new Wechaty({ puppet: new PuppetMock() })
 
   try {
     const uninstaller1 = bot.useScoped((_bot, scope) => {
@@ -98,7 +98,7 @@ test('Wechaty.useScoped() installs on start, uninstalls LIFO on stop, and reinst
 })
 
 test('Wechaty.useScoped() snapshots installs, rolls back partial failures, and awaits/retries uninstallers', async () => {
-  const bot = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const bot = new Wechaty({ puppet: new PuppetMock() })
   const events: string[] = []
 
   try {
@@ -140,7 +140,7 @@ test('Wechaty.useScoped() snapshots installs, rolls back partial failures, and a
   }
 
   // 3. Fail-once uninstaller is retried on subsequent stop()
-  const bot2 = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const bot2 = new Wechaty({ puppet: new PuppetMock() })
   let uninstallAttempts = 0
   bot2.useScoped(() => () => {
     uninstallAttempts += 1
@@ -160,7 +160,7 @@ test('Wechaty.useScoped() snapshots installs, rolls back partial failures, and a
 })
 
 test('useScoped() restart, mid-run uninstall, batch throw, re-entrancy & retiring guard', async _t => {
-  const bot = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const bot = new Wechaty({ puppet: new PuppetMock() })
   const logEvents: string[] = []
 
   const unsubA = bot.useScoped(() => {
@@ -224,7 +224,7 @@ test('useScoped() restart, mid-run uninstall, batch throw, re-entrancy & retirin
   }
 
   // 5. Entry uninstalled by earlier plugin during installScoped is skipped
-  const bot2 = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const bot2 = new Wechaty({ puppet: new PuppetMock() })
   let victimInstalled = false
   let unsubVictim: (() => void) | undefined
   bot2.useScoped(() => {
@@ -246,7 +246,7 @@ test('useScoped() restart, mid-run uninstall, batch throw, re-entrancy & retirin
   failingPuppet.onStart = async () => {
     throw new Error('puppet start boom')
   }
-  const bot3 = WechatyBuilder.build({ puppet: failingPuppet })
+  const bot3 = new Wechaty({ puppet: failingPuppet })
   let rolledBack = false
   bot3.useScoped(() => () => { rolledBack = true })
   await assert.rejects(() => bot3.start(), /puppet start boom/)
@@ -255,7 +255,7 @@ test('useScoped() restart, mid-run uninstall, batch throw, re-entrancy & retirin
 
   // 7. Re-entrant self-uninstall during installScoped, re-entrant handle inside cleanup,
   //    aborted stop/restart signal, and scope.recover() retiring window
-  const bot4 = WechatyBuilder.build({ puppet: new PuppetMock() })
+  const bot4 = new Wechaty({ puppet: new PuppetMock() })
   let selfUninstallCleanupCount = 0
   let unsubSelf: (() => void) | undefined
   unsubSelf = bot4.useScoped(() => {

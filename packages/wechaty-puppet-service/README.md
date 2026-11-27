@@ -37,9 +37,9 @@ This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty)
 ### Consume a puppet service
 
 ```ts
-import { WechatyBuilder } from 'wechaty'
+import { Wechaty } from 'wechaty'
 
-const wechaty = WechatyBuilder.build({
+const wechaty = new Wechaty({
   puppet: 'wechaty-puppet-service',
   puppetOptions: {
     token: `${TOKEN}`

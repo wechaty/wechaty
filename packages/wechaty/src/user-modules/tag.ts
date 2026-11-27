@@ -63,7 +63,7 @@ class TagMixin extends MixinBase {
    * @param {string} [tag] the tag name which want to create
    * @returns {Promise<TagImpl>}
    * @example
-   * const bot = WechatyBuilder.build()
+   * const bot = new Wechaty()
    * await bot.Tag.get('TagName')
    */
   static async get (

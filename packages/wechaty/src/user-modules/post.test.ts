@@ -25,12 +25,12 @@ import * as PUPPET from 'wechaty-puppet'
 import PuppetMock from 'wechaty-puppet-mock'
 import { FileBox } from 'file-box'
 
-import { WechatyBuilder } from '../wechaty-builder.ts'
+import { Wechaty } from '../wechaty/mod.ts'
 
 test.skip('Post smoke testing', async t => {
 
   const puppet = new PuppetMock()
-  const wechaty = WechatyBuilder.build({ puppet })
+  const wechaty = new Wechaty({ puppet })
   let started = false
   t.after(async () => {
     if (started) {

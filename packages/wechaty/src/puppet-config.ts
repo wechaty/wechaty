@@ -58,7 +58,7 @@ const isPuppetModuleName = (name: string): name is OfficialPuppetNpmName => name
  */
 const NO_PUPPET_MESSAGE = [
   'No puppet is set: Wechaty 2.0 has no default puppet. Name one of:',
-  '  - in code:  WechatyBuilder.build({ puppet: \'wechaty-puppet-service\', puppetOptions: { token } })',
+  '  - in code:  new Wechaty({ puppet: \'wechaty-puppet-service\', puppetOptions: { token } })',
   '  - or in the environment:  WECHATY_PUPPET=wechaty-puppet-service',
   'Puppet providers: https://wechaty.js.org/docs/puppet-providers/',
 ].join('\n')
