@@ -59,8 +59,43 @@ function validTimeout (name: string, value: number | undefined): number | undefi
   return value
 }
 
+function sleep (
+  ms: number,
+  signal?: AbortSignal,
+  clock: LifecycleClock = defaultClock,
+): Promise<void> {
+  if (signal?.aborted) {
+    return Promise.reject(signal.reason)
+  }
+  if (ms <= 0) {
+    return Promise.resolve()
+  }
+
+  const { promise, resolve, reject } = Promise.withResolvers<void>()
+  let timerHandle: unknown
+
+  const onAbort = () => {
+    clock.clearTimeout(timerHandle)
+    reject(signal!.reason)
+  }
+
+  if (signal) {
+    signal.addEventListener('abort', onAbort, { once: true })
+  }
+
+  timerHandle = clock.setTimeout(() => {
+    if (signal) {
+      signal.removeEventListener('abort', onAbort)
+    }
+    resolve()
+  }, ms)
+
+  return promise
+}
+
 export {
   defaultClock,
   MAX_TIMEOUT_MS,
+  sleep,
   validTimeout,
 }

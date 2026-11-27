@@ -40,9 +40,20 @@ import {
   Ledger,
   type Release,
 }                           from './ledger.ts'
+import {
+  listen,
+}                           from './companions/listen.ts'
+import {
+  operation,
+}                           from './companions/operation.ts'
+import {
+  watchdog,
+}                           from './companions/watchdog.ts'
 import type {
   Lifecycle,
+  LifecycleClock,
   LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleFailurePhase,
   LifecycleScope,
   LifecycleStopReason,
@@ -66,6 +77,10 @@ interface ScopeHost {
   lateRelease (generation: Generation, start: () => Promise<void>): void
   /** Set or clear a condition; throws `TypeError` for a foreign condition. */
   setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void
+  /** Look up or declare a condition on the engine. */
+  condition (name: string): LifecycleConditionHandle
+  /** The clock used for deadlines and timers. */
+  readonly clock: LifecycleClock
 }
 
 /**
@@ -432,6 +447,126 @@ function createScope (generation: Generation, host: ScopeHost): LifecycleScope {
 
     clear (condition: LifecycleCondition): void {
       host.setCondition(generation, condition, false)
+    },
+
+    condition (name: string): LifecycleConditionHandle {
+      const handle = host.condition(name)
+      return Object.freeze({
+        canonical: handle,
+        name: handle.name,
+        get isSet () { return handle.isSet },
+        wait: (options?: any) => handle.wait(options),
+        when: (timeoutMs?: number) => handle.when(timeoutMs),
+        whenClear: (timeoutMs?: number) => handle.whenClear(timeoutMs),
+        set: () => host.setCondition(generation, handle, true),
+        clear: () => host.setCondition(generation, handle, false),
+      })
+    },
+
+    acquireService<T> (service: {
+      readonly start: (signal: AbortSignal) => T | PromiseLike<T>
+      readonly stop: () => unknown
+      readonly abort?: () => unknown
+    }): Promise<T> {
+      if (generation.sealed) {
+        return Promise.reject(generation.sealReason)
+      }
+      let starting!: Promise<T>
+      let interrupting: Promise<unknown> | undefined
+      const interrupted = (result: unknown) => {
+        if (isPromiseLike(result)) {
+          interrupting = generation.ledger.addJoin(result)
+        }
+      }
+
+      const releaseEntry = async () => {
+        if (interrupting) {
+          await interrupting.catch(() => {})
+        }
+        await service.stop()
+      }
+
+      generation.ledger.add({
+        release: releaseEntry,
+        interrupt: service.abort && (() => {
+          interrupted(service.abort!())
+        }),
+      })
+
+      starting = (async () => service.start(signal))()
+      starting.catch(async () => {
+        try {
+          if (service.abort) {
+            interrupted(service.abort())
+          }
+        } catch {}
+        try {
+          await releaseEntry()
+        } catch {}
+        generation.ledger.discard(releaseEntry)
+      })
+
+      return starting
+    },
+
+    sleep (ms: number): Promise<void> {
+      if (generation.sealed) {
+        return Promise.reject(generation.sealReason)
+      }
+      if (signal.aborted) {
+        return Promise.reject(signal.reason)
+      }
+      if (ms <= 0) {
+        return Promise.resolve()
+      }
+
+      const { promise, resolve, reject } = Promise.withResolvers<void>()
+      let timerHandle: unknown
+
+      const onAbort = () => {
+        host.clock.clearTimeout(timerHandle)
+        generation.ledger.discard(cleanup)
+        reject(signal.reason)
+      }
+
+      const cleanup = () => {
+        host.clock.clearTimeout(timerHandle)
+        signal.removeEventListener('abort', onAbort)
+      }
+
+      signal.addEventListener('abort', onAbort, { once: true })
+      generation.ledger.add({ release: cleanup })
+
+      timerHandle = host.clock.setTimeout(() => {
+        cleanup()
+        generation.ledger.discard(cleanup)
+        resolve()
+      }, ms)
+
+      return promise
+    },
+
+    operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+      return operation(this, work)
+    },
+
+    listen (
+      target: any,
+      type: string,
+      listener: (...args: any[]) => void,
+    ): void {
+      listen(this, target, type, listener)
+    },
+
+    watchdog (
+      timeoutMs: number,
+      options?: { readonly onTimeout?: 'fail' | 'recover'; readonly clock?: LifecycleClock },
+    ): { feed: () => void; disarm: () => void } {
+      return watchdog(this, {
+        timeoutMs,
+        onTimeout: options?.onTimeout ?? 'fail',
+        clock: options?.clock ?? host.clock,
+      })
     },
 
     fail (error: unknown): void {

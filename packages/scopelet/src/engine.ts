@@ -86,6 +86,7 @@ import {
 import type {
   LifecycleClock,
   LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleHooks,
   LifecycleOptions,
   LifecycleState,
@@ -313,6 +314,8 @@ class LifecycleEngine {
       recover           : (generation, reason) => this.#recover(generation, reason),
       lateRelease       : (generation, run) => this.#lateRelease(generation, run),
       setCondition      : (generation, condition, value) => this.#setCondition(generation, condition, value),
+      condition         : name => this.condition(name),
+      clock             : this.#clock,
     }
   }
 
@@ -322,6 +325,48 @@ class LifecycleEngine {
 
   get state (): LifecycleState {
     return this.#state
+  }
+
+  get isRunning (): boolean {
+    return this.#state.kind === 'running'
+  }
+
+  get isActive (): boolean {
+    return this.#state.kind === 'starting' || this.#state.kind === 'running'
+  }
+
+  get isStarting (): boolean {
+    return this.#state.kind === 'starting'
+  }
+
+  get isStopping (): boolean {
+    return this.#state.kind === 'stopping'
+  }
+
+  get isStopped (): boolean {
+    return this.#state.kind === 'stopped'
+  }
+
+  get isFailed (): boolean {
+    return this.#state.kind === 'failed'
+  }
+
+  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
+    return this.whenState(s => s.kind === 'running', options).then(() => {})
+  }
+
+  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
+    return this.whenState(s => s.kind === 'stopped', options).then(() => {})
+  }
+
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+    const current = this.#current
+    if (!current || this.#state.kind === 'stopped' || current.sealed) {
+      return Promise.reject(new LifecycleUnsafeStateError(
+        `Cannot run operation: lifecycle is in state '${this.#state.kind}'`,
+      ))
+    }
+    return current.scope.operation(work)
   }
 
   /** See {@link Lifecycle.start}. */
@@ -474,8 +519,32 @@ class LifecycleEngine {
   // ===========================================================================
 
   /** See {@link LifecycleController.condition}. */
-  condition (name: string): LifecycleCondition {
-    return this.#board.declare(name, (condition, options) => this.#waitCondition(condition, options))
+  condition (name: string): LifecycleConditionHandle {
+    return this.#board.declare(
+      name,
+      (condition, options) => this.#waitCondition(condition, options),
+      condition => {
+        const current = this.#current
+        if (current && !current.sealed) {
+          this.#setCondition(current, condition, true)
+        }
+      },
+      condition => {
+        const current = this.#current
+        if (current && !current.sealed) {
+          this.#setCondition(current, condition, false)
+        }
+      },
+      (condition, timeoutMs) => {
+        const current = this.#current
+        const target = current && !current.sealed ? current.number : 'next'
+        return this.#board.waitClear(
+          condition,
+          target,
+          timeoutMs !== undefined ? { signal: AbortSignal.timeout(timeoutMs) } : undefined,
+        )
+      },
+    )
   }
 
   #waitCondition (condition: Condition, options?: LifecycleWaitOptions): Promise<void> {
@@ -485,16 +554,17 @@ class LifecycleEngine {
   }
 
   #setCondition (generation: Generation, condition: LifecycleCondition, value: boolean): void {
-    if (!this.#board.owns(condition)) {
+    const canonical = (condition as any)?.canonical ?? condition
+    if (!this.#board.owns(canonical)) {
       throw new TypeError(`condition '${condition.name}' was not declared on this lifecycle`)
     }
     if (generation.sealed) {
       return
     }
     if (value) {
-      this.#board.set(generation.number, condition)
+      this.#board.set(generation.number, canonical)
     } else {
-      this.#board.clear(generation.number, condition)
+      this.#board.clear(generation.number, canonical)
     }
   }
 

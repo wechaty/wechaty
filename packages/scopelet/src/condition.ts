@@ -32,6 +32,7 @@
 
 import type {
   LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleWaitOptions,
 }                           from './types.ts'
 
@@ -48,20 +49,29 @@ interface Waiter {
  * A declared condition. The handle is all an owner or implementer ever holds;
  * `wait` asks the owning engine where to bind.
  */
-class Condition implements LifecycleCondition {
+class Condition implements LifecycleConditionHandle {
 
   readonly name: string
   readonly #wait: (condition: Condition, options?: LifecycleWaitOptions) => Promise<void>
   readonly #isSet: (condition: Condition) => boolean
+  readonly #set: (condition: Condition) => void
+  readonly #clear: (condition: Condition) => void
+  readonly #whenClear: (condition: Condition, timeoutMs?: number) => Promise<void>
 
   constructor (
     name: string,
     wait: (condition: Condition, options?: LifecycleWaitOptions) => Promise<void>,
     isSet: (condition: Condition) => boolean,
+    set?: (condition: Condition) => void,
+    clear?: (condition: Condition) => void,
+    whenClear?: (condition: Condition, timeoutMs?: number) => Promise<void>,
   ) {
     this.name = name
     this.#wait = wait
     this.#isSet = isSet
+    this.#set = set ?? (() => {})
+    this.#clear = clear ?? (() => {})
+    this.#whenClear = whenClear ?? (() => Promise.resolve())
   }
 
   /** See {@link LifecycleCondition.isSet} (C-COND-06, D23). */
@@ -74,6 +84,26 @@ class Condition implements LifecycleCondition {
     return this.#wait(this, options)
   }
 
+  /** See {@link LifecycleConditionHandle.when}. */
+  when (timeoutMs?: number): Promise<void> {
+    return this.wait(timeoutMs !== undefined ? { signal: AbortSignal.timeout(timeoutMs) } : undefined)
+  }
+
+  /** See {@link LifecycleConditionHandle.whenClear}. */
+  whenClear (timeoutMs?: number): Promise<void> {
+    return this.#whenClear(this, timeoutMs)
+  }
+
+  /** See {@link LifecycleConditionHandle.set}. */
+  set (): void {
+    this.#set(this)
+  }
+
+  /** See {@link LifecycleConditionHandle.clear}. */
+  clear (): void {
+    this.#clear(this)
+  }
+
 }
 
 /** Per-engine registry of conditions, their waits and their set flags. */
@@ -82,16 +112,27 @@ class ConditionBoard {
   readonly #declared = new Map<string, Condition>()
   readonly #next = new Set<Waiter>()
   readonly #bound = new Map<number, Set<Waiter>>()
+  readonly #boundClear = new Map<number, Set<Waiter>>()
   readonly #set = new Map<number, Set<LifecycleCondition>>()
 
   /** Declare a condition, or return the one already declared under `name`. */
   declare (
     name: string,
     wait: (condition: Condition, options?: LifecycleWaitOptions) => Promise<void>,
+    set?: (condition: Condition) => void,
+    clear?: (condition: Condition) => void,
+    whenClear?: (condition: Condition, timeoutMs?: number) => Promise<void>,
   ): Condition {
     let condition = this.#declared.get(name)
     if (!condition) {
-      condition = new Condition(name, wait, declared => this.isSet(declared))
+      condition = new Condition(
+        name,
+        wait,
+        declared => this.isSet(declared),
+        set,
+        clear,
+        whenClear,
+      )
       this.#declared.set(name, condition)
     }
     return condition
@@ -99,7 +140,8 @@ class ConditionBoard {
 
   /** Whether `condition` was declared on this board (and not on another lifecycle). */
   owns (condition: LifecycleCondition): boolean {
-    return this.#declared.get(condition.name) === condition
+    const canonical = (condition as any)?.canonical ?? condition
+    return this.#declared.get(canonical.name) === canonical
   }
 
   /**
@@ -123,6 +165,40 @@ class ConditionBoard {
     const pool = target === 'next' ? this.#next : this.#pool(target)
     const onAbort = () => {
       this.#forget(waiter)
+      reject(signal!.reason)
+    }
+    const detach = () => signal?.removeEventListener('abort', onAbort)
+    const waiter: Waiter = {
+      condition,
+      resolve: () => { detach(); resolve() },
+      reject: reason => { detach(); reject(reason) },
+    }
+    pool.add(waiter)
+    signal?.addEventListener('abort', onAbort, { once: true })
+    return promise
+  }
+
+  /**
+   * Register a wait bound to `target` for condition to be cleared. Resolves at once
+   * if `target` does not have the condition set.
+   */
+  waitClear (
+    condition: LifecycleCondition,
+    target: ConditionTarget,
+    options?: LifecycleWaitOptions,
+  ): Promise<void> {
+    const signal = options?.signal
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+    if (target === 'next' || !this.#set.get(target)?.has(condition)) {
+      return Promise.resolve()
+    }
+
+    const { promise, resolve, reject } = Promise.withResolvers<void>()
+    const pool = this.#poolClear(target)
+    const onAbort = () => {
+      this.#forgetClear(waiter)
       reject(signal!.reason)
     }
     const detach = () => signal?.removeEventListener('abort', onAbort)
@@ -181,6 +257,12 @@ class ConditionBoard {
   /** Mark `condition` not set for `generation`. Later waits block again. */
   clear (generation: number, condition: LifecycleCondition): void {
     this.#set.get(generation)?.delete(condition)
+    for (const waiter of [ ...this.#boundClear.get(generation) ?? [] ]) {
+      if (waiter.condition === condition) {
+        this.#forgetClear(waiter)
+        waiter.resolve()
+      }
+    }
   }
 
   /**
@@ -189,6 +271,13 @@ class ConditionBoard {
    */
   retire (generation: number, reason: unknown): void {
     this.#set.delete(generation)
+    const clearPool = this.#boundClear.get(generation)
+    if (clearPool) {
+      this.#boundClear.delete(generation)
+      for (const waiter of clearPool) {
+        waiter.resolve()
+      }
+    }
     const pool = this.#bound.get(generation)
     if (!pool) {
       return
@@ -217,11 +306,28 @@ class ConditionBoard {
     return pool
   }
 
+  #poolClear (generation: number): Set<Waiter> {
+    let pool = this.#boundClear.get(generation)
+    if (!pool) {
+      pool = new Set()
+      this.#boundClear.set(generation, pool)
+    }
+    return pool
+  }
+
   #forget (waiter: Waiter): void {
     this.#next.delete(waiter)
     for (const [ generation, pool ] of this.#bound) {
       if (pool.delete(waiter) && pool.size === 0) {
         this.#bound.delete(generation)
+      }
+    }
+  }
+
+  #forgetClear (waiter: Waiter): void {
+    for (const [ generation, pool ] of this.#boundClear) {
+      if (pool.delete(waiter) && pool.size === 0) {
+        this.#boundClear.delete(generation)
       }
     }
   }

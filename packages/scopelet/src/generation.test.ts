@@ -32,6 +32,7 @@ import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
 import { createLifecycle } from './create-lifecycle.ts'
+import { defaultClock } from './clock.ts'
 import type { LifecycleScope } from './types.ts'
 import { LifecycleUnsafeStateError } from './errors.ts'
 
@@ -43,6 +44,16 @@ const host: ScopeHost = {
   recover: () => 'superseded',
   lateRelease: (_generation, start) => { start().catch(() => {}) },
   setCondition: () => {},
+  condition: (name: string) => ({
+    name,
+    isSet: false,
+    wait: () => Promise.resolve(),
+    when: () => Promise.resolve(),
+    whenClear: () => Promise.resolve(),
+    set: () => {},
+    clear: () => {},
+  }),
+  clock: defaultClock,
 }
 
 async function flush (turns = 50): Promise<void> {

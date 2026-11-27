@@ -158,6 +158,29 @@ interface Lifecycle extends AsyncDisposable {
     options?: LifecycleWaitOptions,
   ): Promise<LifecycleState>
 
+  /** Whether the lifecycle is currently running (kind === 'running'). */
+  readonly isRunning: boolean
+
+  /** Whether the lifecycle is active (starting, running, or recovering). */
+  readonly isActive: boolean
+
+  readonly isStarting: boolean
+  readonly isStopping: boolean
+  readonly isStopped: boolean
+  readonly isFailed: boolean
+
+  /** Wait until the lifecycle commits the `running` state (ADR-06). */
+  whenRunning (options?: LifecycleWaitOptions): Promise<void>
+
+  /** Wait until the lifecycle commits the `stopped` state (ADR-06). */
+  whenStopped (options?: LifecycleWaitOptions): Promise<void>
+
+  /**
+   * Run `work` as an operation of the active generation and return its result (ADR-01).
+   * Rejects if the lifecycle is not running.
+   */
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
+
   /** Same as {@link Lifecycle.stop}; the instance can start again (C-CMD-15). */
   [Symbol.asyncDispose] (): Promise<void>
 
@@ -197,6 +220,16 @@ interface LifecycleCondition {
    */
   wait (options?: LifecycleWaitOptions): Promise<void>
 
+}
+
+/**
+ * A self-sovereign handle for setting, clearing, and awaiting a condition (ADR-02).
+ */
+interface LifecycleConditionHandle extends LifecycleCondition {
+  set (): void
+  clear (): void
+  when (timeoutMs?: number): Promise<void>
+  whenClear (timeoutMs?: number): Promise<void>
 }
 
 /** Options for {@link LifecycleScope.acquire}. */
@@ -327,6 +360,53 @@ interface LifecycleScope {
   clear (condition: LifecycleCondition): void
 
   /**
+   * Look up or declare a condition on this scope's lifecycle, returning
+   * a self-sovereign handle with .set(), .clear(), .when(), and .isSet (ADR-02).
+   */
+  condition (name: string): LifecycleConditionHandle
+
+  /**
+   * Acquire a paired start/stop service (ADR-03).
+   *
+   * Registers the stop/abort cleanup in the ledger before starting the service.
+   * If `service.start` throws, cleanup runs immediately to unwind partial allocations.
+   */
+  acquireService<T> (service: {
+    readonly start: (signal: AbortSignal) => T | PromiseLike<T>
+    readonly stop: () => unknown
+    readonly abort?: () => unknown
+  }): Promise<T>
+
+  /**
+   * Clock-aware, leak-free cancellation sleep (ADR-05).
+   * Automatically unregisters when the scope retires or signal aborts.
+   */
+  sleep (ms: number): Promise<void>
+
+  /**
+   * Execute an operation bound to this generation (ADR-01).
+   */
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
+
+  /**
+   * Listen to an EventTarget or EventEmitter for the duration of this generation (ADR-07).
+   */
+  listen (
+    target: any,
+    type: string,
+    listener: (...args: any[]) => void,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+
+  /**
+   * Arm a watchdog timer for this generation (ADR-07).
+   */
+  watchdog (
+    timeoutMs: number,
+    options?: { readonly onTimeout?: 'fail' | 'recover'; readonly clock?: LifecycleClock },
+  ): { feed: () => void; disarm: () => void }
+
+  /**
    * Report that this generation can no longer run (C-REC-01). It retires with no
    * replacement and ends `failed`. The first failure wins; the value is kept as
    * given, falsy values included.
@@ -443,7 +523,7 @@ interface LifecycleOptions {
  */
 interface LifecycleController extends Lifecycle {
   /** Declare, or look up, the condition with this name (C-COND-01). */
-  condition (name: string): LifecycleCondition
+  condition (name: string): LifecycleConditionHandle
 }
 
 // ---------------------------------------------------------------------------
@@ -480,6 +560,7 @@ export type {
   LifecycleAcquireOptions,
   LifecycleClock,
   LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleController,
   LifecycleDiagnosticRecord,
   LifecycleDiagnosticState,

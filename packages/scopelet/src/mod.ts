@@ -81,6 +81,9 @@ export type {
   LifecycleErrorLike,
 }                             from './errors.ts'
 export {
+  sleep,
+}                             from './clock.ts'
+export {
   VERSION,
 }                             from './version.ts'
 export type {
@@ -88,6 +91,7 @@ export type {
   LifecycleAcquireOptions,
   LifecycleClock,
   LifecycleCondition,
+  LifecycleConditionHandle,
   LifecycleController,
   LifecycleDiagnosticRecord,
   LifecycleDiagnosticState,
