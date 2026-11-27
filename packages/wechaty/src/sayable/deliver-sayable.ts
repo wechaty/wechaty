@@ -30,6 +30,10 @@ function isSayableStream (value: unknown): value is SayableStream {
     || typeof (value as AsyncIterable<unknown>)[Symbol.asyncIterator] === 'function'
 }
 
+/**
+ * Combine two optional `AbortSignal`s into a single signal that aborts when
+ * either input aborts.
+ */
 function combineAbortSignals (a?: AbortSignal, b?: AbortSignal): AbortSignal | undefined {
   if (a && b) {
     return AbortSignal.any([a, b])
@@ -37,11 +41,17 @@ function combineAbortSignals (a?: AbortSignal, b?: AbortSignal): AbortSignal | u
   return a ?? b
 }
 
+/**
+ * Race an upstream stream read/next promise against an optional `AbortSignal`.
+ * When `signal` is already aborted, attaches a no-op rejection handler to
+ * `promise` so an in-flight producer error never becomes an unhandled rejection.
+ */
 function raceWithAbort<T> (promise: Promise<T>, signal?: AbortSignal): Promise<T> {
   if (!signal) {
     return promise
   }
   if (signal.aborted) {
+    promise.catch(() => {})
     return Promise.reject(signal.reason)
   }
   return new Promise<T>((resolve, reject) => {
@@ -62,6 +72,15 @@ function raceWithAbort<T> (promise: Promise<T>, signal?: AbortSignal): Promise<T
   })
 }
 
+/**
+ * Normalize `ReadableStream<Sayable>` and `AsyncIterable<Sayable>` into a
+ * single cancellable async generator.
+ *
+ * Trade-off on abort: when `signal.aborted` is already true, `reader.cancel()`
+ * and `iterator.return?.()` are triggered without awaiting completion so
+ * `say()` and `bot.stop()` cannot hang indefinitely on an unresponsive upstream
+ * LLM/HTTP stream.
+ */
 async function * iterateSayableStream (
   stream: SayableStream,
   signal?: AbortSignal,
@@ -82,11 +101,19 @@ async function * iterateSayableStream (
     } finally {
       if (!completed) {
         const cancelPromise = reader.cancel(signal?.reason).catch(() => {})
-        if (!signal?.aborted) {
+        if (signal?.aborted) {
+          void cancelPromise.finally(() => {
+            try {
+              reader.releaseLock()
+            } catch {}
+          })
+        } else {
           await cancelPromise
+          reader.releaseLock()
         }
+      } else {
+        reader.releaseLock()
       }
-      reader.releaseLock()
     }
     return
   }
@@ -214,10 +241,12 @@ const deliverSayableStreamConversationPuppet = (puppet: PUPPET.Puppet) => (conve
   stream: SayableStream,
   options?: SayableStreamOptions,
 ): Promise<string | void> => {
+  const signal = options?.signal
   const coalescer = new TokenCoalescer(options)
   let lastMsgId: string | void = undefined
 
   const sendText = async (text: string) => {
+    signal?.throwIfAborted()
     const msgId = await puppet.messageSendText(conversationId, text)
     if (msgId) {
       lastMsgId = msgId
@@ -225,19 +254,21 @@ const deliverSayableStreamConversationPuppet = (puppet: PUPPET.Puppet) => (conve
   }
 
   const flushCoalescer = async () => {
+    signal?.throwIfAborted()
     const remaining = coalescer.flush()
     if (remaining !== undefined) {
       await sendText(remaining)
     }
   }
 
-  for await (const chunk of iterateSayableStream(stream, options?.signal)) {
+  for await (const chunk of iterateSayableStream(stream, signal)) {
     if (typeof chunk === 'string' || typeof chunk === 'number') {
       for (const text of coalescer.push(String(chunk))) {
         await sendText(text)
       }
     } else {
       await flushCoalescer()
+      signal?.throwIfAborted()
       const msgId = await deliverSayableConversationPuppet(puppet)(conversationId)(chunk)
       if (msgId) {
         lastMsgId = msgId

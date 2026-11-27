@@ -340,6 +340,10 @@ class ContactMixin extends MixinBase implements SayableSayer {
    * const msg = await contact.say(location)
    * @throws {LifecycleUnsafeStateError} If the puppet is not currently running (stopped or stopping);
    *   in-flight calls drain before `stop()` completes.
+   *
+   * Also accepts a `SayableStream` (`ReadableStream<Sayable> | AsyncIterable<Sayable>`)
+   * with optional `SayableStreamOptions` (ADR-29), coalescing text tokens and
+   * resolving to the last delivered `Message` (or `undefined`).
    */
   say (sayable: Sayable): Promise<void | Message>
   say (stream: SayableStream, options?: SayableStreamOptions): Promise<void | Message>

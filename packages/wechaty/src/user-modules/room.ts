@@ -379,7 +379,7 @@ class RoomMixin extends MixinBase implements SayableSayer {
    * @param {(string | Contact | FileBox)} textOrContactOrFileOrUrlOrMini - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact | Contact[])} [mention] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
-   * @returns {Promise<void | Message>}
+   * @returns {Promise<void | Message>} When streaming a `SayableStream` (ADR-29), resolves to the last delivered `Message` (or `undefined`).
    *
    * @example
    * const bot = new Wechaty()

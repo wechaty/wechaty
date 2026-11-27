@@ -58,11 +58,21 @@ type SayableStreamMode =
   | 'adaptive'
 
 interface SayableStreamOptions {
-  /** Coalescing strategy for text/number tokens (default: `'sentence'`). */
+  /**
+   * Coalescing strategy for text/number tokens (default: `'sentence'`):
+   * - `'sentence'`: flush completed sentences once `flushIntervalMs` elapses.
+   * - `'paragraph'`: flush on `\n\n` paragraph breaks.
+   * - `'adaptive'`: flush immediately on paragraph breaks, on sentence boundaries
+   *   after `flushIntervalMs`, or at whitespace when `flushIntervalMs` elapses
+   *   above half of `maxChunkSize`.
+   */
   mode?: SayableStreamMode
-  /** Minimum interval in ms between flushed sentence/adaptive chunks (default: `1200`). */
+  /**
+   * Minimum interval in ms between flushed sentence/adaptive chunks (default: `1200`).
+   * Evaluated when tokens arrive (token-driven); trailing text flushes on stream end.
+   */
   flushIntervalMs?: number
-  /** Maximum buffered characters before forcing a flush (default: `250`). */
+  /** Maximum buffered characters before forcing a split/flush (default: `250`). */
   maxChunkSize?: number
   /** Optional AbortSignal to cancel stream consumption early. */
   signal?: AbortSignal
@@ -77,8 +87,12 @@ interface SayableSayer {
   id      : string,
   wechaty : Wechaty,
   say (
-    sayable  : Sayable | SayableStream,
-    replyTo? : Contact | Contact[] | SayableStreamOptions
+    sayable  : Sayable,
+    replyTo? : Contact | Contact[],
+  ): Promise<void | Message>
+  say (
+    stream   : SayableStream,
+    options? : SayableStreamOptions,
   ): Promise<void | Message>
 }
 

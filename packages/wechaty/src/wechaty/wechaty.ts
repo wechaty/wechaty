@@ -83,8 +83,10 @@ import type {
   TagConstructor,
   UrlLinkConstructor,
   ContactSelf,
+  Contact,
   Message,
   Post,
+  Room,
 } from '../user-modules/mod.ts'
 import {
   combineAbortSignals,
@@ -386,8 +388,13 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   // --- Operations & Facades ---
 
   /**
-   * Sends a message to a conversation or sends a Sayable directly to bot itself.
+   * Sends a message to a conversation, sends a Sayable directly to bot itself,
+   * or streams a `ReadableStream<Sayable> | AsyncIterable<Sayable>` (ADR-29).
    * Execution is bound to the puppet's active lifecycle generation and drains on stop.
+   *
+   * When streaming, resolves to the last delivered message ID (if `to` is a string
+   * conversation ID and the puppet returns IDs), or `undefined` when `to` is omitted,
+   * is a `Contact` / `Room`, or no messages are delivered.
    *
    * @param conversationId - Target conversation identifier.
    * @param text - Text message content.
@@ -395,6 +402,8 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
    */
   say (conversationId: string, text: string): Promise<void | string>
   say (sayable: Sayable): Promise<void>
+  say (stream: SayableStream, options?: WechatySayStreamOptions & { to?: Contact | Room }): Promise<void>
+  say (stream: SayableStream, options: WechatySayStreamOptions & { to: string }): Promise<void | string>
   say (stream: SayableStream, options?: WechatySayStreamOptions): Promise<void | string>
   async say (
     conversationOrSayable: string | Sayable | SayableStream,
@@ -408,7 +417,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
       })
     }
     if (isSayableStream(conversationOrSayable)) {
-      const options = typeof textOrOptions === 'object' ? textOrOptions : undefined
+      const options = textOrOptions !== null && typeof textOrOptions === 'object' ? textOrOptions : undefined
       if (typeof options?.to === 'string') {
         const targetId = options.to
         return this.puppet.operation(async signal => {
@@ -420,16 +429,11 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
         })
       }
       if (options?.to) {
-        const target = options.to
-        return this.puppet.operation(async () => {
-          const msg = await target.say(conversationOrSayable, options)
-          return msg?.id
-        })
-      }
-      return this.puppet.operation(async () => {
-        await this.currentUser.say(conversationOrSayable, options)
+        await options.to.say(conversationOrSayable, options)
         return undefined
-      })
+      }
+      await this.currentUser.say(conversationOrSayable, options)
+      return undefined
     }
     return this.puppet.operation(async () => {
       await this.currentUser.say(conversationOrSayable as Sayable)

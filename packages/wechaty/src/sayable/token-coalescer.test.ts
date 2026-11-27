@@ -39,29 +39,50 @@ test('TokenCoalescer batches tokens in sentence mode using flushIntervalMs and m
   })
 
   assert.deepEqual(coalescer.push('Hello'), [])
-  assert.deepEqual(coalescer.push(' world.'), []) // delimiter hit, but time < 1200ms
+  assert.deepEqual(coalescer.push(' world. Next'), []) // delimiter hit, but time < 1200ms
 
   now += 1200
-  assert.deepEqual(coalescer.push(' Next'), ['Hello world. Next'])
+  // Splits at the last sentence boundary and retains the trailing incomplete fragment
+  assert.deepEqual(coalescer.push(' sentence'), ['Hello world.'])
+  // Numbers/versions like 3.14 or 2.0.0 are not split mid-token
+  now += 1200
+  assert.deepEqual(coalescer.push(' v2.0.0.'), ['Next sentence v2.0.0.'])
 
-  // Exceeding maxChunkSize forces flush even without delimiter or elapsed time
-  assert.deepEqual(coalescer.push('123456789012345678901234567890'), ['123456789012345678901234567890'])
-
-  assert.deepEqual(coalescer.push('Tail'), [])
-  assert.equal(coalescer.flush(), 'Tail')
+  // Exceeding maxChunkSize slices to <= maxChunkSize at whitespace or hard boundary
+  assert.deepEqual(
+    coalescer.push('12345678901234567890123456789012345'),
+    ['123456789012345678901234567890'],
+  )
+  assert.equal(coalescer.flush(), '12345')
   assert.equal(coalescer.flush(), undefined)
 })
 
-test('TokenCoalescer batches tokens in paragraph mode', () => {
-  const coalescer = new TokenCoalescer({
+test('TokenCoalescer batches tokens in paragraph and adaptive modes and validates options', () => {
+  const para = new TokenCoalescer({
     mode: 'paragraph',
     maxChunkSize: 100,
   })
 
-  assert.deepEqual(coalescer.push('Line 1\n'), [])
-  assert.deepEqual(coalescer.push('Line 2.\n\n'), ['Line 1\nLine 2.'])
-  assert.deepEqual(coalescer.push('Paragraph 2'), [])
-  assert.equal(coalescer.flush(), 'Paragraph 2')
+  assert.deepEqual(para.push('Para 1\n\nPara 2 start'), ['Para 1'])
+  assert.equal(para.flush(), 'Para 2 start')
+
+  let now = 0
+  const adaptive = new TokenCoalescer({
+    mode: 'adaptive',
+    flushIntervalMs: 1000,
+    maxChunkSize: 40,
+    now: () => now,
+  })
+  // Paragraph break flushes immediately in adaptive mode even before flushIntervalMs
+  assert.deepEqual(adaptive.push('Immediate para.\n\nNext'), ['Immediate para.'])
+  // Long clause >= maxChunkSize/2 flushes at whitespace once flushIntervalMs elapses
+  assert.deepEqual(adaptive.push(' clause without punctuation'), [])
+  now += 1000
+  assert.deepEqual(adaptive.push(' yet'), ['Next clause without punctuation'])
+  assert.equal(adaptive.flush(), 'yet')
+
+  assert.throws(() => new TokenCoalescer({ maxChunkSize: 0 }), RangeError)
+  assert.throws(() => new TokenCoalescer({ flushIntervalMs: -1 }), RangeError)
 })
 
 test('TokenCoalescerTransform pipes ReadableStream<string> into coalesced chunks', async () => {
@@ -136,7 +157,7 @@ test('Contact.say(), Room.say(), Message.say(), and Wechaty.say() stream Readabl
       start (controller) {
         controller.enqueue('Hello ')
         controller.enqueue(42)
-        controller.enqueue(FileBox.fromBuffer(Buffer.from('chart-data'), 'chart.txt'))
+        controller.enqueue(FileBox.fromBase64('Y2hhcnQtZGF0YQ==', 'chart.txt'))
         controller.enqueue('Done!')
         controller.close()
       },
@@ -238,6 +259,47 @@ test('say(stream, { signal }) cancels stream consumption on AbortSignal', async 
     )
     assert.equal(returned, true, 'async iterator return() cleanup must run on abort')
     assert.deepEqual(sentTexts, ['First chunk.'])
+
+    // ReadableStream cancellation + synchronous abort with producer rejection
+    sentTexts.length = 0
+    const readableController = new AbortController()
+    let readableCancelled = false
+    let pullCount = 0
+    const readable = new ReadableStream<Sayable>({
+      pull (streamCtrl) {
+        pullCount += 1
+        if (pullCount === 1) {
+          streamCtrl.enqueue('Readable chunk.\n\n')
+        } else {
+          readableController.abort(new Error('readable cancelled'))
+        }
+      },
+      cancel () {
+        readableCancelled = true
+      },
+    }, { highWaterMark: 0 })
+    await assert.rejects(
+      contact.say(readable, { mode: 'paragraph', signal: readableController.signal }),
+      /readable cancelled/,
+    )
+    assert.equal(readableCancelled, true, 'ReadableStream cancel() must run on abort')
+    assert.deepEqual(sentTexts, ['Readable chunk.'])
+
+    const syncAbort = new AbortController()
+    const rejectingIterable: AsyncIterable<Sayable> = {
+      [Symbol.asyncIterator] () {
+        return {
+          next () {
+            syncAbort.abort(new Error('sync abort'))
+            return Promise.reject(new Error('producer error after abort'))
+          },
+        }
+      },
+    }
+    await assert.rejects(
+      contact.say(rejectingIterable, { signal: syncAbort.signal }),
+      /sync abort/,
+    )
   } finally {
     await bot.stop()
   }
