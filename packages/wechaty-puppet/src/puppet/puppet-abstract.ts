@@ -26,35 +26,6 @@ import {
   createLifecycle,
 }                       from 'scopelet'
 
-/**
- * Minimal boolean readiness indicator replacing the legacy `state-switch` `BooleanIndicator`.
- */
-export class BooleanIndicator {
-
-  #value = false
-
-  /** Get or set the current boolean readiness value. */
-  value (next?: boolean): boolean {
-    if (next !== undefined) {
-      this.#value = next
-    }
-    return this.#value
-  }
-
-}
-
-/**
- * Combined lifecycle state interface exposing modern LifecycleState properties
- * alongside legacy StateSwitch methods for backwards compatibility.
- */
-export type PuppetState = LifecycleState & {
-  active (): boolean | 'pending'
-  inactive (): boolean | 'pending'
-  on (): boolean | 'pending'
-  off (): boolean | 'pending'
-  stable (expected?: 'active' | 'inactive'): Promise<void>
-}
-
 import {
   log,
   NAME,
@@ -151,12 +122,26 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   static readonly VERSION = VERSION
 
+  // --- Attached ScopeLet Lifecycle Members ---
+  declare readonly state: LifecycleState
+  declare readonly isRunning: boolean
+  declare readonly isActive: boolean
+  declare readonly isStarting: boolean
+  declare readonly isStopping: boolean
+  declare readonly isStopped: boolean
+  declare readonly isFailed: boolean
+  declare start: Lifecycle['start']
+  declare stop: Lifecycle['stop']
+  declare restart: Lifecycle['restart']
+  declare whenState: Lifecycle['whenState']
+  declare whenRunning: Lifecycle['whenRunning']
+  declare whenStopped: Lifecycle['whenStopped']
+  declare [Symbol.asyncDispose]: Lifecycle[typeof Symbol.asyncDispose]
+
   // --- ECMAScript Hard Private Brands (Node 26+ / TS 7+) ---
   readonly #options: PuppetOptions
   readonly #lifecycle: LifecycleController
   readonly #ready: LifecycleConditionHandle
-  readonly #readyIndicator: BooleanIndicator
-  readonly #writeLegacyReady: (ready: boolean) => void
   #run: PuppetRun | undefined
   #startupOperation: LifecycleScope['operation'] | undefined
 
@@ -183,20 +168,8 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     this.#memory = new MemoryCard()
     this.#cache = new CacheAgent(options.cache)
     this.#watchdog = new WatchdogAgent(this)
-    this.#readyIndicator = new BooleanIndicator()
 
-    const original = this.#readyIndicator.value.bind(this.#readyIndicator)
-    this.#writeLegacyReady = original
-    this.#readyIndicator.value = ((value?: boolean): boolean => {
-      const run = this.#run
-      if (value === undefined) {
-        return run?.ready.isSet ?? original()
-      }
-      this.#setReady(run, value)
-      return value
-    }) as BooleanIndicator['value']
-
-    this.#lifecycle = createLifecycle({
+    this.#lifecycle = createLifecycle.attach(this, {
       onStart: scope => this.#lifecycleStart(scope),
       onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
     }, { name: 'Puppet', stopTimeoutMs: 15_000 })
@@ -308,12 +281,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }, 0))
   }
 
-  /** Mirror a generation's readiness into the compatibility indicator. */
+  /** Mirror a generation's readiness into the generation-scoped ready condition. */
   #setReady (run: PuppetRun | undefined, ready: boolean): void {
     if (run?.signal.aborted) {
       return
     }
-    this.#writeLegacyReady(ready)
     if (ready) {
       run?.ready.set()
     } else {
@@ -333,22 +305,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     this.#setReady(current, false)
     this.#currentUserId = undefined
     this.#loggedOut = false
-  }
-
-  /**
-   * @deprecated use `currentUserId` instead. (will be removed in v2.0)
-   */
-  selfId (): string {
-    log.warn('Puppet', 'selfId() is deprecated, use `currentUserId` instead:\n%s', new Error().stack)
-    return this.currentUserId
-  }
-
-  /**
-   * @deprecated use `isLoggedIn` instead. (will be removed in v2.0)
-   */
-  logonoff (): boolean {
-    log.warn('Puppet', 'logonoff() is deprecated, use `isLoggedIn` instead:\n%s', new Error().stack)
-    return this.isLoggedIn
   }
 
   // ==========================================
@@ -469,44 +425,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   // ==========================================
 
   /**
-   * Current lifecycle state of the puppet, providing unified modern LifecycleState
-   * properties (.kind, .generation) alongside legacy StateSwitch methods (.active(), .inactive()).
+   * Whether the active generation's `ready` condition is currently set.
    */
-  get state (): PuppetState {
-    const lifecycle = this.#lifecycle
-    const active = (): boolean | 'pending' => {
-      const kind = lifecycle.state.kind
-      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
-    }
-    const inactive = (): boolean | 'pending' => {
-      const kind = lifecycle.state.kind
-      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
-    }
-    const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
-      if (expected === 'active') {
-        await lifecycle.whenState(st => st.kind === 'running')
-      } else if (expected === 'inactive') {
-        await lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
-      } else {
-        await lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
-      }
-    }
-    const current = lifecycle.state
-    return Object.freeze({
-      ...current,
-      active,
-      inactive,
-      on: active,
-      off: inactive,
-      stable,
-    })
-  }
-
-  /**
-   * Compatibility indicator for legacy consumers, bound to the generation-scoped ready condition.
-   */
-  get readyIndicator (): BooleanIndicator {
-    return this.#readyIndicator
+  get isReady (): boolean {
+    return this.#ready.isSet
   }
 
   get __counter (): number {
@@ -519,46 +441,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
 
   get puppetOptions (): PuppetOptions {
     return this.#options
-  }
-
-  /** See {@link Lifecycle.isRunning}. */
-  get isRunning (): boolean {
-    return this.#lifecycle.isRunning
-  }
-
-  /** See {@link Lifecycle.isActive}. */
-  get isActive (): boolean {
-    return this.#lifecycle.isActive
-  }
-
-  /** See {@link Lifecycle.isStarting}. */
-  get isStarting (): boolean {
-    return this.#lifecycle.isStarting
-  }
-
-  /** See {@link Lifecycle.isStopping}. */
-  get isStopping (): boolean {
-    return this.#lifecycle.isStopping
-  }
-
-  /** See {@link Lifecycle.isStopped}. */
-  get isStopped (): boolean {
-    return this.#lifecycle.isStopped
-  }
-
-  /** See {@link Lifecycle.isFailed}. */
-  get isFailed (): boolean {
-    return this.#lifecycle.isFailed
-  }
-
-  /** See {@link Lifecycle.whenRunning}. */
-  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
-    return this.#lifecycle.whenRunning(options)
-  }
-
-  /** See {@link Lifecycle.whenStopped}. */
-  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
-    return this.#lifecycle.whenStopped(options)
   }
 
   /**
@@ -639,49 +521,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   }
 
   /**
-   * Starts the puppet lifecycle.
-   *
-   * @param options - Optional start wait options.
-   */
-  override async start (options?: LifecycleWaitOptions): Promise<void> {
-    log.verbose('Puppet', 'start()')
-    try {
-      await this.#lifecycle.start(options)
-    } catch (error) {
-      if (options?.signal?.aborted || (error as Error)?.name === 'LifecycleSupersededError') {
-        throw error
-      }
-      if (this.#lifecycle.state.kind === 'stopping') {
-        await this.#lifecycle.whenState(
-          s => s.kind === 'failed' || s.kind === 'stopped',
-          { signal: options?.signal },
-        ).catch(() => {})
-      }
-      throw error
-    }
-  }
-
-  /**
-   * Stops the puppet lifecycle, gracefully unwinding resources in LIFO order.
-   *
-   * @param options - Optional stop wait options.
-   */
-  override async stop (options?: LifecycleWaitOptions): Promise<void> {
-    log.verbose('Puppet', 'stop()')
-    await this.#lifecycle.stop(options)
-  }
-
-  /**
-   * Restarts the puppet lifecycle atomically.
-   *
-   * @param options - Optional wait options.
-   */
-  async restart (options?: LifecycleWaitOptions): Promise<void> {
-    log.verbose('Puppet', 'restart()')
-    await this.#lifecycle.restart(options)
-  }
-
-  /**
    * Restarts the puppet lifecycle atomically or resets with an optional reason string.
    * No-op if puppet is not currently running or starting.
    */
@@ -695,33 +534,11 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     }
   }
 
-  /**
-   * Waits for the puppet to enter a lifecycle state matching predicate.
-   */
-  async whenState (
-    predicate: (state: LifecycleState) => boolean,
-    options?: LifecycleWaitOptions,
-  ): Promise<LifecycleState> {
-    return this.#lifecycle.whenState(predicate, options)
-  }
-
-  /**
-   * Implements AsyncDisposable: stops the puppet when leaving scope.
-   */
-  async [Symbol.asyncDispose] (): Promise<void> {
-    await this.stop()
-  }
-
   /** Register Puppet infrastructure and give the ledger ownership of provider startup. */
   async #lifecycleStart (scope: LifecycleScope): Promise<void> {
     scope.defer(() => {
       this.#run = undefined
       this.#startupOperation = undefined
-    })
-
-    // The shell stops after the generation has released its resources.
-    scope.defer(async () => {
-      await super.stop()
     })
 
     // Authentication cleanup follows provider stop and the cache releases.
@@ -793,7 +610,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     await scope.acquireService({
       start: async signal => {
         await this.#prepareProvider(scope, cleanAuthQrCode)
-        await super.start()
         signal.throwIfAborted()
         enteredProvider = true
         await this.onStart(signal, scope)
@@ -819,10 +635,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     if (this.#currentUserId) {
       run.login.set()
     }
-    if (this.#readyIndicator.value()) {
-      run.ready.set()
-    }
-    scope.defer(() => this.#writeLegacyReady(false))
 
     scope.listen(this, 'dirty', (e: any) => {
       const payload = (e instanceof CustomEvent) ? e.detail : (e?.detail ?? e)
@@ -1368,11 +1180,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   abstract friendshipRawPayload (friendshipId: string): Promise<any>
   abstract friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload>
 
-  friendshipSearchWeixin (weixin: string): Promise<null | string> {
-    log.warn('Puppet', 'friendshipSearchWeixin() is deprecated. use `friendshipSearchHandle()` instead.')
-    return this.friendshipSearchHandle(weixin)
-  }
-
   async friendshipSearch (
     searchQueryFilter: FriendshipSearchQueryFilter,
   ): Promise<string | null> {
@@ -1813,7 +1620,6 @@ type PuppetProtectedProperty =
   | '__authQrCode'
   | '__currentUserId'
   | 'login'
-  | 'logonoff'
   | 'cache'
   | 'onDirty'
   | '__cacheMixinCleanCallbackList'

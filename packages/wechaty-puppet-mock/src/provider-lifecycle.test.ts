@@ -69,7 +69,7 @@ for (const { name, create } of providers) {
     puppet.login('first-user')
     puppet.emit('ready')
     await ready
-    assert.equal(puppet.readyIndicator.value(), true)
+    assert.equal(puppet.isReady, true)
 
     const work = Promise.withResolvers<void>()
     const interrupted = Promise.withResolvers<void>()
@@ -88,7 +88,7 @@ for (const { name, create } of providers) {
     assert.equal(stopCalls, 1)
     assert.equal(puppet.state.generation, generation + 1)
     assert.equal(puppet.isLoggedIn, false)
-    assert.equal(puppet.readyIndicator.value(), false)
+    assert.equal(puppet.isReady, false)
     const abandonedReady = assert.rejects(puppet.ready(), { name: 'LifecycleSupersededError' })
     await puppet.stop()
     await abandonedReady

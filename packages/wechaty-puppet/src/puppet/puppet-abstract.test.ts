@@ -24,7 +24,6 @@ import type {
 
 import * as PUPPET from '../mods/mod.ts'
 import { LifecycleUnsafeStateError } from 'scopelet'
-import { PuppetSkeleton } from './puppet-skeleton.ts'
 
 /**
  * The Fixture
@@ -465,25 +464,6 @@ test('version()', async _t => {
   assert.equal(version, EXPECTED_VERSION, 'should get the child class package version')
 })
 
-test('PuppetSkeleton: super.{start,stop}()', async _t => {
-  const startStub = mock.method(PuppetSkeleton.prototype, 'start', async () => {})
-  const stopStub  = mock.method(PuppetSkeleton.prototype, 'stop', async () => {})
-
-  const puppet = new PuppetTest()
-  assert.ok(startStub.mock.callCount() === 0, 'should init start flag with false')
-  assert.ok(stopStub.mock.callCount() === 0, 'should init stop flag with false')
-
-  await puppet.start()
-  assert.ok(startStub.mock.callCount() > 0, 'should call the skeleton start(), which means all mixin start()s are chained correctly')
-  assert.ok(stopStub.mock.callCount() === 0, 'should keep stop flag with false')
-
-  await puppet.stop()
-  assert.ok(startStub.mock.callCount() > 0, 'should keep start flag with true')
-  assert.ok(stopStub.mock.callCount() > 0, 'should call the skeleton stop(), which means all mixin stops()s are chained correctly')
-
-  mock.restoreAll()
-})
-
 test('payload retrieval and caching for contacts, rooms, friendships, messages, posts, invitations', async _t => {
   const puppet = new PuppetTest()
 
@@ -595,7 +575,6 @@ test('auth, scan, and login lifecycle', async _t => {
   assert.equal(puppet.isLoggedIn, false)
   assert.equal(puppet.authQrCode, undefined)
   assert.throws(() => puppet.currentUserId, /not logged in/)
-  assert.equal(puppet.logonoff(), false)
 
   await puppet.start()
 
@@ -622,8 +601,6 @@ test('auth, scan, and login lifecycle', async _t => {
   puppet.login('user-123')
   assert.equal(puppet.isLoggedIn, true)
   assert.equal(puppet.currentUserId, 'user-123')
-  assert.equal(puppet.selfId(), 'user-123')
-  assert.equal(puppet.logonoff(), true)
   assert.throws(() => puppet.login('user-456'), /must logout first/)
 
   // Idempotent start
@@ -833,7 +810,8 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
     throw new Error('boom onStart')
   })
   await assert.rejects(async () => failingPuppet.start(), /boom onStart/)
-  assert.equal(failingPuppet.state.inactive(), true)
+  await failingPuppet.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
+  assert.equal(failingPuppet.isFailed, true)
 
   // Test stop exception handling
   const failingStopPuppet = new PuppetTest()
@@ -843,7 +821,8 @@ test('dirty Unspecified and start/stop failure handling', async _t => {
     throw new Error('boom onStop')
   })
   await assert.rejects(async () => failingStopPuppet.stop(), /boom onStop/)
-  assert.equal(failingStopPuppet.state.inactive(), true)
+  await failingStopPuppet.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
+  assert.equal(failingStopPuppet.isFailed, true)
 })
 
 test('start() failure teardown, error identity without error listeners, and retry safety', async _t => {
@@ -861,26 +840,28 @@ test('start() failure teardown, error identity without error listeners, and retr
     assert.equal(err.message, 'boom onStart')
     return true
   })
+  await puppet.whenState(s => s.kind === 'failed' || s.kind === 'stopped')
 
   // 2. State settles to inactive/failed with complete cleanup
-  assert.equal(puppet.state.inactive(), true)
-  assert.equal((puppet.state as any).kind, 'failed')
+  assert.equal(puppet.isFailed, true)
+  assert.equal(puppet.isActive, false)
+  assert.equal(puppet.state.kind, 'failed')
   assert.equal(puppet.authQrCode, undefined)
   assert.equal(puppet.isLoggedIn, false)
 
   // 3. Retry start succeeds cleanly without duplicate listeners or leaked resources
   await puppet.start()
-  assert.equal((puppet.state as any).kind, 'running')
+  assert.equal(puppet.isRunning, true)
 
   // 4. Test restart and reset
   await puppet.restart()
-  assert.equal((puppet.state as any).kind, 'running')
+  assert.equal(puppet.isRunning, true)
 
   await puppet.reset('watchdog test')
-  assert.equal((puppet.state as any).kind, 'running')
+  assert.equal(puppet.isRunning, true)
 
   await puppet.stop()
-  assert.equal((puppet.state as any).kind, 'stopped')
+  assert.equal(puppet.isStopped, true)
 })
 
 test('Symbol.asyncDispose stops puppet when leaving scope', async _t => {
@@ -888,9 +869,9 @@ test('Symbol.asyncDispose stops puppet when leaving scope', async _t => {
   {
     await using p = puppet
     await p.start()
-    assert.equal(p.state.active(), true)
+    assert.equal(p.isRunning, true)
   }
-  assert.equal(puppet.state.inactive(), true)
+  assert.equal(puppet.isStopped, true)
 })
 
 test('roomMemberPayload caches by memberId and stop() resets authQrCode', async _t => {
@@ -1052,23 +1033,22 @@ test('void puppet.logout() followed by await puppet.restart() clears login state
   assert.equal(puppet.isLoggedIn, false, 'puppet must be logged out after restart')
   assert.equal(puppet.__currentUserId, undefined, '__currentUserId must be cleared after restart')
   assert.doesNotThrow(() => puppet.login('user-restarted'), 'restarted puppet allows clean login')
-  puppet.readyIndicator.value(true)
+  puppet.emit('ready')
   await oldLogout
   assert.equal(puppet.currentUserId, 'user-restarted')
-  assert.equal(puppet.readyIndicator.value(), true)
+  assert.equal(puppet.isReady, true)
   await puppet.stop()
 })
 
 test('an idle logout settles when start adopts the same login', async () => {
   const puppet = new PuppetTest()
   puppet.login('idle-user')
-  puppet.readyIndicator.value(true)
 
   const logout = puppet.logout()
   await puppet.start()
   await logout
   assert.equal(puppet.isLoggedIn, false)
-  assert.equal(puppet.readyIndicator.value(), false)
+  assert.equal(puppet.isReady, false)
   await puppet.stop()
 })
 
@@ -1076,7 +1056,7 @@ test('provider-emitted logout event followed by re-login does not wipe login or 
   const puppet = new PuppetTest()
   await puppet.start()
   puppet.login('user-prov-1')
-  puppet.readyIndicator.value(true)
+  puppet.emit('ready')
 
   // Provider emits logout directly
   puppet.emit('logout', { contactId: 'user-prov-1', data: 'session expired' })
@@ -1087,14 +1067,14 @@ test('provider-emitted logout event followed by re-login does not wipe login or 
 
   // Re-login with new user
   puppet.login('user-prov-2')
-  puppet.readyIndicator.value(true)
+  puppet.emit('ready')
 
   // Wait for timers in next tick
   await new Promise<void>(resolve => setTimeout(resolve, 50))
 
   assert.equal(puppet.isLoggedIn, true, 'isLoggedIn must remain true after re-login')
   assert.equal(puppet.currentUserId, 'user-prov-2', 'currentUserId must reflect the new login')
-  assert.equal(puppet.readyIndicator.value(), true, 'readyIndicator must remain true after re-login')
+  assert.equal(puppet.isReady, true, 'isReady must remain true after re-login')
 
   await puppet.stop()
 })
@@ -1127,7 +1107,7 @@ test('stop-while-starting (padlocal#116) triggers onStop and settles start clean
   await startRejection
 
   assert.equal(stopCalls, 1)
-  assert.equal(puppet.state.inactive(), true, 'puppet must be inactive after stop')
+  assert.equal(puppet.isStopped, true, 'puppet must be stopped after stop')
 })
 
 test('stop during memory loading never enters provider hooks', async t => {
@@ -1153,11 +1133,11 @@ test('stop during memory loading never enters provider hooks', async t => {
 
 test('inactive reset does not start puppet', async _t => {
   const puppet = new PuppetTest()
-  assert.equal(puppet.state.inactive(), true)
+  assert.equal(puppet.isStopped, true)
 
   await puppet.reset('reset inactive')
-  assert.equal(puppet.state.inactive(), true, 'reset on inactive puppet must not start it')
-  assert.equal((puppet.state as any).kind, 'stopped')
+  assert.equal(puppet.isStopped, true, 'reset on inactive puppet must not start it')
+  assert.equal(puppet.state.kind, 'stopped')
 })
 
 test('executeOperation drains in-flight work on retirement and runs cleanly', async _t => {
@@ -1185,7 +1165,6 @@ test('executeOperation drains in-flight work on retirement and runs cleanly', as
 
 test('cross-generation ready condition wait binds to next generation', async _t => {
   const puppet = new PuppetTest()
-  assert.equal(puppet.state.inactive(), true)
   assert.equal(puppet.isStopped, true)
   assert.equal(puppet.isActive, false)
 

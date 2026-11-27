@@ -55,7 +55,7 @@ import type {
 import {
   createLifecycle,
   LifecycleChildFailureError,
-  LifecycleSupersededError,
+  sleep,
 } from 'scopelet'
 
 import {
@@ -104,87 +104,6 @@ import { UserModuleManager } from '../components/user-module-manager.ts'
 import { IoManager } from '../components/io-manager.ts'
 
 let _singletonInstance: Wechaty | undefined
-
-/**
- * `state-switch`'s read side, which today's `Wechaty` calls as
- * `state.active()` / `state.inactive()`: `true` when settled in that state,
- * `'pending'` while moving towards it, `false` otherwise.
- */
-export interface LegacyStateView {
-  active (): boolean | 'pending'
-  inactive (): boolean | 'pending'
-}
-
-/**
- * Derive the `state-switch` view from a lifecycle's state (D24, integration
- * layer). Read live, so it can never drift from `state`:
- *
- * | `state.kind` | `active()` | `inactive()` |
- * | --- | --- | --- |
- * | `starting` | `'pending'` | `false` |
- * | `running` | `true` | `false` |
- * | `stopping` | `false` | `'pending'` |
- * | `stopped`, `failed` | `false` | `true` |
- */
-export function legacyStateView (lifecycle: Pick<Lifecycle, 'state'>): LegacyStateView {
-  return {
-    active: () => {
-      const kind = lifecycle.state.kind
-      return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
-    },
-    inactive: () => {
-      const kind = lifecycle.state.kind
-      return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
-    },
-  }
-}
-
-/**
- * Dynamic state view exposed via `wechaty.state`, combining modern `LifecycleState`
- * properties with backwards-compatible `StateSwitch` query methods.
- */
-export type WechatyState = LifecycleState & {
-  active (): boolean | 'pending'
-  inactive (): boolean | 'pending'
-  on (): boolean | 'pending'
-  off (): boolean | 'pending'
-  stable (expected?: 'active' | 'inactive'): Promise<void>
-}
-
-/**
- * Creates a frozen `WechatyState` view derived consistently from the current lifecycle state.
- *
- * @param lifecycle - Lifecycle controller instance.
- * @returns Frozen `WechatyState` combining current snapshot properties with query methods.
- */
-export function createWechatyState (lifecycle: Pick<Lifecycle, 'state' | 'whenState'>): WechatyState {
-  const current = lifecycle.state
-  const active = (): boolean | 'pending' => {
-    const kind = current.kind
-    return kind === 'running' ? true : kind === 'starting' ? 'pending' : false
-  }
-  const inactive = (): boolean | 'pending' => {
-    const kind = current.kind
-    return kind === 'stopped' || kind === 'failed' ? true : kind === 'stopping' ? 'pending' : false
-  }
-  const stable = async (expected?: 'active' | 'inactive'): Promise<void> => {
-    if (expected === 'active') {
-      await lifecycle.whenState(st => st.kind === 'running')
-    } else if (expected === 'inactive') {
-      await lifecycle.whenState(st => st.kind === 'stopped' || st.kind === 'failed')
-    } else {
-      await lifecycle.whenState(st => st.kind === 'running' || st.kind === 'stopped' || st.kind === 'failed')
-    }
-  }
-  return Object.freeze({
-    ...current,
-    active,
-    inactive,
-    on: active,
-    off: inactive,
-    stable,
-  })
-}
 
 export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDisposable, SayableSayer {
 
@@ -242,6 +161,22 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   readonly log: Loggable = log
   readonly wrapAsync: WrapAsync = helpers.wrapAsyncError((e: unknown) => this.emitError(e))
 
+  // --- Attached ScopeLet Lifecycle Members ---
+  declare readonly state: LifecycleState
+  declare readonly isRunning: boolean
+  declare readonly isActive: boolean
+  declare readonly isStarting: boolean
+  declare readonly isStopping: boolean
+  declare readonly isStopped: boolean
+  declare readonly isFailed: boolean
+  declare start: Lifecycle['start']
+  declare stop: Lifecycle['stop']
+  declare restart: Lifecycle['restart']
+  declare whenState: Lifecycle['whenState']
+  declare whenRunning: Lifecycle['whenRunning']
+  declare whenStopped: Lifecycle['whenStopped']
+  declare [Symbol.asyncDispose]: Lifecycle[typeof Symbol.asyncDispose]
+
   // --- ECMAScript Hard Private Fields ---
   readonly #options: WechatyOptions
   readonly #puppetManager: PuppetManager
@@ -269,7 +204,7 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     this.#userModuleManager = new UserModuleManager(this)
     this.#ioManager = new IoManager(this, options)
 
-    this.#lifecycle = createLifecycle({
+    this.#lifecycle = createLifecycle.attach(this, {
       onStart: scope => this.#lifecycleStart(scope),
       onStateChange: (state, previous) => this.#onLifecycleStateChange(state, previous),
     }, { name: 'Wechaty', stopTimeoutMs: 30_000 })
@@ -280,11 +215,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     log.verbose('Wechaty', 'lifecycle onStart()')
 
     await this.init()
-
-    const lifeTimer = setInterval(() => {
-      log.silly('Wechaty', 'onStart() setInterval() this timer is to keep Wechaty running...')
-    }, 1000 * 60 * 60)
-    scope.defer(() => clearInterval(lifeTimer))
 
     // Arm Io event capture and scoped plugins before either child starts.
     this.#pluginManager.installScoped(scope)
@@ -355,61 +285,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     return this.#memory
   }
 
-  /**
-   * Current lifecycle state of the bot, combining modern `LifecycleState` properties
-   * with backwards-compatible `StateSwitch` query methods (`.active()`, `.inactive()`, `.stable()`).
-   */
-  get state (): WechatyState {
-    return createWechatyState(this.#lifecycle)
-  }
-
-  /** See {@link Lifecycle.isRunning}. */
-  get isRunning (): boolean {
-    return this.#lifecycle.isRunning
-  }
-
-  /** See {@link Lifecycle.isActive}. */
-  get isActive (): boolean {
-    return this.#lifecycle.isActive
-  }
-
-  /** See {@link Lifecycle.isStarting}. */
-  get isStarting (): boolean {
-    return this.#lifecycle.isStarting
-  }
-
-  /** See {@link Lifecycle.isStopping}. */
-  get isStopping (): boolean {
-    return this.#lifecycle.isStopping
-  }
-
-  /** See {@link Lifecycle.isStopped}. */
-  get isStopped (): boolean {
-    return this.#lifecycle.isStopped
-  }
-
-  /** See {@link Lifecycle.isFailed}. */
-  get isFailed (): boolean {
-    return this.#lifecycle.isFailed
-  }
-
-  /** See {@link Lifecycle.whenRunning}. */
-  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
-    return this.#lifecycle.whenRunning(options)
-  }
-
-  /** See {@link Lifecycle.whenStopped}. */
-  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
-    return this.#lifecycle.whenStopped(options)
-  }
-
-  /**
-   * Backwards-compatible `state-switch` view interface.
-   */
-  get legacyState (): LegacyStateView {
-    return legacyStateView(this.#lifecycle)
-  }
-
   get puppet (): PUPPET.Puppet {
     return this.#puppetManager.puppet
   }
@@ -474,39 +349,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     await this.#puppetManager.init()
   }
 
-  async start (options?: LifecycleWaitOptions): Promise<void> {
-    log.verbose('Wechaty', 'start()')
-    try {
-      await this.#lifecycle.start(options)
-    } catch (error) {
-      if (options?.signal?.aborted || error instanceof LifecycleSupersededError) {
-        throw error
-      }
-      if (this.#lifecycle.state.kind === 'stopping') {
-        await this.#lifecycle.whenState(
-          s => s.kind === 'failed' || s.kind === 'stopped',
-          { signal: options?.signal },
-        ).catch(() => {})
-      }
-      throw error
-    }
-  }
-
-  stop (options?: LifecycleWaitOptions): Promise<void> {
-    log.verbose('Wechaty', 'stop()')
-    return this.#lifecycle.stop(options)
-  }
-
-  /**
-   * Restarts the bot lifecycle atomically.
-   *
-   * @param options - Optional wait options.
-   */
-  restart (options?: LifecycleWaitOptions): Promise<void> {
-    log.verbose('Wechaty', 'restart()')
-    return this.#lifecycle.restart(options)
-  }
-
   /**
    * Alias for restart().
    *
@@ -515,20 +357,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   reset (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'reset()')
     return this.restart(options)
-  }
-
-  /**
-   * Awaits a lifecycle state transition matching the given predicate.
-   *
-   * @param predicate - Function returning true when target state is reached.
-   * @param options - Optional wait options (signal, timeout).
-   * @returns Promise resolving to matching LifecycleState.
-   */
-  whenState (
-    predicate: (state: LifecycleState) => boolean,
-    options?: LifecycleWaitOptions,
-  ): Promise<LifecycleState> {
-    return this.#lifecycle.whenState(predicate, options)
   }
 
   /**
@@ -542,14 +370,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   ready (options?: LifecycleWaitOptions): Promise<void> {
     log.verbose('Wechaty', 'ready()')
     return this.#readyCondition.wait(options)
-  }
-
-  /**
-   * Asynchronously disposes the bot by stopping its lifecycle.
-   */
-  [Symbol.asyncDispose] (): Promise<void> {
-    log.verbose('Wechaty', '[Symbol.asyncDispose]()')
-    return this.stop()
   }
 
   // --- Operations & Facades ---
@@ -639,25 +459,12 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
   }
 
   async sleep (milliseconds: number): Promise<void> {
-    await new Promise<void>(resolve => setTimeout(resolve, milliseconds))
+    await sleep(milliseconds)
   }
 
   emitError (e: unknown): void {
     const gerror = GError.isGError(e) ? e : GError.from(e)
     this.dispatchEvent(new WechatyEvent('error', { detail: gerror }))
-  }
-
-  /**
-   * Internal emit compatibility required by legacy callers.
-   * Routes 'error' events with GError normalization. Throws a descriptive migration hint for others.
-   * @internal
-   */
-  emit (event: string, ...args: any[]): boolean {
-    if (event === 'error') {
-      this.emitError(args[0])
-      return true
-    }
-    throw new Error(`Wechaty.emit() is not supported in Wechaty 2.0. Use bot.dispatchEvent() instead.`)
   }
 
   // --- Typed WinterTC EventTarget Methods ---

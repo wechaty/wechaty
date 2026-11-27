@@ -82,7 +82,7 @@ class EventStreamManager {
       this.grpcEmit(EventType.LOGOUT, payload)
     }
 
-    if (this.puppet.readyIndicator.value()) {
+    if (this.puppet.isReady) {
       log.verbose('EventStreamManager', 'start() puppet is ready, emit a ready event for downstream after 100ms delay')
       const payload = {
         data: 'ready',

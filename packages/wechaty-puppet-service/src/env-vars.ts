@@ -1,12 +1,9 @@
 /**
  * Readers for the connection environment variables: token, endpoint and
  * discovery authority. Each prefers the explicit option, then the
- * environment, then the deprecated `WECHATY_PUPPET_HOSTIE_*` or
- * `WECHATY_SERVICE_DISCOVERY_ENDPOINT` names (with a warning). They read the
- * environment when called, so tests and late configuration take effect. A
- * missing token throws.
+ * environment. They read the environment when called, so tests and late
+ * configuration take effect. A missing token throws.
  */
-import { log } from 'wechaty-puppet'
 
 // Huan(202011): use a function to return the value in time.
 const WECHATY_PUPPET_SERVICE_TOKEN: (token?: string) => string = token => {
@@ -16,20 +13,6 @@ const WECHATY_PUPPET_SERVICE_TOKEN: (token?: string) => string = token => {
 
   if (process.env['WECHATY_PUPPET_SERVICE_TOKEN']) {
     return process.env['WECHATY_PUPPET_SERVICE_TOKEN']
-  }
-
-  /**
-   * Huan(202102): remove this deprecated warning after Dec 31, 2021
-   */
-  if (process.env['WECHATY_PUPPET_HOSTIE_TOKEN']) {
-    log.warn('wechaty-puppet-service', [
-      '',
-      'WECHATY_PUPPET_HOSTIE_TOKEN has been deprecated,',
-      'please use WECHATY_PUPPET_SERVICE_TOKEN instead.',
-      'See: https://github.com/wechaty/wechaty-puppet-service/issues/118',
-      '',
-    ].join(' '))
-    return process.env['WECHATY_PUPPET_HOSTIE_TOKEN']
   }
 
   const tokenNotFoundError = 'wechaty-puppet-service: WECHATY_PUPPET_SERVICE_TOKEN not found'
@@ -56,19 +39,6 @@ const WECHATY_PUPPET_SERVICE_ENDPOINT = (endpoint?: string) => {
   if (process.env['WECHATY_PUPPET_SERVICE_ENDPOINT']) {
     return process.env['WECHATY_PUPPET_SERVICE_ENDPOINT']
   }
-  /**
-   * Huan(202102): remove this deprecated warning after Dec 31, 2021
-   */
-  if (process.env['WECHATY_PUPPET_HOSTIE_ENDPOINT']) {
-    log.warn('wechaty-puppet-service', [
-      '',
-      'WECHATY_PUPPET_HOSTIE_ENDPOINT has been deprecated,',
-      'please use WECHATY_PUPPET_SERVICE_ENDPOINT instead.',
-      'See: https://github.com/wechaty/wechaty-puppet-service/issues/118',
-      '',
-    ].join(' '))
-    return process.env['WECHATY_PUPPET_HOSTIE_ENDPOINT']
-  }
 
   return undefined
 }
@@ -81,18 +51,6 @@ const WECHATY_PUPPET_SERVICE_AUTHORITY = (authority?: string) => {
   authority = process.env['WECHATY_PUPPET_SERVICE_AUTHORITY']
   if (authority) {
     return authority
-  }
-
-  const deprecatedDiscoveryEndpoint = process.env['WECHATY_SERVICE_DISCOVERY_ENDPOINT']
-  if (deprecatedDiscoveryEndpoint) {
-    console.error([
-      'Environment variable WECHATY_SERVICE_DISCOVERY_ENDPOINT is deprecated,',
-      'Use WECHATY_PUPPET_SERVICE_AUTHORITY instead.',
-      'See: https://github.com/wechaty/wechaty-puppet-service/issues/156',
-    ].join('\n'))
-    return deprecatedDiscoveryEndpoint
-      .replace(/^https?:\/\//, '')
-      .replace(/\/*$/, '')
   }
 
   /**

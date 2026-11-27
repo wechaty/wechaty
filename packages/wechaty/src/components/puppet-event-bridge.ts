@@ -25,19 +25,8 @@ import type {
 }                   from '../user-modules/mod.ts'
 import type {
   WechatyEventDetailMap,
-  WechatyEventListeners,
-  WechatyEventName,
 }                   from '../schemas/wechaty-events.ts'
 import { timestampToDate } from '../pure-functions/timestamp-to-date.ts'
-
-/**
- * Emits a typed Wechaty event; handlers emit at bot level before forwarding to
- * the related room, contact, or friendship where applicable.
- */
-type PuppetEventBridgeEmit = <EventName extends WechatyEventName> (
-  eventName: EventName,
-  ...args: Parameters<WechatyEventListeners[EventName]>
-) => boolean
 
 /**
  * Entity operations and bot callbacks the event bridge needs from its owner.
@@ -54,29 +43,18 @@ interface PuppetEventBridgeDependencies {
   roomReady: (id: string) => Promise<void>
   setReady?: (state: 'active' | 'inactive') => void
   dispatchEvent: (event: Event) => boolean
-  emit?: PuppetEventBridgeEmit
   emitError: (error: GError) => void
 }
 
 /**
- * Helper to dispatch a single-payload WechatyEvent on the bot and/or forward to legacy emit handler.
+ * Helper to dispatch a single-payload WechatyEvent on the bot.
  */
 function dispatchBridgeEvent<E extends keyof WechatyEventDetailMap> (
   dependencies: PuppetEventBridgeDependencies,
   eventName: E,
   detail: WechatyEventDetailMap[E],
-  legacyArgs?: any[],
 ): void {
-  if (dependencies.dispatchEvent) {
-    dependencies.dispatchEvent(new WechatyEvent(eventName, { detail }))
-  }
-  if (dependencies.emit) {
-    if (legacyArgs) {
-      (dependencies.emit as any)(eventName, ...legacyArgs)
-    } else {
-      (dependencies.emit as any)(eventName, detail)
-    }
-  }
+  dependencies.dispatchEvent(new WechatyEvent(eventName, { detail }))
 }
 
 /**
@@ -180,7 +158,7 @@ function registerPuppetEventBridge (
             dependencies.setReady?.('inactive')
             const contact = await dependencies.contactSelfFind(payload.contactId)
             if (contact) {
-              dispatchBridgeEvent(dependencies, 'logout', { contact, data: payload.data, reason: payload.data }, [ contact, payload.data ])
+              dispatchBridgeEvent(dependencies, 'logout', { contact, data: payload.data, reason: payload.data })
             } else {
               log.verbose('PuppetEventBridge',
                 'registerPuppetEventBridge() logout event contact self not found for id: %s',
@@ -274,7 +252,7 @@ function registerPuppetEventBridge (
 
             const date = timestampToDate(payload.timestamp)
 
-            dispatchBridgeEvent(dependencies, 'room-join', { room, inviteeList, inviter, date }, [ room, inviteeList, inviter, date ])
+            dispatchBridgeEvent(dependencies, 'room-join', { room, inviteeList, inviter, date })
             room.emit('join', inviteeList, inviter, date)
           } catch (e) {
             dependencies.emitError(GError.from(e))
@@ -306,7 +284,7 @@ function registerPuppetEventBridge (
             }
             const date = timestampToDate(payload.timestamp)
 
-            dispatchBridgeEvent(dependencies, 'room-leave', { room, leaverList, remover, date }, [ room, leaverList, remover, date ])
+            dispatchBridgeEvent(dependencies, 'room-leave', { room, leaverList, remover, date })
             room.emit('leave', leaverList, remover, date)
 
             // issue #254
@@ -335,7 +313,7 @@ function registerPuppetEventBridge (
             }
             const date = timestampToDate(payload.timestamp)
 
-            dispatchBridgeEvent(dependencies, 'room-topic', { room, newTopic: payload.newTopic, oldTopic: payload.oldTopic, changer, date }, [ room, payload.newTopic, payload.oldTopic, changer, date ])
+            dispatchBridgeEvent(dependencies, 'room-topic', { room, newTopic: payload.newTopic, oldTopic: payload.oldTopic, changer, date })
             room.emit('topic', payload.newTopic, payload.oldTopic, changer, date)
           } catch (e) {
             dependencies.emitError(GError.from(e))
@@ -347,7 +325,7 @@ function registerPuppetEventBridge (
         addListener(async (payload: PUPPET.payloads.EventScan) => {
           dependencies.setReady?.('inactive')
           const scanDetail = { qrcode: payload.qrcode || '', status: payload.status, data: payload.data }
-          dispatchBridgeEvent(dependencies, 'scan', scanDetail, [ payload.qrcode || '', payload.status, payload.data ])
+          dispatchBridgeEvent(dependencies, 'scan', scanDetail)
         })
         break
 

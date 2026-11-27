@@ -34,7 +34,7 @@ test('Integration testing', async t => {
    * Puppet in Service
    */
   const puppet = new PuppetMock()
-  const spyStart = mock.method(puppet, 'start')
+  const spyStart = mock.method(puppet, 'onStart')
   const spyOn    = mock.method(puppet, 'on')
   const spyDing  = mock.method(puppet, 'ding')
 
