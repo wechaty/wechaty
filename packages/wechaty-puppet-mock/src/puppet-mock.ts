@@ -261,16 +261,26 @@ class PuppetMock extends PUPPET.Puppet {
     messageId: string,
   ): Promise<boolean> {
     log.verbose('PuppetMock', 'messageRecall(%s)', messageId)
-    const payload = this.mocker.cacheMessagePayload.get(messageId)
-    if (!payload || payload.type === PUPPET.types.Message.Recalled) {
+    const original = this.mocker.cacheMessagePayload.get(messageId)
+    if (!original || original.type === PUPPET.types.Message.Recalled) {
       return false
     }
-    payload.type = PUPPET.types.Message.Recalled
-    payload.text = messageId
-    await this.messagePayloadDirty(messageId)
-    this.dispatchEvent(new PUPPET.WechatyEvent('message', {
-      detail: { messageId },
-    }))
+    const alreadyRecalled = [...this.mocker.cacheMessagePayload.values()]
+      .some((m) => m.type === PUPPET.types.Message.Recalled && m.text === messageId)
+    if (alreadyRecalled) {
+      return false
+    }
+    // Preserve the original message record so Message.toRecalled() can resolve
+    // it via the recalled notice's `text` field.
+    const target = original.roomId
+      ? { roomId: original.roomId }
+      : { listenerId: original.listenerId ?? original.talkerId }
+    this.mocker.createAndEmitMessage({
+      talkerId: original.talkerId,
+      text: messageId,
+      type: PUPPET.types.Message.Recalled,
+      ...target,
+    })
     return true
   }
 
@@ -403,24 +413,26 @@ class PuppetMock extends PUPPET.Puppet {
         break
       case PUPPET.types.Sayable.Post:
         base.type = PUPPET.types.Message.Post
+        this.mocker.cacheMessagePostPayload.set(id, sayable.payload)
         await this._storePostPayload(id, sayable.payload)
         break
       case PUPPET.types.Sayable.Emoticon:
-        base.type = PUPPET.types.Message.Emoticon
-        break
       case PUPPET.types.Sayable.Attachment:
       case PUPPET.types.Sayable.Image:
       case PUPPET.types.Sayable.Audio:
       case PUPPET.types.Sayable.Video: {
-        base.type = sayable.type === PUPPET.types.Sayable.Image
-          ? PUPPET.types.Message.Image
-          : sayable.type === PUPPET.types.Sayable.Audio
-            ? PUPPET.types.Message.Audio
-            : sayable.type === PUPPET.types.Sayable.Video
-              ? PUPPET.types.Message.Video
-              : PUPPET.types.Message.Attachment
+        const mediaTypeMap: Partial<Record<(typeof PUPPET.types.Sayable)[keyof typeof PUPPET.types.Sayable], PUPPET.types.Message>> = {
+          [PUPPET.types.Sayable.Attachment]: PUPPET.types.Message.Attachment,
+          [PUPPET.types.Sayable.Audio]: PUPPET.types.Message.Audio,
+          [PUPPET.types.Sayable.Emoticon]: PUPPET.types.Message.Emoticon,
+          [PUPPET.types.Sayable.Image]: PUPPET.types.Message.Image,
+          [PUPPET.types.Sayable.Video]: PUPPET.types.Message.Video,
+        }
+        base.type = mediaTypeMap[sayable.type] ?? PUPPET.types.Message.Attachment
         const rawBox = sayable.payload.filebox
-        const box = typeof rawBox === 'string' ? FileBox.fromUrl(rawBox) : rawBox
+        const box = typeof rawBox === 'string'
+          ? (rawBox.trimStart().startsWith('{') ? FileBox.fromJSON(rawBox) : FileBox.fromUrl(rawBox))
+          : rawBox
         let json: ReturnType<FileBox['toJSON']>
         try {
           json = box.toJSON()
@@ -439,12 +451,13 @@ class PuppetMock extends PUPPET.Puppet {
 
   /**
    * Stores a `PostPayload` as a `PostServer` in `mocker.cachePostPayload` under `id`,
-   * materializing any client sayables into message records.
+   * materializing any client sayables into message records and updating ancestor counters.
    */
   private async _storePostPayload (
     id: string,
     payload: PUPPET.payloads.Post,
   ): Promise<PUPPET.payloads.PostServer> {
+    const isNew = !this.mocker.cachePostPayload.has(id)
     const contactId = ('contactId' in payload && payload.contactId)
       ? payload.contactId
       : (this.isLoggedIn ? this.currentUserId : '')
@@ -462,6 +475,34 @@ class PuppetMock extends PUPPET.Puppet {
       timestamp: ('timestamp' in payload && payload.timestamp) ? payload.timestamp : Date.now(),
     }
     this.mocker.cachePostPayload.set(id, stored)
+
+    if (isNew) {
+      const visited = new Set<string>([id])
+      const parentId = 'parentId' in payload ? payload.parentId : undefined
+      if (parentId) {
+        const directParent = this.mocker.cachePostPayload.get(parentId)
+        if (directParent) {
+          directParent.counter.children = (directParent.counter.children ?? 0) + 1
+        }
+        let cursor: string | undefined = parentId
+        while (cursor && !visited.has(cursor)) {
+          visited.add(cursor)
+          const ancestor = this.mocker.cachePostPayload.get(cursor)
+          if (!ancestor) break
+          ancestor.counter.descendant = (ancestor.counter.descendant ?? 0) + 1
+          await this.postPayloadDirty(ancestor.id)
+          cursor = ancestor.parentId
+        }
+      }
+      const rootId = 'rootId' in payload ? payload.rootId : undefined
+      if (rootId && !visited.has(rootId)) {
+        const rootPost = this.mocker.cachePostPayload.get(rootId)
+        if (rootPost) {
+          rootPost.counter.descendant = (rootPost.counter.descendant ?? 0) + 1
+          await this.postPayloadDirty(rootPost.id)
+        }
+      }
+    }
     return stored
   }
 
@@ -526,11 +567,23 @@ class PuppetMock extends PUPPET.Puppet {
     postPayload: PUPPET.payloads.Post,
   ): Promise<void | string> {
     log.verbose('PuppetMock', 'messageSendPost(%s, %s)', conversationId, JSON.stringify(postPayload))
-    const messageId = this._createTypedMessage(conversationId, PUPPET.types.Message.Post, undefined, (id) => {
-      this.mocker.cacheMessagePostPayload.set(id, postPayload)
-    })
+    if (!this.isLoggedIn) {
+      throw new Error('not logged in')
+    }
+    const target = /@/.test(conversationId)
+      ? { roomId: this.mocker.RoomMock.load(conversationId).id }
+      : { listenerId: this.mocker.ContactMock.load(conversationId).id }
+    const messageId = crypto.randomUUID()
+    // Materialize and store the post before emitting 'message' so listeners
+    // can immediately read puppet.postPayload(messageId).
+    this.mocker.cacheMessagePostPayload.set(messageId, postPayload)
     await this._storePostPayload(messageId, postPayload)
-    return messageId
+    return this.mocker.createAndEmitMessage({
+      id: messageId,
+      talkerId: this.currentUserId,
+      type: PUPPET.types.Message.Post,
+      ...target,
+    })
   }
 
   override async messageForward (
@@ -611,6 +664,7 @@ class PuppetMock extends PUPPET.Puppet {
       this.mocker.cacheRoomMemberPayload.delete(`${roomId}:${id}`)
     }
     await this.roomPayloadDirty(roomId)
+    await this.roomMemberPayloadDirty(roomId)
     const removerId = this.isLoggedIn ? this.currentUserId : (payload.ownerId ?? removed[0])
     if (removerId) {
       this.dispatchEvent(new PUPPET.WechatyEvent('room-leave', {
@@ -970,12 +1024,35 @@ class PuppetMock extends PUPPET.Puppet {
     log.verbose('PuppetMock', 'postPublish({type: %s})',
       PUPPET.helpers.typeName(PUPPET.types.Post, payload.type || PUPPET.types.Post.Unspecified),
     )
+    if (!this.isLoggedIn) {
+      throw new Error('not logged in')
+    }
     const id = ('id' in payload && payload.id) ? payload.id : crypto.randomUUID()
     await this._storePostPayload(id, payload)
     this.dispatchEvent(new PUPPET.WechatyEvent('post', {
       detail: { postId: id },
     }))
     return id
+  }
+
+  /**
+   * Validates and parses cursor-style `PaginationRequest` offsets and page sizes.
+   */
+  private _parsePagination (
+    pagination?: PUPPET.filters.PaginationRequest,
+  ): { offset: number; pageSize?: number } {
+    const pageSize = pagination?.pageSize
+    if (pageSize !== undefined && (!Number.isInteger(pageSize) || pageSize <= 0)) {
+      throw new Error(`Invalid pageSize: ${pageSize}`)
+    }
+    let offset = 0
+    if (pagination?.pageToken !== undefined) {
+      if (!/^\d+$/.test(pagination.pageToken)) {
+        throw new Error(`Invalid pageToken: ${pagination.pageToken}`)
+      }
+      offset = Number.parseInt(pagination.pageToken, 10)
+    }
+    return { offset, pageSize }
   }
 
   override async postSearch (
@@ -986,6 +1063,7 @@ class PuppetMock extends PUPPET.Puppet {
       JSON.stringify(filter),
       JSON.stringify(pagination),
     )
+    const { offset, pageSize: requestedSize } = this._parsePagination(pagination)
     const allIds = [...this.mocker.cachePostPayload.values()]
       .filter((p) => {
         if (filter.id && p.id !== filter.id) return false
@@ -997,14 +1075,7 @@ class PuppetMock extends PUPPET.Puppet {
       })
       .map((p) => p.id)
 
-    if (pagination?.pageSize !== undefined && pagination.pageSize <= 0) {
-      throw new Error(`Invalid pageSize: ${pagination.pageSize}`)
-    }
-    const pageSize = pagination?.pageSize ?? allIds.length
-    const offset = pagination?.pageToken ? Number.parseInt(pagination.pageToken, 10) : 0
-    if (Number.isNaN(offset) || offset < 0) {
-      throw new Error(`Invalid pageToken: ${pagination?.pageToken}`)
-    }
+    const pageSize = requestedSize ?? allIds.length
     const slice = allIds.slice(offset, offset + pageSize)
     const nextOffset = offset + slice.length
 
@@ -1059,6 +1130,7 @@ class PuppetMock extends PUPPET.Puppet {
     }
     post.counter.taps ??= {}
     post.counter.taps[type] = entry.contactId.length
+    await this.postPayloadDirty(postId)
     return tap
   }
 
@@ -1072,13 +1144,11 @@ class PuppetMock extends PUPPET.Puppet {
       typeof query === 'undefined' ? '' : `, ${JSON.stringify(query)}`,
       typeof pagination === 'undefined' ? '' : `, ${JSON.stringify(pagination)}`,
     )
+    await this.postRawPayload(postId)
+    const { offset, pageSize } = this._parsePagination(pagination)
     const tapPayload = this.mocker.cacheTapPayload.get(postId) ?? {}
-    const filtered: PUPPET.payloads.Tap = {}
-    const pageSize = pagination?.pageSize
-    const offset = pagination?.pageToken ? Number.parseInt(pagination.pageToken, 10) : 0
-    let hasMore = false
-    let nextToken: string | undefined
 
+    const matched: Array<{ contactId: string; tapType: PUPPET.types.Tap; timestamp: number }> = []
     for (const [key, entry] of Object.entries(tapPayload)) {
       const tapType = Number.parseInt(key, 10) as PUPPET.types.Tap
       if (
@@ -1089,30 +1159,30 @@ class PuppetMock extends PUPPET.Puppet {
         continue
       }
       if (!entry) continue
-      const matchedIds: string[] = []
-      const matchedTimestamps: number[] = []
       entry.contactId.forEach((cid, i) => {
         if (!query?.contactId || cid === query.contactId) {
-          matchedIds.push(cid)
-          matchedTimestamps.push(entry.timestamp[i] ?? 0)
+          matched.push({
+            contactId: cid,
+            tapType,
+            timestamp: entry.timestamp[i] ?? 0,
+          })
         }
       })
-      const end = pageSize !== undefined ? offset + pageSize : matchedIds.length
-      if (end < matchedIds.length) {
-        hasMore = true
-        nextToken = String(end)
-      }
-      const slicedIds = matchedIds.slice(offset, end)
-      const slicedTimestamps = matchedTimestamps.slice(offset, end)
-      if (slicedIds.length > 0) {
-        filtered[tapType] = {
-          contactId: slicedIds,
-          timestamp: slicedTimestamps,
-        }
-      }
     }
+
+    const end = pageSize !== undefined ? offset + pageSize : matched.length
+    const slice = matched.slice(offset, end)
+    const nextOffset = offset + slice.length
+    const filtered: PUPPET.payloads.Tap = {}
+    for (const item of slice) {
+      const bucket = filtered[item.tapType] ?? { contactId: [], timestamp: [] }
+      bucket.contactId.push(item.contactId)
+      bucket.timestamp.push(item.timestamp)
+      filtered[item.tapType] = bucket
+    }
+
     return {
-      nextPageToken: hasMore ? nextToken : undefined,
+      nextPageToken: nextOffset < matched.length ? String(nextOffset) : undefined,
       response: filtered,
     }
   }

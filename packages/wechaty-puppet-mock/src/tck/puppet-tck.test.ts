@@ -14,9 +14,14 @@ runPuppetTCK({
 
 runPuppetTCK({
   createHangingPuppet: (options) => {
+    let resolveEntered!: () => void
+    const entered = new Promise<void>((resolve) => {
+      resolveEntered = resolve
+    })
     class HangingPuppetMock extends PuppetMock {
 
       override async onStart (signal?: AbortSignal): Promise<void> {
+        resolveEntered()
         await new Promise<void>((resolve) => {
           if (signal?.aborted) {
             resolve()
@@ -27,7 +32,10 @@ runPuppetTCK({
       }
 
     }
-    return new HangingPuppetMock(options)
+    return {
+      entered,
+      puppet: new HangingPuppetMock(options),
+    }
   },
   createPuppet: (options) => new PuppetMock(options),
   name: 'PuppetMock',

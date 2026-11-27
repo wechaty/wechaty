@@ -99,8 +99,15 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     assert.ok(typeof fwdId === 'string' && fwdId !== textId)
     assert.equal((await puppet.messagePayload(fwdId)).text, 'hi @Alice')
 
+    const recallMsgFuture = puppet.next('message')
     assert.equal(await puppet.messageRecall(textId as string), true)
-    assert.equal((await puppet.messagePayload(textId as string)).type, PUPPET.types.Message.Recalled)
+    const recallNotice = await recallMsgFuture
+    assert.notEqual(recallNotice.messageId, textId)
+    const recallPayload = await puppet.messagePayload(recallNotice.messageId)
+    assert.equal(recallPayload.type, PUPPET.types.Message.Recalled)
+    assert.equal(recallPayload.text, textId)
+    // Original message record remains intact for Message.toRecalled()
+    assert.equal((await puppet.messagePayload(textId as string)).type, PUPPET.types.Message.Text)
     assert.equal(await puppet.messageRecall(textId as string), false)
 
     await puppet.conversationReadMark(alice.id, true)
@@ -267,12 +274,64 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     const fwdFile = await puppet.messageForward(bob.id, fileMsg as string)
     assert.equal((await puppet.messageFile(fwdFile as string)).name, 'hi.txt')
 
-    // Room & invitation error branches
+    // Room & invitation error branches + roomMemberPayloadDirty invalidation on roomDel
+    await puppet.roomAdd(room.id, bob.id)
+    assert.equal((await puppet.roomMemberPayload(room.id, bob.id)).id, bob.id)
+    await puppet.roomDel(room.id, bob.id)
+    await assert.rejects(() => puppet.roomMemberPayload(room.id, bob.id))
     await puppet.roomDel(room.id, 'not-a-member')
     await assert.rejects(() => puppet.roomMemberRawPayload(room.id, 'not-a-member'))
     await assert.rejects(() => puppet.roomInvitationRawPayload('missing-inv'))
     await assert.rejects(() => puppet.roomInvitationAccept('missing-inv'))
     await assert.rejects(() => puppet.friendshipRawPayload('missing-friendship'))
+
+    // Post: immediate availability in message listener, FileBox.fromJSON, Emoticon, nested Post,
+    // ancestor counters, tap postPayloadDirty, and pagination validation
+    let resolveListenerPost!: (id: string) => void
+    const listenerPostFuture = new Promise<string>((resolve) => {
+      resolveListenerPost = resolve
+    })
+    puppet.addEventListener('message', async (ev) => {
+      const payload = await puppet.messagePayload(ev.detail.messageId)
+      if (payload.type === PUPPET.types.Message.Post) {
+        const post = await puppet.postPayload(ev.detail.messageId)
+        resolveListenerPost(post.id ?? '')
+      }
+    }, { once: true })
+    const rawJsonBox = JSON.stringify(FileBox.fromBase64(btoa('json-box'), 'json.txt').toJSON())
+    const emoticonBox = FileBox.fromBase64(btoa('emo'), 'emo.gif')
+    const sentPostId = await puppet.messageSendPost(alice.id, {
+      sayableList: [
+        { payload: { filebox: rawJsonBox }, type: PUPPET.types.Sayable.Attachment },
+        { payload: { filebox: emoticonBox }, type: PUPPET.types.Sayable.Emoticon },
+        { payload: { sayableList: [{ payload: { mentions: [], text: 'nested' }, type: PUPPET.types.Sayable.Text }], type: PUPPET.types.Post.Moment }, type: PUPPET.types.Sayable.Post },
+      ],
+      type: PUPPET.types.Post.Moment,
+    })
+    assert.equal(await listenerPostFuture, sentPostId)
+    const storedSentPost = await puppet.postPayload(sentPostId as string) as PUPPET.payloads.PostServer
+    assert.equal(storedSentPost.sayableList.length, 3)
+    assert.equal((await puppet.messageFile(storedSentPost.sayableList[0]!)).name, 'json.txt')
+    assert.equal((await puppet.messageFile(storedSentPost.sayableList[1]!)).name, 'emo.gif')
+    assert.equal((await puppet.messagePayload(storedSentPost.sayableList[2]!)).type, PUPPET.types.Message.Post)
+
+    const rootId = await puppet.postPublish({ sayableList: [{ payload: { mentions: [], text: 'root' }, type: PUPPET.types.Sayable.Text }], type: PUPPET.types.Post.Moment }) as string
+    const childId = await puppet.postPublish({ parentId: rootId, rootId, sayableList: [], type: PUPPET.types.Post.Moment }) as string
+    await puppet.postPublish({ parentId: childId, rootId, sayableList: [], type: PUPPET.types.Post.Moment })
+    const updatedRoot = await puppet.postPayload(rootId) as PUPPET.payloads.PostServer
+    assert.equal(updatedRoot.counter.children, 1)
+    assert.equal(updatedRoot.counter.descendant, 2)
+
+    await puppet.tap(rootId, PUPPET.types.Tap.Like, true)
+    assert.equal(((await puppet.postPayload(rootId)) as PUPPET.payloads.PostServer).counter.taps?.[PUPPET.types.Tap.Like], 1)
+    await puppet.tap(rootId, PUPPET.types.Tap.Unspecified, true)
+    const page1 = await puppet.tapSearch(rootId, undefined, { pageSize: 1 })
+    assert.equal(Object.values(page1.response).reduce((n, v) => n + (v?.contactId.length ?? 0), 0), 1)
+    assert.equal(page1.nextPageToken, '1')
+    await assert.rejects(() => puppet.postSearch({}, { pageSize: 0 }))
+    await assert.rejects(() => puppet.postSearch({}, { pageToken: 'bad' }))
+    await assert.rejects(() => puppet.tapSearch('missing-post'))
+    await assert.rejects(() => puppet.tapSearch(rootId, undefined, { pageSize: -1 }))
 
     // Logged-out branches
     await puppet.logout()
@@ -281,6 +340,7 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     await assert.rejects(() => puppet.contactSelfSignature('x'))
     await assert.rejects(() => puppet.messageSendText(alice.id, 'hi'))
     await assert.rejects(() => puppet.messageSendUrl(alice.id, { title: 't', url: 'https://wechaty.js.org' }))
+    await assert.rejects(() => puppet.postPublish({ sayableList: [], type: PUPPET.types.Post.Moment }))
     await assert.rejects(() => puppet.tap('any', PUPPET.types.Tap.Like, true))
   })
 })

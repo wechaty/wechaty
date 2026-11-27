@@ -27,8 +27,12 @@ export interface PuppetTCKOptions {
   /**
    * Optional factory creating a puppet whose `onStart()` hangs until its
    * `AbortSignal` fires or `stop()` is called, used to verify `C-DEADLOCK-01`.
+   * May return `{ puppet, entered }` so the test awaits entry into `onStart()`
+   * before calling `stop()`.
    */
-  createHangingPuppet?: (options?: PUPPET.PuppetOptions) => PUPPET.Puppet
+  createHangingPuppet?: (options?: PUPPET.PuppetOptions) =>
+    | PUPPET.Puppet
+    | { puppet: PUPPET.Puppet; entered?: Promise<void> }
   /**
    * Optional setup hook invoked after `start()` to seed at least one contact,
    * room, and logged-in user for domain compliance checks (`Suite 2`).
@@ -48,6 +52,19 @@ export interface PuppetTCKOptions {
  */
 export function runPuppetTCK (options: PuppetTCKOptions): void {
   const { name, createPuppet, createHangingPuppet, seedDomain } = options
+  const withWatchdog = async <T>(promise: Promise<T>, label: string, timeoutMs = 3_000): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs)
+        }),
+      ])
+    } finally {
+      if (timer !== undefined) clearTimeout(timer)
+    }
+  }
 
   describe(`Puppet TCK: ${name}`, () => {
     /**
@@ -115,26 +132,18 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
 
       if (createHangingPuppet) {
         test('C-DEADLOCK-01: stop() unblocks a hanging onStart() without deadlocking', { timeout: 5_000 }, async (t) => {
-          const puppet = createHangingPuppet()
-          const withWatchdog = async <T>(promise: Promise<T>, label: string): Promise<T> => {
-            let timer: ReturnType<typeof setTimeout> | undefined
-            try {
-              return await Promise.race([
-                promise,
-                new Promise<never>((_, reject) => {
-                  timer = setTimeout(() => reject(new Error(`${label} timed out after 3000ms`)), 3_000)
-                }),
-              ])
-            } finally {
-              if (timer !== undefined) clearTimeout(timer)
-            }
-          }
+          const created = createHangingPuppet()
+          const puppet = 'puppet' in created ? created.puppet : created
+          const entered = 'puppet' in created ? created.entered : undefined
 
           t.after(async () => {
             await withWatchdog(puppet.stop().catch(() => undefined), 'C-DEADLOCK-01 cleanup')
           })
 
           const startPromise = puppet.start().catch((err: unknown) => err)
+          if (entered) {
+            await withWatchdog(entered, 'onStart() entry barrier')
+          }
           await withWatchdog(puppet.stop(), 'puppet.stop()')
           const result = await withWatchdog(startPromise, 'puppet.start()')
 
@@ -271,7 +280,7 @@ export function runPuppetTCK (options: PuppetTCKOptions): void {
 
           const dirtyFuture = puppet.next('dirty')
           await puppet.contactAlias(contactId, 'tck-updated-alias')
-          const dirty = await dirtyFuture
+          const dirty = await withWatchdog(dirtyFuture, 'C-EVENT-03 dirty event')
           assert.equal(dirty.payloadType, PUPPET.types.Payload.Contact)
           assert.equal(dirty.payloadId, contactId)
 

@@ -364,12 +364,12 @@ class Mocker {
    * and emit a `message` event on the attached puppet.
    */
   createAndEmitMessage (
-    partial: Omit<PUPPET.payloads.MessageBase, 'id' | 'timestamp'> & (
+    partial: Omit<PUPPET.payloads.MessageBase, 'id' | 'timestamp'> & { id?: string } & (
       { listenerId: string } | { roomId: string, mentionIdList?: string[] }
     ),
     onBeforeEmit?: (id: string) => void,
   ): string {
-    const id = crypto.randomUUID()
+    const id = partial.id ?? crypto.randomUUID()
     const payload = {
       ...partial,
       id,

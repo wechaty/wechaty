@@ -115,6 +115,13 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     })
 
     const kickedFuture = bot.next('room-leave')
+    const recalledNoticeFuture = new Promise<void>((resolve) => {
+      bot.addEventListener('message', ({ detail: msg }) => {
+        if (msg.type() === types.Message.Recalled) {
+          resolve()
+        }
+      })
+    })
     bot.addEventListener('message', async ({ detail: msg }) => {
       const msgRoom = msg.room()
       if (msgRoom && msg.text().includes('SPAM')) {
@@ -129,7 +136,7 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     assert.equal(await welcomeFuture, 'Welcome Bob!')
 
     bob.say('Buy SPAM now').to(room)
-    const leaveEvent = await kickedFuture
+    const [leaveEvent] = await Promise.all([kickedFuture, recalledNoticeFuture])
     assert.ok(leaveEvent.leaverList.some((c) => c.id === bob.id))
   })
 
@@ -148,6 +155,13 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
       })
     })
     const joinedRoomFuture = bot.next('room-join')
+    const confirmFriendshipFuture = new Promise<void>((resolve) => {
+      bot.addEventListener('friendship', ({ detail: friendship }) => {
+        if (friendship.type() === types.Friendship.Confirm) {
+          resolve()
+        }
+      })
+    })
 
     bot.addEventListener('friendship', async ({ detail: friendship }) => {
       if (friendship.type() === types.Friendship.Receive && friendship.hello().includes('wechaty')) {
@@ -166,7 +180,7 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
     puppet.mocker.receiveFriendship(bob, 'hello wechaty', types.Friendship.Receive)
 
     assert.equal(await welcomeDmFuture, 'You are onboarded!')
-    const joinEvent = await joinedRoomFuture
+    const [joinEvent] = await Promise.all([joinedRoomFuture, confirmFriendshipFuture])
     assert.ok(joinEvent.inviteeList.some((c) => c.id === bob.id))
   })
 
