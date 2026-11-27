@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
+import type { LifecycleClock } from 'scopelet'
 import type { PuppetOptions } from 'wechaty-puppet'
 import { PuppetMock } from 'wechaty-puppet-mock'
 
@@ -15,7 +16,58 @@ import {
   PuppetService,
   PuppetServer,
   type PuppetServerOptions,
+  type PuppetServiceOptions,
 } from '../../src/mod.ts'
+
+class ManualClock implements LifecycleClock {
+
+  private currentTime = 0
+  private nextId = 1
+  private timers = new Map<number, { fireAt: number, fn: () => void }>()
+
+  now (): number {
+    return this.currentTime
+  }
+
+  setTimeout (fn: () => void, ms: number): unknown {
+    const id = this.nextId++
+    this.timers.set(id, { fireAt: this.currentTime + Math.max(0, ms), fn })
+    return id
+  }
+
+  clearTimeout (id: unknown): void {
+    if (typeof id === 'number') {
+      this.timers.delete(id)
+    }
+  }
+
+  get pendingCount (): number {
+    return this.timers.size
+  }
+
+  async advanceBy (ms: number): Promise<void> {
+    const target = this.currentTime + ms
+    while (true) {
+      let nextEntry: [number, { fireAt: number, fn: () => void }] | undefined
+      for (const entry of this.timers.entries()) {
+        if (entry[1].fireAt <= target && (!nextEntry || entry[1].fireAt < nextEntry[1].fireAt)) {
+          nextEntry = entry
+        }
+      }
+      if (!nextEntry) {
+        break
+      }
+      const [id, timer] = nextEntry
+      this.timers.delete(id)
+      this.currentTime = timer.fireAt
+      timer.fn()
+      await new Promise(resolve => setImmediate(resolve))
+    }
+    this.currentTime = target
+    await new Promise(resolve => setImmediate(resolve))
+  }
+
+}
 
 const VALID_TOKEN_UUID   = '11111111-1111-1111-1111-111111111111'
 const INVALID_TOKEN_UUID = '22222222-2222-2222-2222-222222222222'
@@ -169,6 +221,210 @@ test('Resiliency and authentication simulation between PuppetService and PuppetS
       await client2?.stop().catch(() => {})
       await server2?.stop().catch(() => {})
       await puppet2?.stop().catch(() => {})
+    }
+  })
+
+  await t.test('reconnects after stream loss using injected LifecycleClock', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const clock = new ManualClock()
+
+    let puppet: PuppetMock | undefined
+    let server: PuppetServer | undefined
+    let client: PuppetService | undefined
+
+    try {
+      puppet = new PuppetMock()
+      server = new PuppetServer({ endpoint, puppet, token })
+      client = new PuppetService({
+        endpoint,
+        token,
+        clock,
+        reconnect: { baseDelayMs: 1000, maxDelayMs: 4000 },
+      } as PuppetServiceOptions)
+      client.on('error', () => {})
+
+      await server.start()
+      await client.start()
+      assert.equal(client.grpcManager.isRunning, true)
+
+      // Drop the server so the event stream ends/errors while running
+      await server.stop()
+      await client.grpcManager.whenState(s => s.kind === 'starting')
+      assert.equal(clock.pendingCount, 1, 'reconnect backoff timer should be scheduled on ManualClock')
+
+      // Bring the server back up on the same port before the backoff expires
+      await server.start()
+
+      // Advancing 999ms must not fire the 1000ms reconnect timer yet
+      await clock.advanceBy(999)
+      assert.equal(client.grpcManager.state.kind, 'starting')
+
+      // Advancing the remaining 1ms triggers reconnect
+      await clock.advanceBy(1)
+      await client.grpcManager.whenRunning()
+      const qrCode = await client.contactSelfQRCode()
+      assert.ok(typeof qrCode === 'string', 'client should serve RPCs after reconnect')
+    } finally {
+      await client?.stop().catch(() => {})
+      await server?.stop().catch(() => {})
+      await puppet?.stop().catch(() => {})
+    }
+  })
+
+  await t.test('stop() cancels pending reconnect sleep immediately', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const clock = new ManualClock()
+
+    let puppet: PuppetMock | undefined
+    let server: PuppetServer | undefined
+    let client: PuppetService | undefined
+
+    try {
+      puppet = new PuppetMock()
+      server = new PuppetServer({ endpoint, puppet, token })
+      client = new PuppetService({
+        endpoint,
+        token,
+        clock,
+        reconnect: { baseDelayMs: 60_000, maxDelayMs: 60_000 },
+      } as PuppetServiceOptions)
+      client.on('error', () => {})
+
+      await server.start()
+      await client.start()
+
+      await server.stop()
+      await client.grpcManager.whenState(s => s.kind === 'starting')
+      assert.equal(clock.pendingCount, 1)
+
+      // stop() must resolve immediately without advancing the 60s clock timer
+      await client.stop()
+      assert.equal(clock.pendingCount, 0, 'stop() should cancel pending reconnect sleep')
+      assert.throws(() => client!.grpcManager, /no grpc manager/)
+    } finally {
+      await client?.stop().catch(() => {})
+      await server?.stop().catch(() => {})
+      await puppet?.stop().catch(() => {})
+    }
+  })
+
+  await t.test('stop() is bounded by stopTimeoutMs when remote server is unresponsive', async () => {
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const clock = new ManualClock()
+
+    let puppet: PuppetMock | undefined
+    let server: PuppetServer | undefined
+    let client: PuppetService | undefined
+
+    try {
+      puppet = new PuppetMock()
+      server = new PuppetServer({ endpoint, puppet, token })
+      client = new PuppetService({
+        endpoint,
+        token,
+        clock,
+        stopTimeoutMs: 250,
+      } as PuppetServiceOptions)
+      client.on('error', () => {})
+
+      await server.start()
+      await client.start()
+
+      // Simulate an unresponsive server whose remote stop RPC never settles
+      ;(client.grpcManager.client as any).stop = async () => new Promise(() => {})
+
+      const stopPromise = assert.rejects(
+        client.stop(),
+        (err: any) => err?.code === 'ERR_LIFECYCLE_TIMEOUT' && err?.timeoutMs === 250,
+      )
+      await new Promise(resolve => setImmediate(resolve))
+      await clock.advanceBy(250)
+      await stopPromise
+
+      assert.throws(() => client!.grpcManager, /no grpc manager/)
+    } finally {
+      await client?.stop().catch(() => {})
+      await server?.stop().catch(() => {})
+      await puppet?.stop().catch(() => {})
+    }
+  })
+
+  await t.test('shared provider lifecycle scenario runs on PuppetMock and loopback PuppetService', async () => {
+    async function runProviderScenario (
+      provider: PuppetMock | PuppetService,
+      emitEvents: (events: { scan: () => void, login: () => void, ready: () => void, logout: () => void }) => void,
+    ) {
+      const seen: string[] = []
+      provider.on('scan', () => seen.push('scan'))
+      provider.on('login', () => seen.push('login'))
+      provider.on('ready', () => seen.push('ready'))
+      provider.on('logout', () => seen.push('logout'))
+
+      await provider.start()
+      assert.equal(provider.isRunning, true)
+
+      const scanDone = new Promise<void>(resolve => provider.once('scan', () => resolve()))
+      const loginDone = new Promise<void>(resolve => provider.once('login', () => resolve()))
+      const readyDone = new Promise<void>(resolve => provider.once('ready', () => resolve()))
+      const logoutDone = new Promise<void>(resolve => provider.once('logout', () => resolve()))
+
+      emitEvents({
+        scan: () => provider.emit('scan', { qrcode: 'qr-1', status: 2 }),
+        login: () => { void provider.login('self-id') },
+        ready: () => provider.emit('ready', { data: 'ready' }),
+        logout: () => { void provider.logout('bye') },
+      })
+
+      await scanDone
+      await loginDone
+      await readyDone
+      const qr = await provider.contactSelfQRCode()
+      assert.equal(typeof qr, 'string')
+      await logoutDone
+
+      await provider.stop()
+      assert.equal(provider.isStopped, true)
+      assert.deepEqual(seen, ['scan', 'login', 'ready', 'logout'])
+    }
+
+    // 1. Direct PuppetMock
+    const directMock = new PuppetMock()
+    try {
+      await runProviderScenario(directMock, (e) => {
+        e.scan()
+        e.login()
+        e.ready()
+        e.logout()
+      })
+    } finally {
+      await directMock.stop().catch(() => {})
+    }
+
+    // 2. Loopback PuppetService -> PuppetServer -> PuppetMock
+    const port = await freePort()
+    const endpoint = `127.0.0.1:${port}`
+    const token = `insecure_${VALID_TOKEN_UUID}`
+    const backend = new PuppetMock()
+    const server = new PuppetServer({ endpoint, puppet: backend, token })
+    const service = new PuppetService({ endpoint, token } as PuppetOptions)
+    try {
+      await server.start()
+      await runProviderScenario(service, () => {
+        backend.emit('scan', { qrcode: 'qr-1', status: 2 })
+        backend.emit('login', { contactId: 'self-id' })
+        backend.emit('ready', { data: 'ready' })
+        backend.emit('logout', { contactId: 'self-id', data: 'bye' })
+      })
+    } finally {
+      await service.stop().catch(() => {})
+      await server.stop().catch(() => {})
+      await backend.stop().catch(() => {})
     }
   })
 })

@@ -9,6 +9,15 @@
 import EventEmitter from 'node:events'
 import crypto from 'node:crypto'
 
+import {
+  createLifecycle,
+  type Lifecycle,
+  type LifecycleController,
+  type LifecycleScope,
+  type LifecycleState,
+  type LifecycleStop,
+  type LifecycleWaitOptions,
+} from 'scopelet'
 import { log } from 'wechaty-puppet'
 import {
   Puppet,
@@ -69,7 +78,16 @@ function raceAbort<T> (promise: Promise<T>, signal?: AbortSignal): Promise<T> {
   })
 }
 
-class GrpcManager extends EventEmitter {
+export interface GrpcReconnectOptions {
+  enabled?     : boolean
+  baseDelayMs? : number
+  maxDelayMs?  : number
+  maxAttempts? : number
+}
+
+class GrpcManager extends EventEmitter implements Lifecycle {
+
+  private readonly lifecycle: LifecycleController
 
   protected _client?: Client<typeof Puppet>
   protected sessionManager?: Http2SessionManager
@@ -80,7 +98,11 @@ class GrpcManager extends EventEmitter {
     return this._client
   }
 
-  protected abortController?: AbortController
+  private reconnectAttempt = 0
+  private isRecovering = false
+  private readonly reconnectOptions: Required<Pick<GrpcReconnectOptions, 'enabled' | 'baseDelayMs' | 'maxDelayMs'>> & {
+    maxAttempts?: number
+  }
 
   caCert     : Buffer
   disableTls : boolean
@@ -94,6 +116,25 @@ class GrpcManager extends EventEmitter {
     super()
     this.options = options
     log.verbose('GrpcManager', 'constructor(%s)', JSON.stringify(options))
+
+    this.reconnectOptions = {
+      enabled: options.reconnect?.enabled ?? true,
+      baseDelayMs: options.reconnect?.baseDelayMs ?? 1000,
+      maxDelayMs: options.reconnect?.maxDelayMs ?? 30_000,
+      maxAttempts: options.reconnect?.maxAttempts,
+    }
+
+    this.lifecycle = createLifecycle(
+      {
+        onStart: (scope) => this.onStart(scope),
+        onStop: (stop) => this.onStop(stop),
+      },
+      {
+        name: 'GrpcManager',
+        clock: options.clock,
+        stopTimeoutMs: options.stopTimeoutMs ?? 5000,
+      },
+    )
 
     this.caCert = Buffer.from(
       envVars.WECHATY_PUPPET_SERVICE_TLS_CA_CERT(this.options.tls?.caCert) || TLS_CA_CERT,
@@ -137,69 +178,158 @@ class GrpcManager extends EventEmitter {
     log.verbose('GrpcManager', 'constructor() serverName(SNI): "%s"', this.serverName)
   }
 
-  /** Start the local transport and event stream under Puppet's startup signal. */
-  async start (signal?: AbortSignal): Promise<void> {
-    log.verbose('GrpcManager', 'start()')
-    signal?.throwIfAborted()
+  get state (): LifecycleState {
+    return this.lifecycle.state
+  }
 
-    try {
-      log.verbose('GrpcManager', 'start() initializing client ...')
-      await this.initClient(signal)
-      signal?.throwIfAborted()
-      log.verbose('GrpcManager', 'start() initializing client ... done')
+  get isRunning (): boolean {
+    return this.lifecycle.isRunning
+  }
 
-      log.verbose('GrpcManager', 'start() starting stream ...')
-      await this.startStream(signal)
-      signal?.throwIfAborted()
-      log.verbose('GrpcManager', 'start() starting stream ... done')
+  get isActive (): boolean {
+    return this.lifecycle.isActive
+  }
 
-      log.verbose('GrpcManager', 'start() calling grpc server: start() ...')
-      await this.client.start({}, { signal })
-      log.verbose('GrpcManager', 'start() calling grpc server: start() ... done')
+  get isStarting (): boolean {
+    return this.lifecycle.isStarting
+  }
 
-      log.verbose('GrpcManager', 'start() ... done')
-    } catch (e) {
-      if (!signal?.aborted) {
-        this.stopStream()
+  get isStopping (): boolean {
+    return this.lifecycle.isStopping
+  }
+
+  get isStopped (): boolean {
+    return this.lifecycle.isStopped
+  }
+
+  get isFailed (): boolean {
+    return this.lifecycle.isFailed
+  }
+
+  start (options?: LifecycleWaitOptions): Promise<void> {
+    return this.lifecycle.start(options)
+  }
+
+  stop (options?: LifecycleWaitOptions): Promise<void> {
+    return this.lifecycle.stop(options)
+  }
+
+  restart (options?: LifecycleWaitOptions): Promise<void> {
+    return this.lifecycle.restart(options)
+  }
+
+  whenState (
+    predicate: (state: LifecycleState) => boolean,
+    options?: LifecycleWaitOptions,
+  ): Promise<LifecycleState> {
+    return this.lifecycle.whenState(predicate, options)
+  }
+
+  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
+    return this.lifecycle.whenRunning(options)
+  }
+
+  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
+    return this.lifecycle.whenStopped(options)
+  }
+
+  [Symbol.asyncDispose] (): Promise<void> {
+    return this.lifecycle[Symbol.asyncDispose]()
+  }
+
+  private getReconnectDelayMs (attempt: number): number {
+    const exp = Math.max(0, attempt - 1)
+    return Math.min(this.reconnectOptions.maxDelayMs, this.reconnectOptions.baseDelayMs * (2 ** exp))
+  }
+
+  private handleStreamLoss (scope: LifecycleScope, reason: unknown): void {
+    if (scope.signal.aborted || !this.reconnectOptions.enabled) {
+      return
+    }
+    const nextAttempt = this.reconnectAttempt + 1
+    if (
+      this.reconnectOptions.maxAttempts !== undefined
+      && nextAttempt > this.reconnectOptions.maxAttempts
+    ) {
+      return
+    }
+    this.reconnectAttempt = nextAttempt
+    this.isRecovering = true
+    scope.recover(reason)
+  }
+
+  private async connectAndStartStream (scope: LifecycleScope): Promise<void> {
+    log.verbose('GrpcManager', 'connectAndStartStream()')
+    scope.signal.throwIfAborted()
+
+    await this.initClient(scope.signal)
+    scope.signal.throwIfAborted()
+
+    await this.startStream(scope)
+    scope.signal.throwIfAborted()
+
+    await this.client.start({}, { signal: scope.signal })
+    log.verbose('GrpcManager', 'connectAndStartStream() ... done')
+  }
+
+  /** Start the local transport and event stream under ScopeLet's lifecycle. */
+  protected async onStart (scope: LifecycleScope): Promise<void> {
+    log.verbose('GrpcManager', 'onStart()')
+    this.isRecovering = false
+    scope.defer(() => this.destroyClient())
+
+    if (this.reconnectAttempt === 0) {
+      await this.connectAndStartStream(scope)
+      log.verbose('GrpcManager', 'onStart() ... done')
+      return
+    }
+
+    while (!scope.signal.aborted) {
+      const delayMs = this.getReconnectDelayMs(this.reconnectAttempt)
+      log.verbose('GrpcManager', 'onStart() reconnecting in %dms (attempt %d)...', delayMs, this.reconnectAttempt)
+      await scope.sleep(delayMs)
+      try {
+        await this.connectAndStartStream(scope)
+        this.reconnectAttempt = 0
+        log.verbose('GrpcManager', 'onStart() reconnected ... done')
+        return
+      } catch (err) {
         this.destroyClient()
+        if (scope.signal.aborted) {
+          throw err
+        }
+        this.emit('error', err)
+        const nextAttempt = this.reconnectAttempt + 1
+        if (
+          this.reconnectOptions.maxAttempts !== undefined
+          && nextAttempt > this.reconnectOptions.maxAttempts
+        ) {
+          throw err
+        }
+        this.reconnectAttempt = nextAttempt
       }
-      // On cancellation Puppet's early stop owns transport disposal. Its
-      // remote stop call may still be using the transport.
-      throw e
     }
   }
 
-  async stop (): Promise<void> {
-    log.verbose('GrpcManager', 'stop()')
+  protected async onStop (stop: LifecycleStop): Promise<void> {
+    log.verbose('GrpcManager', 'onStop()')
+    const recovering = this.isRecovering
+    this.isRecovering = false
+    if (!recovering) {
+      this.reconnectAttempt = 0
+    }
 
-    log.verbose('GrpcManager', 'stop() stop stream ...')
-    this.stopStream()
-    log.verbose('GrpcManager', 'stop() stop stream ... done')
-
-    let stopError: unknown
-    try {
-      log.verbose('GrpcManager', 'stop() stop client ...')
-      if (this._client) {
-        await this._client.stop({})
+    if (!recovering && this._client) {
+      try {
+        log.verbose('GrpcManager', 'onStop() stop client ...')
+        await raceAbort(this._client.stop({}, { signal: stop.signal }), stop.signal)
+        log.verbose('GrpcManager', 'onStop() stop client ... done')
+      } catch (e) {
+        this.emit('error', e)
       }
-      log.verbose('GrpcManager', 'stop() stop client ... done')
-    } catch (e) {
-      stopError = e
     }
 
-    try {
-      log.verbose('GrpcManager', 'stop() destroy client ...')
-      this.destroyClient()
-      log.verbose('GrpcManager', 'stop() destroy client ... done')
-    } catch (e) {
-      this.emit('error', e)
-    }
-
-    if (stopError) {
-      this.emit('error', stopError)
-    }
-
-    log.verbose('GrpcManager', 'stop() ... done')
+    log.verbose('GrpcManager', 'onStop() ... done')
   }
 
   /** Resolve the endpoint and check cancellation before allocating a client. */
@@ -277,19 +407,11 @@ class GrpcManager extends EventEmitter {
     this._client = undefined
   }
 
-  /** Start the event iterator, which stopStream can interrupt during startup. */
-  protected async startStream (startupSignal?: AbortSignal): Promise<void> {
+  /** Start the event iterator as a scope-owned task. */
+  protected async startStream (scope: LifecycleScope): Promise<void> {
     log.verbose('GrpcManager', 'startStream()')
 
-    if (this.abortController) {
-      this.abortController.abort()
-      this.abortController = undefined
-    }
-
-    this.abortController = new AbortController()
-    const signal = this.abortController.signal
-
-    const stream = this.client.event({}, { signal })
+    const stream = this.client.event({}, { signal: scope.signal })
     const iterator = stream[Symbol.asyncIterator]()
 
     let peekedData: EventResponse | undefined
@@ -298,29 +420,34 @@ class GrpcManager extends EventEmitter {
 
     log.verbose('GrpcManager', 'startStream() waiting for initial heartbeat...')
     try {
-      const first = await timeoutPromise(firstResultPromise, 5 * 1000) as IteratorResult<EventResponse>
+      const first = await raceAbort(
+        timeoutPromise(firstResultPromise, 5 * 1000),
+        scope.signal,
+      ) as IteratorResult<EventResponse>
       if (!first.done) {
         peekedData = first.value
       }
     } catch (err) {
-      if (err instanceof TimeoutPromiseGError) {
+      if (!scope.signal.aborted && err instanceof TimeoutPromiseGError) {
         log.verbose('GrpcManager', 'startStream() initial heartbeat timeout, proceeding')
       } else {
         throw err
       }
     }
 
-    startupSignal?.throwIfAborted()
+    scope.signal.throwIfAborted()
 
-    // Start background event loop
-    ;(async () => {
+    scope.spawn(async (signal) => {
       try {
         if (peekedData) {
           this.emit('data', peekedData)
         } else {
           const first = await firstResultPromise
           if (first.done) {
-            this.emit('end')
+            if (!signal.aborted) {
+              this.emit('end')
+              this.handleStreamLoss(scope, new Error('gRPC event stream ended'))
+            }
             return
           }
           this.emit('data', first.value)
@@ -328,27 +455,23 @@ class GrpcManager extends EventEmitter {
         while (!signal.aborted) {
           const res = await iterator.next()
           if (res.done) {
-            break
+            if (!signal.aborted) {
+              this.emit('end')
+              this.handleStreamLoss(scope, new Error('gRPC event stream ended'))
+            }
+            return
           }
           this.emit('data', res.value)
         }
-        this.emit('end')
       } catch (err) {
         if (!signal.aborted) {
           this.emit('error', err)
+          this.handleStreamLoss(scope, err)
         }
       }
-    })()
+    })
 
     log.verbose('GrpcManager', 'startStream() ... done')
-  }
-
-  protected stopStream (): void {
-    log.verbose('GrpcManager', 'stopStream()')
-    if (this.abortController) {
-      this.abortController.abort()
-      this.abortController = undefined
-    }
   }
 
 }

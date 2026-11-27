@@ -100,7 +100,7 @@ test('GrpcManager does not allocate a client when discovery completes after stop
   })
   const controller = new AbortController()
   const reason = new Error('Puppet stopped during discovery')
-  const starting = assert.rejects(manager.start(controller.signal), error => error === reason)
+  const starting = assert.rejects(manager.start({ signal: controller.signal }), error => error === reason)
   await discovering.promise
   controller.abort(reason)
   await manager.stop()

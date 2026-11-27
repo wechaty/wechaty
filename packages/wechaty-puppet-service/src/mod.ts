@@ -7,7 +7,9 @@ import {
 }                 from 'wechaty-puppet'
 import {
   PuppetService,
+  type PuppetServiceOptions,
 }                 from './client/puppet-service.ts'
+import type { GrpcReconnectOptions } from './client/grpc-manager.ts'
 import {
   VERSION,
 }                 from './config.ts'
@@ -23,7 +25,9 @@ export {
   VERSION,
 }
 export type {
+  GrpcReconnectOptions,
   PuppetServerOptions,
+  PuppetServiceOptions,
 }
 
 export default PuppetService

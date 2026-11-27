@@ -2,6 +2,7 @@
  * `PuppetService`: client-side `wechaty-puppet` implementation connecting
  * to a remote puppet service over ConnectRPC and standard gRPC.
  */
+import type { LifecycleClock } from 'scopelet'
 import * as PUPPET from 'wechaty-puppet'
 
 import type {
@@ -27,12 +28,18 @@ import {
 } from '../event-type-rev.ts'
 import { packageJson } from '../package-json.ts'
 
-import { GrpcManager } from './grpc-manager.ts'
+import {
+  GrpcManager,
+  type GrpcReconnectOptions,
+} from './grpc-manager.ts'
 import { PayloadStore } from './payload-store.ts'
 import { millisecondsFromTimestamp } from '../pure-functions/timestamp.ts'
 
 export type PuppetServiceOptions = PUPPET.PuppetOptions & {
-  authority?  : string
+  authority?     : string
+  clock?         : LifecycleClock
+  stopTimeoutMs? : number
+  reconnect?     : GrpcReconnectOptions
   tls?: {
     caCert?     : string
     serverName? : string
@@ -105,7 +112,7 @@ class PuppetService extends PUPPET.Puppet {
     this.bridgeGrpcEventStream(grpcManager)
 
     log.verbose('PuppetService', 'start() starting grpc manager...')
-    await grpcManager.start(signal)
+    await grpcManager.start({ signal })
 
     log.verbose('PuppetService', 'onStart() ... done')
   }
