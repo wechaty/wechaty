@@ -91,3 +91,60 @@ test('isWechatyPluginUninstaller()', async _t => {
     assert.equal(isWechatyPluginUninstaller(uninstaller), expected, `isWechatyPluginUninstaller(${uninstaller}) === ${expected}`)
   }
 })
+
+test('Wechaty.useScoped() installs on start, uninstalls LIFO on stop, and reinstalls on restart', async () => {
+  const order: string[] = []
+  const bot = WechatyBuilder.build({ puppet: new PuppetMock() })
+
+  try {
+    const uninstaller1 = bot.useScoped((_bot, scope) => {
+      order.push(`install-1:g${scope.generation}`)
+      scope.defer(() => order.push(`defer-1:g${scope.generation}`))
+      return () => order.push(`uninstall-1:g${scope.generation}`)
+    })
+    bot.useScoped((_bot, scope) => {
+      order.push(`install-2:g${scope.generation}`)
+      return () => order.push(`uninstall-2:g${scope.generation}`)
+    })
+
+    // Not installed before start()
+    assert.equal(order.length, 0)
+
+    await bot.start()
+    assert.deepEqual(order, ['install-1:g1', 'install-2:g1'])
+
+    await bot.stop()
+    // LIFO order across plugin 2 then plugin 1
+    assert.deepEqual(order, [
+      'install-1:g1',
+      'install-2:g1',
+      'uninstall-2:g1',
+      'uninstall-1:g1',
+      'defer-1:g1',
+    ])
+
+    // Uninstalling plugin 1 before restart prevents it from installing on g2
+    uninstaller1()
+    order.splice(0, order.length)
+
+    await bot.start()
+    assert.deepEqual(order, ['install-2:g2'])
+
+    // Calling useScoped while running installs immediately on active scope
+    bot.useScoped((_bot, scope) => {
+      order.push(`install-3:g${scope.generation}`)
+      return () => order.push(`uninstall-3:g${scope.generation}`)
+    })
+    assert.deepEqual(order, ['install-2:g2', 'install-3:g2'])
+
+    await bot.stop()
+    assert.deepEqual(order, [
+      'install-2:g2',
+      'install-3:g2',
+      'uninstall-3:g2',
+      'uninstall-2:g2',
+    ])
+  } finally {
+    await bot.stop().catch(() => {})
+  }
+})
