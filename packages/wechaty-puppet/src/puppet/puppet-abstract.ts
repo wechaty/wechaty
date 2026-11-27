@@ -610,7 +610,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     if (entry?.active) {
       const nested = (async () => work(entry.signal))()
       entry.pending.add(nested)
-      void nested.finally(() => entry.pending.delete(nested))
+      void nested.then(
+        () => { entry.pending.delete(nested) },
+        () => { entry.pending.delete(nested) },
+      )
       return nested
     }
     return this.#lifecycle.operation(async signal => {
@@ -643,7 +646,10 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     if (entry?.active) {
       const nested = (async () => work(entry.signal))()
       entry.pending.add(nested)
-      void nested.finally(() => entry.pending.delete(nested))
+      void nested.then(
+        () => { entry.pending.delete(nested) },
+        () => { entry.pending.delete(nested) },
+      )
       return nested
     }
     const state = this.#lifecycle.state
