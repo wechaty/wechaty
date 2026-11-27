@@ -744,6 +744,14 @@ test('Wechaty bot-bound Contact classes and pools are isolated', async () => {
   assert.notStrictEqual(bot1.Contact, bot2.Contact)
   assert.notStrictEqual(bot1.Room, bot2.Room)
   assert.notStrictEqual(bot1.Message, bot2.Message)
+
+  const c1 = (bot1.Contact as any).load('id-1')
+  const c2 = (bot2.Contact as any).load('id-1')
+  assert.notStrictEqual(c1, c2)
+  assert.equal(c1.wechaty, bot1)
+  assert.equal(c2.wechaty, bot2)
+  assert.ok(c1 instanceof bot1.Contact)
+  assert.ok(c1 instanceof bot2.Contact, 'canonical Contact preserves instanceof across bots')
 })
 
 test('Wechaty readiness invalidates on Puppet reset and independent puppet.restart()', async () => {

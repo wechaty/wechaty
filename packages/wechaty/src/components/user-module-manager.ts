@@ -22,7 +22,7 @@
  *
  * Why this module exists:
  * Encapsulates the dynamic injection of the Wechaty bot instance into user-module
- * constructors (`Contact`, `Room`, `Message`, etc.) via `wechatifyUserModule`,
+ * constructors (`Contact`, `Room`, `Message`, etc.) via `bindUserModule`,
  * avoiding circular prototype inheritance and eliminating mixin state leaks.
  *
  * Architectural boundaries:
@@ -42,7 +42,7 @@ import {
   RoomInvitationImpl,
   TagImpl,
   UrlLinkImpl,
-  wechatifyUserModule,
+  bindUserModule,
   type ContactConstructor,
   type ContactSelfConstructor,
   type DelayConstructor,
@@ -82,55 +82,55 @@ export class UserModuleManager {
   }
 
   get Contact (): ContactConstructor {
-    return this.#Contact ??= wechatifyUserModule(ContactImpl)(this.#wechaty)
+    return this.#Contact ??= bindUserModule(ContactImpl)(this.#wechaty)
   }
 
   get ContactSelf (): ContactSelfConstructor {
-    return this.#ContactSelf ??= wechatifyUserModule(ContactSelfImpl)(this.#wechaty)
+    return this.#ContactSelf ??= bindUserModule(ContactSelfImpl)(this.#wechaty)
   }
 
   get Delay (): DelayConstructor {
-    return this.#Delay ??= wechatifyUserModule(DelayImpl)(this.#wechaty)
+    return this.#Delay ??= bindUserModule(DelayImpl)(this.#wechaty)
   }
 
   get Friendship (): FriendshipConstructor {
-    return this.#Friendship ??= wechatifyUserModule(FriendshipImpl)(this.#wechaty)
+    return this.#Friendship ??= bindUserModule(FriendshipImpl)(this.#wechaty)
   }
 
   get Image (): ImageConstructor {
-    return this.#Image ??= wechatifyUserModule(ImageImpl)(this.#wechaty)
+    return this.#Image ??= bindUserModule(ImageImpl)(this.#wechaty)
   }
 
   get Location (): LocationConstructor {
-    return this.#Location ??= wechatifyUserModule(LocationImpl)(this.#wechaty)
+    return this.#Location ??= bindUserModule(LocationImpl)(this.#wechaty)
   }
 
   get Message (): MessageConstructor {
-    return this.#Message ??= wechatifyUserModule(MessageImpl)(this.#wechaty)
+    return this.#Message ??= bindUserModule(MessageImpl)(this.#wechaty)
   }
 
   get MiniProgram (): MiniProgramConstructor {
-    return this.#MiniProgram ??= wechatifyUserModule(MiniProgramImpl)(this.#wechaty)
+    return this.#MiniProgram ??= bindUserModule(MiniProgramImpl)(this.#wechaty)
   }
 
   get Post (): PostConstructor {
-    return this.#Post ??= wechatifyUserModule(PostImpl)(this.#wechaty)
+    return this.#Post ??= bindUserModule(PostImpl)(this.#wechaty)
   }
 
   get Room (): RoomConstructor {
-    return this.#Room ??= wechatifyUserModule(RoomImpl)(this.#wechaty)
+    return this.#Room ??= bindUserModule(RoomImpl)(this.#wechaty)
   }
 
   get RoomInvitation (): RoomInvitationConstructor {
-    return this.#RoomInvitation ??= wechatifyUserModule(RoomInvitationImpl)(this.#wechaty)
+    return this.#RoomInvitation ??= bindUserModule(RoomInvitationImpl)(this.#wechaty)
   }
 
   get Tag (): TagConstructor {
-    return this.#Tag ??= wechatifyUserModule(TagImpl)(this.#wechaty)
+    return this.#Tag ??= bindUserModule(TagImpl)(this.#wechaty)
   }
 
   get UrlLink (): UrlLinkConstructor {
-    return this.#UrlLink ??= wechatifyUserModule(UrlLinkImpl)(this.#wechaty)
+    return this.#UrlLink ??= bindUserModule(UrlLinkImpl)(this.#wechaty)
   }
 
 }

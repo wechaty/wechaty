@@ -71,9 +71,8 @@ import {
   type Post,
   PostImpl,
 }                       from './post.ts'
-import {
-  type Location,
-  LocationImpl,
+import type {
+  Location,
 }                       from './location.ts'
 
 import { validationMixin } from '../user-mixins/validation.ts'
@@ -1072,7 +1071,7 @@ class MessageMixin extends MixinBase implements SayableSayer {
 
     const locationPayload = await this.wechaty.puppet.messageLocation(this.id)
 
-    return new LocationImpl(locationPayload)
+    return new this.wechaty.Location(locationPayload)
   }
 
   public async toPost (): Promise<Post> {
