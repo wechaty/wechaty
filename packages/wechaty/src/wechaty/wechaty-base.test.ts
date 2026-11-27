@@ -267,9 +267,16 @@ test('lifecycle order and restart', async t => {
   bot.addEventListener('start', () => trace.push('start'))
   bot.addEventListener('stop', () => trace.push('stop'))
 
+  assert.equal(bot.isStopped, true)
   try {
+    const running = bot.whenRunning()
     await bot.start()
+    await running
+    assert.equal(bot.isRunning, true)
+    const stopped = bot.whenStopped()
     await bot.stop()
+    await stopped
+    assert.equal(bot.isStopped, true)
     await bot.start()
     await bot.stop()
   } finally {

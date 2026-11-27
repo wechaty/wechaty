@@ -41,15 +41,16 @@ import {
 import { ManualClock } from './contract/harness.ts'
 import { PuppetMock } from './examples/puppet.example.ts'
 import { Wechaty } from './examples/wechaty.example.ts'
-import type { Lifecycle, LifecycleConditionHandle, LifecycleScope } from './types.ts'
+import type { Lifecycle, LifecycleConditionHandle, LifecycleController, LifecycleScope } from './types.ts'
 
-test('ADR-01: createLifecycle.attach() decorates target instance with full Lifecycle API', async () => {
+test('ADR-04: createLifecycle.attach() installs the caller surface and returns the owner API', async () => {
+  let controller!: LifecycleController
   class Service {
 
     public log: string[] = []
 
     constructor () {
-      createLifecycle.attach(this, {
+      controller = createLifecycle.attach(this, {
         onStart: scope => {
           this.log.push('started')
           scope.defer(() => { this.log.push('stopped') })
@@ -81,8 +82,8 @@ test('ADR-01: createLifecycle.attach() decorates target instance with full Lifec
 
   await startPromise
 
-  // Can run operation directly on target
-  const opResult = await service.operation(async signal => {
+  assert.equal('operation' in service, false)
+  const opResult = await controller.operation(async signal => {
     assert.equal(signal.aborted, false)
     return 42
   })
@@ -661,9 +662,6 @@ async function exerciseDelegatedLifecycle (target: Lifecycle): Promise<void> {
   assert.equal(target.isRunning, true)
   assert.equal(target.isActive, true)
   assert.equal(target.isStopped, false)
-
-  const op = await target.operation(async () => 'delegated-ok')
-  assert.equal(op, 'delegated-ok')
 
   const snapshot = await target.whenState(s => s.kind === 'running')
   assert.equal(snapshot.kind, 'running')

@@ -181,17 +181,17 @@ interface Lifecycle extends AsyncDisposable {
   /** Whether the lifecycle is currently failed (kind === 'failed'). */
   readonly isFailed: boolean
 
-  /** Wait until the lifecycle commits the `running` state (ADR-06). */
+  /**
+   * Wait for a `running` snapshot, including the current snapshot (ADR-06).
+   * Follows {@link Lifecycle.whenState} across generations and rejects on caller abort.
+   */
   whenRunning (options?: LifecycleWaitOptions): Promise<void>
 
-  /** Wait until the lifecycle commits the `stopped` state (ADR-06). */
-  whenStopped (options?: LifecycleWaitOptions): Promise<void>
-
   /**
-   * Run `work` as an operation of the active generation and return its result (ADR-01).
-   * Rejects if the lifecycle is not running.
+   * Wait for a `stopped` snapshot, including the current snapshot (ADR-06).
+   * Follows {@link Lifecycle.whenState} across generations and rejects on caller abort.
    */
-  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
+  whenStopped (options?: LifecycleWaitOptions): Promise<void>
 
   /** Same as {@link Lifecycle.stop}; the instance can start again (C-CMD-15). */
   [Symbol.asyncDispose] (): Promise<void>
@@ -543,6 +543,14 @@ interface LifecycleOptions {
 interface LifecycleController extends Lifecycle {
   /** Declare, or look up, the condition with this name (C-COND-01). */
   condition (name: string): LifecycleConditionHandle
+
+  /**
+   * Run `work` as an owned operation of the running generation (ADR-01).
+   * Retirement aborts its signal and joins the operation before releasing resources.
+   * Rejects with {@link LifecycleUnsafeStateError} outside a live running generation.
+   * A failure from `work` rejects the returned promise and leaves the lifecycle running.
+   */
+  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T>
 }
 
 // ---------------------------------------------------------------------------

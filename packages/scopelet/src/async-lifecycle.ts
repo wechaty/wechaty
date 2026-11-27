@@ -38,6 +38,7 @@ import { LifecycleOverrideError } from './errors.ts'
 import type {
   Lifecycle,
   LifecycleConditionHandle,
+  LifecycleController,
   LifecycleHooks,
   LifecycleOptions,
   LifecycleScope,
@@ -126,7 +127,7 @@ abstract class AsyncLifecycle implements Lifecycle {
       operation: {
         configurable: false,
         writable: false,
-        value: (work: any) => this.#engine.operation(work),
+        value: <T>(work: (signal: AbortSignal) => T | PromiseLike<T>) => this.#engine.operation(work),
       },
       isRunning: {
         configurable: false,
@@ -224,39 +225,48 @@ abstract class AsyncLifecycle implements Lifecycle {
     return this.#engine.state
   }
 
+  /** See {@link Lifecycle.isRunning}. */
   get isRunning (): boolean {
     return this.#engine.isRunning
   }
 
+  /** See {@link Lifecycle.isActive}. */
   get isActive (): boolean {
     return this.#engine.isActive
   }
 
+  /** See {@link Lifecycle.isStarting}. */
   get isStarting (): boolean {
     return this.#engine.isStarting
   }
 
+  /** See {@link Lifecycle.isStopping}. */
   get isStopping (): boolean {
     return this.#engine.isStopping
   }
 
+  /** See {@link Lifecycle.isStopped}. */
   get isStopped (): boolean {
     return this.#engine.isStopped
   }
 
+  /** See {@link Lifecycle.isFailed}. */
   get isFailed (): boolean {
     return this.#engine.isFailed
   }
 
+  /** See {@link Lifecycle.whenRunning}. */
   whenRunning (options?: LifecycleWaitOptions): Promise<void> {
     return this.#engine.whenRunning(options)
   }
 
+  /** See {@link Lifecycle.whenStopped}. */
   whenStopped (options?: LifecycleWaitOptions): Promise<void> {
     return this.#engine.whenStopped(options)
   }
 
-  operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
+  /** See {@link LifecycleController.operation}. */
+  protected operation<T> (work: (signal: AbortSignal) => T | PromiseLike<T>): Promise<T> {
     return this.#engine.operation(work)
   }
 

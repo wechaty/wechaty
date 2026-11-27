@@ -310,6 +310,46 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     return createWechatyState(this.#lifecycle)
   }
 
+  /** See {@link Lifecycle.isRunning}. */
+  get isRunning (): boolean {
+    return this.#lifecycle.isRunning
+  }
+
+  /** See {@link Lifecycle.isActive}. */
+  get isActive (): boolean {
+    return this.#lifecycle.isActive
+  }
+
+  /** See {@link Lifecycle.isStarting}. */
+  get isStarting (): boolean {
+    return this.#lifecycle.isStarting
+  }
+
+  /** See {@link Lifecycle.isStopping}. */
+  get isStopping (): boolean {
+    return this.#lifecycle.isStopping
+  }
+
+  /** See {@link Lifecycle.isStopped}. */
+  get isStopped (): boolean {
+    return this.#lifecycle.isStopped
+  }
+
+  /** See {@link Lifecycle.isFailed}. */
+  get isFailed (): boolean {
+    return this.#lifecycle.isFailed
+  }
+
+  /** See {@link Lifecycle.whenRunning}. */
+  whenRunning (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#lifecycle.whenRunning(options)
+  }
+
+  /** See {@link Lifecycle.whenStopped}. */
+  whenStopped (options?: LifecycleWaitOptions): Promise<void> {
+    return this.#lifecycle.whenStopped(options)
+  }
+
   /**
    * Backwards-compatible `state-switch` view interface.
    */

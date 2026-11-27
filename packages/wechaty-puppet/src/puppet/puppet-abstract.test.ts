@@ -1149,6 +1149,8 @@ test('executeOperation drains in-flight work on retirement and runs cleanly', as
 test('cross-generation ready condition wait binds to next generation', async _t => {
   const puppet = new PuppetTest()
   assert.equal(puppet.state.inactive(), true)
+  assert.equal(puppet.isStopped, true)
+  assert.equal(puppet.isActive, false)
 
   let readyResolved = false
   const readyFuture = puppet.ready().then(() => {
@@ -1157,12 +1159,19 @@ test('cross-generation ready condition wait binds to next generation', async _t 
 
   assert.equal(readyResolved, false, 'ready future must not resolve before start')
 
+  const running = puppet.whenRunning()
   await puppet.start()
+  await running
+  assert.equal(puppet.isRunning, true)
+  assert.equal(puppet.isActive, true)
   puppet.emit('ready')
   await readyFuture
 
   assert.equal(readyResolved, true, 'ready future should resolve when started generation emits ready')
+  const stopped = puppet.whenStopped()
   await puppet.stop()
+  await stopped
+  assert.equal(puppet.isStopped, true)
 })
 
 test('operation() returns a rejected promise when puppet is idle', async () => {
