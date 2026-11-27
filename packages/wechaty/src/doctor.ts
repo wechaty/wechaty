@@ -18,6 +18,7 @@
  *
  */
 import {
+  type AddressInfo,
   createServer,
   Socket,
 }                   from 'net'
@@ -61,12 +62,13 @@ export class Doctor {
       server.on('error', reject)
       server.on('close', () => log.silly('Doctor', 'testTcp() server closed'))
 
-      server.listen(8788, 'localhost', () => {
+      server.listen(0, '127.0.0.1', () => {
+        const { port } = server.address() as AddressInfo
         /**
          * Client
          */
         const client = new Socket()
-        client.connect(8788, 'localhost', () => {
+        client.connect(port, '127.0.0.1', () => {
           log.silly('Doctor', 'testTcp() client connected')
           client.write('ding')
         })
