@@ -232,13 +232,17 @@ class GrpcManager extends EventEmitter implements Lifecycle {
 
   /** Stop the remote session (bounded by `stopTimeoutMs`) and dispose local transport. */
   stop (options?: LifecycleWaitOptions): Promise<void> {
-    this.reconnectAttempt = 0
+    if (!options?.signal?.aborted) {
+      this.reconnectAttempt = 0
+    }
     return this.lifecycle.stop(options)
   }
 
   /** Stop the current connection and start a fresh one. */
   restart (options?: LifecycleWaitOptions): Promise<void> {
-    this.reconnectAttempt = 0
+    if (!options?.signal?.aborted && !this.isFailed) {
+      this.reconnectAttempt = 0
+    }
     return this.lifecycle.restart(options)
   }
 
@@ -316,6 +320,8 @@ class GrpcManager extends EventEmitter implements Lifecycle {
     this.currentAttemptCleanup = cleanupAttempt
 
     let earlyStreamLoss: { reason: unknown } | undefined
+    const getEarlyLoss = () => earlyStreamLoss
+    this.remoteStopPending = false
 
     try {
       await this.initClient(attemptController.signal)
@@ -327,6 +333,12 @@ class GrpcManager extends EventEmitter implements Lifecycle {
         }
       })
       attemptController.signal.throwIfAborted()
+      const preStartLoss = getEarlyLoss()
+      if (preStartLoss) {
+        throw preStartLoss.reason instanceof Error
+          ? preStartLoss.reason
+          : new Error(String(preStartLoss.reason ?? 'gRPC event stream ended during startup'))
+      }
 
       this.remoteStopPending = true
       try {
@@ -338,10 +350,11 @@ class GrpcManager extends EventEmitter implements Lifecycle {
         throw err
       }
 
-      if (earlyStreamLoss) {
-        throw earlyStreamLoss.reason instanceof Error
-          ? earlyStreamLoss.reason
-          : new Error(String(earlyStreamLoss.reason ?? 'gRPC event stream ended during startup'))
+      const postStartLoss = getEarlyLoss()
+      if (postStartLoss) {
+        throw postStartLoss.reason instanceof Error
+          ? postStartLoss.reason
+          : new Error(String(postStartLoss.reason ?? 'gRPC event stream ended during startup'))
       }
 
       log.verbose('GrpcManager', 'connectAndStartStream() ... done')
@@ -409,10 +422,11 @@ class GrpcManager extends EventEmitter implements Lifecycle {
           log.verbose('GrpcManager', 'onStart() reconnected ... done')
           return
         } catch (err) {
-          this.destroyClient()
           if (scope.signal.aborted) {
             throw err
           }
+          await this.stopRemoteOnce(scope.signal)
+          this.destroyClient()
           this.emit('error', err)
           const nextAttempt = this.reconnectAttempt + 1
           if (
