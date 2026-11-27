@@ -30,7 +30,7 @@
  *
  * Key relationships:
  * - `wechaty-impl.ts`: Primary subject under test.
- * - `wechaty-builder.ts`: Verified for shared singleton and type-guard delegation.
+ * - `wechaty.ts`: Canonical class implementation.
  */
 
 import { test } from 'node:test'
@@ -43,7 +43,6 @@ import {
 } from 'scopelet'
 
 import { Wechaty } from './wechaty-impl.ts'
-import { WechatyBuilder } from '../wechaty-builder.ts'
 
 test('new Wechaty() constructor creates distinct instances', async () => {
   const wechaty1 = new Wechaty()
@@ -72,17 +71,6 @@ test('Wechaty.singleton() returns identical shared instance', async () => {
 
   assert.ok(singleton1, 'singleton1 should be defined')
   assert.strictEqual(singleton1, singleton2, 'Wechaty.singleton() calls must return the same instance')
-})
-
-test('WechatyBuilder.singleton() and Wechaty.singleton() share the exact same instance', async () => {
-  const builderSingleton = WechatyBuilder.singleton()
-  const constructorSingleton = Wechaty.singleton()
-
-  assert.strictEqual(
-    builderSingleton,
-    constructorSingleton,
-    'WechatyBuilder.singleton() and Wechaty.singleton() must share the same singleton instance',
-  )
 })
 
 test('new Wechaty(options) accepts Puppet and runs start/stop cycle', async t => {
@@ -124,12 +112,11 @@ test('Wechaty type doc-typing check', async () => {
   void bot.__options
 })
 
-test('Wechaty.valid() and WechatyBuilder.valid() consistency', async () => {
+test('Wechaty.valid() checks Wechaty instances', async () => {
   const bot = new Wechaty()
   assert.equal(Wechaty.valid(bot), true, 'Wechaty.valid should accept Wechaty instance')
-  assert.equal(WechatyBuilder.valid(bot), true, 'WechatyBuilder.valid should delegate and accept Wechaty instance')
-  assert.equal(WechatyBuilder.valid(null), false, 'WechatyBuilder.valid should reject null')
-  assert.equal(WechatyBuilder.valid({}), false, 'WechatyBuilder.valid should reject plain object')
+  assert.equal(Wechaty.valid(null), false, 'Wechaty.valid should reject null')
+  assert.equal(Wechaty.valid({}), false, 'Wechaty.valid should reject plain object')
 })
 
 test('Wechaty.singleton(options) returns existing singleton when options are passed subsequently', async () => {

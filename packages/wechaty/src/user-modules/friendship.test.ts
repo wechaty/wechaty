@@ -10,8 +10,7 @@ import {
 }           from 'wechaty-puppet-mock'
 
 import {
-  WechatyBuilder,
-}           from '../wechaty-builder.ts'
+  Wechaty } from '../wechaty/mod.ts'
 
 async function withImmediateTimers<T> (
   callback: () => Promise<T>,
@@ -36,7 +35,7 @@ async function withImmediateTimers<T> (
 
 test('accept retries contact synchronization without repeating provider acceptance', async () => {
   const puppet = new PuppetMock()
-  const wechaty = WechatyBuilder.build({ puppet })
+  const wechaty = new Wechaty({ puppet })
   wechaty.addEventListener('error', () => {})
 
   const mockContact = puppet.mocker.createContact({ name: 'Friend' })
@@ -86,7 +85,7 @@ test('accept retries contact synchronization without repeating provider acceptan
 
 test('accept emits the final synchronization error and still syncs the contact', async () => {
   const puppet = new PuppetMock()
-  const wechaty = WechatyBuilder.build({ puppet })
+  const wechaty = new Wechaty({ puppet })
   const emittedErrors: unknown[] = []
   wechaty.addEventListener('error', (event: any) => {
     emittedErrors.push(event.detail)

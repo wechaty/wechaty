@@ -47,7 +47,7 @@ import { FileBox } from 'file-box'
 import { FileBox as FileBoxBrowser } from 'file-box/browser'
 
 import {
-  WechatyBuilder,
+  Wechaty,
   ScanStatus,
   VERSION as WECHATY_VERSION,
 } from 'wechaty/browser'
@@ -198,7 +198,7 @@ describe('packed browser consumer smoke suite', () => {
 
     const mocker = new mock.Mocker()
     const puppet = new PuppetMock({ mocker })
-    const bot = WechatyBuilder.build({ name: 'smoke-bot', puppet })
+    const bot = new Wechaty({ name: 'smoke-bot', puppet })
 
     const [user, player] = mocker.createContacts(2) as [any, any]
 

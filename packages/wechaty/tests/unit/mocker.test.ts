@@ -13,13 +13,13 @@ import { test, type TestContext } from 'node:test'
 import { PuppetMock, mock } from 'wechaty-puppet-mock'
 
 import type { Message } from '../../src/mods/mod.ts'
-import { WechatyBuilder } from '../../src/wechaty-builder.ts'
+import { Wechaty } from '../../src/wechaty/mod.ts'
 
 /** Starts a bot over a fresh mocker and stops it when the test `t` ends. */
 async function startBot (t: TestContext) {
   const mocker  = new mock.Mocker()
   const puppet  = new PuppetMock({ mocker })
-  const wechaty = WechatyBuilder.build({ puppet })
+  const wechaty = new Wechaty({ puppet })
 
   await wechaty.start()
   t.after(() => wechaty.stop())

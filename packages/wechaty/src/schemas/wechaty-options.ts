@@ -1,5 +1,5 @@
 /**
- * `WechatyOptions`: what `WechatyBuilder.build()` takes. The puppet is either
+ * `WechatyOptions`: what `new Wechaty()` / `Wechaty.create()` takes. The puppet is either
  * an instance, or an npm name with its options. Any `wechaty-puppet-*` name
  * (scoped or not) is accepted, not only the known ones in
  * `OFFICIAL_PUPPET_DEPENDENCIES`, which list what the Docker image installs.

@@ -24,7 +24,7 @@ import assert from 'node:assert/strict'
 
 import * as PUPPET        from 'wechaty-puppet'
 import { PuppetMock }     from 'wechaty-puppet-mock'
-import { WechatyBuilder } from '../wechaty-builder.ts'
+import { Wechaty } from '../wechaty/mod.ts'
 import type {
   MessageImpl,
   MessageProtectedProperty,
@@ -41,7 +41,7 @@ test('recalled()', async t => {
   const EXPECTED_LISTENER_CONTACT_ID = 'listener-contact-id'
 
   const puppet = new PuppetMock()
-  const wechaty = WechatyBuilder.build({ puppet })
+  const wechaty = new Wechaty({ puppet })
 
   let started = false
   t.after(async () => {

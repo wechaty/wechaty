@@ -18,7 +18,7 @@
  *
  */
 import {
-  WechatyBuilder,
+  Wechaty,
   ScanStatus,
   helpers,
   type Message,
@@ -54,7 +54,7 @@ const options = {
   // }
 }
 
-const bot = WechatyBuilder.build(options)
+const bot = new Wechaty(options)
 
 /**
  *

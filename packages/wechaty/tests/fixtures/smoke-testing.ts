@@ -26,10 +26,9 @@
  *
  */
 import {
-  WechatyBuilder,
+  Wechaty,
   VERSION,
 }                   from 'wechaty'
-import type { Wechaty } from 'wechaty'
 
 import * as USERS from 'wechaty/users'
 import * as IMPLS from 'wechaty/impls'
@@ -57,12 +56,12 @@ void publicTypeContract
 
 function getBotList (): Wechaty[] {
   const botList = [
-    WechatyBuilder.build({ puppet: 'wechaty-puppet-mock' }),
+    new Wechaty({ puppet: 'wechaty-puppet-mock' }),
   ]
 
   if (process.env.WECHATY_PUPPET_SERVICE_TOKEN) {
     botList.push(
-      WechatyBuilder.build({
+      new Wechaty({
         puppet: 'wechaty-puppet-service',
       })
     )

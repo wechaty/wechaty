@@ -24,7 +24,7 @@ import assert from 'node:assert/strict'
 import type * as PUPPET from 'wechaty-puppet'
 import { PuppetMock }   from 'wechaty-puppet-mock'
 
-import { WechatyBuilder } from '../wechaty-builder.ts'
+import { Wechaty } from '../wechaty/mod.ts'
 import type {
   RoomImpl,
   RoomProtectedProperty,
@@ -36,7 +36,7 @@ test('findAll()', async t => {
   const EXPECTED_ROOM_ID_LIST = [ EXPECTED_ROOM_ID ]
 
   const puppet = new PuppetMock()
-  const wechaty = WechatyBuilder.build({ puppet })
+  const wechaty = new Wechaty({ puppet })
   let started = false
   t.after(async () => {
     if (started) {
@@ -71,7 +71,7 @@ test('room.say() smoke testing', async t => {
   const callback = t.mock.fn()
 
   const puppet = new PuppetMock()
-  const wechaty = WechatyBuilder.build({ puppet })
+  const wechaty = new Wechaty({ puppet })
 
   const bot = puppet.mocker.createContact()
   puppet.mocker.login(bot)

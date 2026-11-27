@@ -1,3 +1,3 @@
-import { WechatyBuilder } from 'wechaty'
+import { Wechaty } from 'wechaty'
 
-console.log(WechatyBuilder.build().version())
+console.log(new Wechaty().version())

@@ -26,7 +26,7 @@ import {
   IoClient,
   type IoClientOptions,
 }                           from '../io-client.ts'
-import { WechatyBuilder }   from '../wechaty-builder.ts'
+import { Wechaty }   from '../wechaty/mod.ts'
 import {
   isPuppetModuleName,
   OFFICIAL_PUPPET_DEPENDENCIES,
@@ -137,7 +137,7 @@ const gateway = command({
     }
     log.info('Gateway', 'Wechaty Puppet Provider Token: %s', puppetToken ? `"${puppetToken}"` : 'disabled')
 
-    const wechaty = WechatyBuilder.build({
+    const wechaty = new Wechaty({
       name: 'Gateway',
       puppet,
       puppetOptions: {

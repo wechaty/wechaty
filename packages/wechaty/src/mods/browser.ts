@@ -14,7 +14,7 @@
  *
  * Relationships:
  * - `wechaty/browser`: Public package export mapped in `package.json`.
- * - `wechaty-builder.ts`: Wechaty builder used to instantiate bots with explicit puppets.
+ * - `wechaty/mod.ts`: `Wechaty` class used to instantiate bots with explicit puppets.
  * - Issue #3108: Run a local Wechaty bot natively in the browser (Stage 3 under Epic #3104).
  */
 
@@ -22,10 +22,6 @@ export {
   Wechaty,
   type WechatyOptions,
 } from '../wechaty/mod.ts'
-export {
-  WechatyBuilder,
-  type BuilderInterface,
-} from '../wechaty-builder.ts'
 
 export type {
   SayableSayer,
