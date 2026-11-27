@@ -214,15 +214,4 @@ export class IoClient {
     // }
   }
 
-  /**
-   * Same as {@link IoClient.stop}.
-   *
-   * @deprecated Use `stop()`. It used to stop the bot and the Io link but leave
-   *   the PuppetServer running; it now stops everything (wechaty/wechaty#3022).
-   */
-  public async quit (): Promise<void> {
-    log.verbose('IoClient', 'quit()')
-    await this.stop()
-  }
-
 }

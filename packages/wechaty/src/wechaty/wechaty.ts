@@ -467,19 +467,6 @@ export class Wechaty extends WechatyEventTarget implements Lifecycle, AsyncDispo
     this.dispatchEvent(new WechatyEvent('error', { detail: gerror }))
   }
 
-  /**
-   * Internal emit compatibility required by legacy callers.
-   * Routes 'error' events with GError normalization. Throws a descriptive migration hint for others.
-   * @internal
-   */
-  emit (event: string, ...args: any[]): boolean {
-    if (event === 'error') {
-      this.emitError(args[0])
-      return true
-    }
-    throw new Error(`Wechaty.emit() is not supported in Wechaty 2.0. Use bot.dispatchEvent() instead.`)
-  }
-
   // --- Typed WinterTC EventTarget Methods ---
   override addEventListener<E extends keyof WechatyEventDetailMap>(
     type: E,

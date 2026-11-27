@@ -224,14 +224,6 @@ test('Wechaty.start() failure triggers stop() cleanup before rethrowing', async 
   )
 })
 
-test('Wechaty.emit() throws explicit migration hint for non-error events', async () => {
-  const bot = new Wechaty({ puppet: new PuppetMock() })
-  assert.throws(
-    () => (bot as any).emit('message', {}),
-    /Wechaty\.emit\(\) is not supported in Wechaty 2\.0/,
-  )
-})
-
 test('Wechaty Symbol.asyncDispose via Wechaty.start() and await using', async () => {
   let stopped = false
   {

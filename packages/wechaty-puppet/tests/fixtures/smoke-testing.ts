@@ -77,7 +77,6 @@ class PuppetTest extends PUPPET.Puppet {
 
   override async friendshipSearchPhone (phone: string)             : Promise<string | null> { return phone }
   override async friendshipSearchHandle (handle: string)           : Promise<string | null> { return handle }
-  override async friendshipSearchWeixin (weixin: string)           : Promise<string | null> { return weixin }
   override async friendshipAdd (contactId: string, hello?: string) : Promise<void> { return { contactId, hello } as any }
   override async friendshipAccept (friendshipId: string)           : Promise<void> { return { friendshipId } as any }
 

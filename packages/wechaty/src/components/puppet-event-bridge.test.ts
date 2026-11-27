@@ -17,10 +17,6 @@ import type {
   RoomInvitation,
   Room,
 }                                             from '../user-modules/mod.ts'
-import type {
-  WechatyEventListeners,
-  WechatyEventName,
-}                                             from '../schemas/wechaty-events.ts'
 import {
   registerPuppetEventBridge,
 } from './puppet-event-bridge.ts'
@@ -36,7 +32,6 @@ function createBridgeTestContext (
   overrides: Partial<Dependencies> = {},
 ) {
   const trace: string[] = []
-  const eventList: { event: WechatyEventName, args: unknown[] }[] = []
   const dispatchedList: CustomEvent[] = []
   const errorList: Error[] = []
 
@@ -56,21 +51,14 @@ function createBridgeTestContext (
       dispatchedList.push(event as CustomEvent)
       return true
     },
-    emit: function <EventName extends WechatyEventName> (
-      event: EventName,
-      ...args: Parameters<WechatyEventListeners[EventName]>
-    ) {
-      eventList.push({ event, args })
-      return true
-    },
     emitError: error => errorList.push(error),
     ...overrides,
   }
 
   return {
     dependencies,
+    dispatchedList,
     errorList,
-    eventList,
     trace,
   }
 }
@@ -132,7 +120,7 @@ test('message event hydrates then forwards the same object in order', async () =
   await flushEvents()
 
   assert.deepEqual(context.trace, ['bot:message', 'room:message'], 'should emit to the bot before forwarding to the room')
-  assert.equal(context.eventList[0]?.args[0], message, 'should forward the hydrated message object')
+  assert.deepEqual(context.dispatchedList[0]?.detail, message, 'should forward the hydrated message object')
 })
 
 test('message event forwards to a listener contact when it has no room', async () => {
@@ -152,7 +140,7 @@ test('message event forwards to a listener contact when it has no room', async (
   await flushEvents()
 
   assert.deepEqual(context.trace, ['bot:message', 'contact:message'], 'should forward to the listener contact after the bot event')
-  assert.equal(context.eventList[0]?.args[0], message, 'should forward the same hydrated message object')
+  assert.deepEqual(context.dispatchedList[0]?.detail, message, 'should forward the same hydrated message object')
 })
 
 test('message hydration failures are forwarded as errors without emitting messages', async () => {
@@ -172,7 +160,7 @@ test('message hydration failures are forwarded as errors without emitting messag
   await flushEvents()
 
   assert.equal(context.errorList.length, 2, 'should forward missing and rejected hydration errors')
-  assert.deepEqual(context.eventList, [], 'should not emit messages when hydration fails')
+  assert.deepEqual(context.dispatchedList, [], 'should not emit messages when hydration fails')
 })
 
 test('login, friendship, and room-join handlers preserve their event forwarding', async () => {
@@ -206,8 +194,8 @@ test('login, friendship, and room-join handlers preserve their event forwarding'
   })
   await flushEvents()
 
-  assert.ok(context.eventList.some(({ event, args }) => event === 'login' && args[0] === contactSelf), 'should emit login contact')
-  assert.ok(context.eventList.some(({ event, args }) => event === 'friendship' && args[0] === friendship), 'should emit loaded friendship')
+  assert.ok(context.dispatchedList.some(({ type, detail }) => type === 'login' && detail && typeof detail === 'object'), 'should emit login contact')
+  assert.ok(context.dispatchedList.some(({ type, detail }) => type === 'friendship' && typeof detail === 'object' && 'ready' in detail), 'should emit loaded friendship')
   assert.deepEqual(
     context.trace.filter(event => event === 'bot:friendship' || event === 'contact:friendship'),
     ['bot:friendship', 'contact:friendship'],

@@ -307,22 +307,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
     this.#loggedOut = false
   }
 
-  /**
-   * @deprecated use `currentUserId` instead. (will be removed in v2.0)
-   */
-  selfId (): string {
-    log.warn('Puppet', 'selfId() is deprecated, use `currentUserId` instead:\n%s', new Error().stack)
-    return this.currentUserId
-  }
-
-  /**
-   * @deprecated use `isLoggedIn` instead. (will be removed in v2.0)
-   */
-  logonoff (): boolean {
-    log.warn('Puppet', 'logonoff() is deprecated, use `isLoggedIn` instead:\n%s', new Error().stack)
-    return this.isLoggedIn
-  }
-
   // ==========================================
   // Cache & Dirty Invalidation
   // ==========================================
@@ -1196,11 +1180,6 @@ abstract class PuppetImpl extends PuppetSkeleton implements Lifecycle {
   abstract friendshipRawPayload (friendshipId: string): Promise<any>
   abstract friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload>
 
-  friendshipSearchWeixin (weixin: string): Promise<null | string> {
-    log.warn('Puppet', 'friendshipSearchWeixin() is deprecated. use `friendshipSearchHandle()` instead.')
-    return this.friendshipSearchHandle(weixin)
-  }
-
   async friendshipSearch (
     searchQueryFilter: FriendshipSearchQueryFilter,
   ): Promise<string | null> {
@@ -1641,7 +1620,6 @@ type PuppetProtectedProperty =
   | '__authQrCode'
   | '__currentUserId'
   | 'login'
-  | 'logonoff'
   | 'cache'
   | 'onDirty'
   | '__cacheMixinCleanCallbackList'

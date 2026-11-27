@@ -575,7 +575,6 @@ test('auth, scan, and login lifecycle', async _t => {
   assert.equal(puppet.isLoggedIn, false)
   assert.equal(puppet.authQrCode, undefined)
   assert.throws(() => puppet.currentUserId, /not logged in/)
-  assert.equal(puppet.logonoff(), false)
 
   await puppet.start()
 
@@ -602,8 +601,6 @@ test('auth, scan, and login lifecycle', async _t => {
   puppet.login('user-123')
   assert.equal(puppet.isLoggedIn, true)
   assert.equal(puppet.currentUserId, 'user-123')
-  assert.equal(puppet.selfId(), 'user-123')
-  assert.equal(puppet.logonoff(), true)
   assert.throws(() => puppet.login('user-456'), /must logout first/)
 
   // Idempotent start

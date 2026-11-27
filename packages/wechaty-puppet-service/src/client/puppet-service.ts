@@ -790,10 +790,6 @@ class PuppetService extends PUPPET.Puppet {
     return res.contactId || null
   }
 
-  override async friendshipSearchWeixin (weixin: string): Promise<string | null> {
-    return this.friendshipSearchHandle(weixin)
-  }
-
   override async friendshipRawPayload (id: string): Promise<PUPPET.payloads.Friendship> {
     log.verbose('PuppetService', 'friendshipRawPayload(%s)', id)
     const res = await this.grpcManager.client.friendshipPayload({ id })

@@ -111,15 +111,6 @@ test('restart() stops everything and starts again with a new Io link', async () 
   await client.stop()
 })
 
-test('the deprecated quit() stops everything, the PuppetServer included', async () => {
-  const bot = new FakeWechaty()
-  const client = new TestIoClient(bot)
-  await client.start()
-  await client.quit()
-  assert.deepEqual(bot.log.slice(3), [ 'server stop', 'wechaty stop' ])
-  assert.equal(client.ios[0]!.state.kind, 'stopped')
-})
-
 test('the Io link reconnecting on its own does not stop the client', async () => {
   const bot = new FakeWechaty()
   const client = new TestIoClient(bot)

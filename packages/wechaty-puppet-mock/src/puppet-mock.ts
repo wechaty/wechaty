@@ -528,13 +528,6 @@ class PuppetMock extends PUPPET.Puppet {
     return null
   }
 
-  override async friendshipSearchWeixin (
-    weixin: string,
-  ): Promise<null | string> {
-    log.verbose('PuppetMock', 'friendshipSearchWeixin(%s)', weixin)
-    return null
-  }
-
   override async friendshipAdd (
     contactId : string,
     hello     : string,
