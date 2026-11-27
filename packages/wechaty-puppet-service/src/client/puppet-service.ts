@@ -2,7 +2,7 @@
  * `PuppetService`: client-side `wechaty-puppet` implementation connecting
  * to a remote puppet service over ConnectRPC and standard gRPC.
  */
-import type { LifecycleClock } from 'scopelet'
+import type { LifecycleClock, LifecycleScope } from 'scopelet'
 import * as PUPPET from 'wechaty-puppet'
 
 import type {
@@ -98,8 +98,8 @@ class PuppetService extends PUPPET.Puppet {
     return packageJson.version || '0.0.0'
   }
 
-  /** Start the client and pass Puppet's startup cancellation through to gRPC. */
-  override async onStart (signal?: AbortSignal): Promise<void> {
+  /** Start the client and bind `GrpcManager` as a child of Puppet's lifecycle scope. */
+  override async onStart (signal?: AbortSignal, scope?: LifecycleScope): Promise<void> {
     log.verbose('PuppetService', 'onStart()')
     signal?.throwIfAborted()
 
@@ -116,7 +116,11 @@ class PuppetService extends PUPPET.Puppet {
     this.bridgeGrpcEventStream(grpcManager)
 
     log.verbose('PuppetService', 'start() starting grpc manager...')
-    await grpcManager.start({ signal })
+    if (scope) {
+      await scope.start(grpcManager)
+    } else {
+      await grpcManager.start({ signal })
+    }
 
     log.verbose('PuppetService', 'onStart() ... done')
   }
