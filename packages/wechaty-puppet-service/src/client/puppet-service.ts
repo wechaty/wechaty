@@ -29,7 +29,6 @@ import { packageJson } from '../package-json.ts'
 
 import { GrpcManager } from './grpc-manager.ts'
 import { PayloadStore } from './payload-store.ts'
-import { messageTypeFromWire } from '../pure-functions/message-type.ts'
 import { millisecondsFromTimestamp } from '../pure-functions/timestamp.ts'
 
 export type PuppetServiceOptions = PUPPET.PuppetOptions & {
@@ -518,7 +517,6 @@ class PuppetService extends PUPPET.Puppet {
     return response.id || undefined
   }
 
-  /** Fetches a message payload and normalizes unrecognized remote types before caching. */
   override async messageRawPayload (id: string): Promise<PUPPET.payloads.Message> {
     log.verbose('PuppetService', 'messageRawPayload(%s)', id)
     const res = await this.grpcManager.client.messagePayload({ id })
@@ -533,7 +531,7 @@ class PuppetService extends PUPPET.Puppet {
       text: res.text || undefined,
       timestamp: res.receiveTime ? millisecondsFromTimestamp(res.receiveTime) : Number(res.timestampDeprecated || 0n),
       toId: res.listenerId || undefined,
-      type: messageTypeFromWire(res.type),
+      type: res.type as PUPPET.types.Message,
     } as PUPPET.payloads.Message
   }
 

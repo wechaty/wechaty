@@ -24,7 +24,11 @@ import {
 import { normalizeFileBoxUuid } from '../file-box-helper/mod.ts'
 import { log } from '../config.ts'
 import { EventStreamManager, type EventStreamSink } from './event-stream-manager.ts'
+import { messageTypeToProto } from '../pure-functions/message-type.ts'
 import { timestampFromMilliseconds } from '../pure-functions/timestamp.ts'
+
+const MESSAGE_TYPE_HEADER = 'wechaty-message-type'
+const PROTOBUF_MESSAGE_TYPES = 'protobuf'
 
 export function puppetImplementation (
   puppet      : PUPPET.Puppet,
@@ -344,10 +348,19 @@ export function puppetImplementation (
       }
     },
 
-    messagePayload: async (req: { id: string }) => {
+    messagePayload: async (req, context) => {
       log.verbose('PuppetServiceImpl', 'messagePayload()')
       const payload = await puppet.messagePayload(req.id)
       const mentionIdList = ('mentionIdList' in payload) ? payload.mentionIdList || [] : []
+      // Older clients interpret the original Puppet numbers. Only callers that
+      // request Protobuf numbering receive values defined by message.proto.
+      const useProtoTypes = context.requestHeader.get(MESSAGE_TYPE_HEADER) === PROTOBUF_MESSAGE_TYPES
+      if (context.requestMethod === 'GET') {
+        context.responseHeader.append('Vary', MESSAGE_TYPE_HEADER)
+      }
+      if (useProtoTypes) {
+        context.responseHeader.set(MESSAGE_TYPE_HEADER, PROTOBUF_MESSAGE_TYPES)
+      }
       return {
         filename: payload.filename || '',
         id: payload.id,
@@ -357,7 +370,7 @@ export function puppetImplementation (
         roomId: payload.roomId || '',
         talkerId: payload.talkerId || payload.fromId || '',
         text: payload.text || '',
-        type: payload.type,
+        type: useProtoTypes ? messageTypeToProto(payload.type) : payload.type,
       }
     },
 

@@ -1,13 +1,16 @@
 /**
- * Unit tests for `PuppetServer`: version reporting, server-first shutdown with active
- * client streaming connections, and bind failure resilience.
+ * Tests for `PuppetServer` over local connections, including version reporting,
+ * RPC compatibility, shutdown with active streams, and bind failure resilience.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import http2 from 'node:http2'
 
+import { createClient } from '@connectrpc/connect'
+import { createGrpcTransport, Http2SessionManager } from '@connectrpc/connect-node'
+import { Puppet } from 'wechaty-grpc'
 import { PuppetMock } from 'wechaty-puppet-mock'
-import type { PuppetOptions } from 'wechaty-puppet'
+import { types, type PuppetOptions } from 'wechaty-puppet'
 
 import { freePort } from '../../tests/fixtures/free-port.ts'
 import { useTempHome } from '../../tests/fixtures/temp-home.ts'
@@ -28,6 +31,51 @@ test('version()', async _t => {
 
   const puppet = new PuppetServer(options)
   assert.ok(puppet.version(), 'should have version() method')
+})
+
+test('MessagePayload preserves legacy gRPC values and acknowledges Protobuf numbering on request', async t => {
+  const port = await freePort()
+  const endpoint = `127.0.0.1:${port}`
+  const baseUrl = `http://${endpoint}`
+  const token = `insecure_${NIL_UUID_V4}`
+  const puppet = new PuppetMock()
+  t.mock.method(puppet, 'messagePayload', async (id: string) => ({
+    id,
+    talkerId: 'contact',
+    text: 'text message',
+    type: types.Message.Text,
+  }))
+  const server = new PuppetServer({ endpoint, puppet, token, tls: { disable: true } })
+  const sessionManager = new Http2SessionManager(baseUrl)
+  await server.start()
+  try {
+    const client = createClient(Puppet, createGrpcTransport({ baseUrl, sessionManager }))
+    const headers = { authorization: `Wechaty ${token}` }
+    const request = { id: 'message' }
+    const legacy = await client.messagePayload(request, { headers })
+    assert.equal(legacy.type, 7, 'legacy gRPC clients receive Puppet Text')
+
+    let acknowledged: string | null = null
+    const protobuf = await client.messagePayload(request, {
+      headers: { ...headers, 'wechaty-message-type': 'protobuf' },
+      onHeader: responseHeaders => { acknowledged = responseHeaders.get('wechaty-message-type') },
+    })
+    assert.equal(acknowledged, 'protobuf')
+    assert.equal(protobuf.type, 6, 'clients using the published enum receive Protobuf TEXT')
+
+    const response = await fetch(`${baseUrl}/wechaty.Puppet/MessagePayload`, {
+      method: 'POST',
+      headers: { ...headers, 'content-type': 'application/json', 'wechaty-message-type': 'protobuf' },
+      body: JSON.stringify(request),
+      signal: AbortSignal.timeout(4000),
+    })
+    assert.equal(response.status, 200)
+    assert.equal(response.headers.get('wechaty-message-type'), 'protobuf')
+    assert.equal((await response.json()).type, 'MESSAGE_TYPE_TEXT')
+  } finally {
+    sessionManager.abort()
+    await server.stop()
+  }
 })
 
 test('server-first stop() resolves promptly while a client stream is open', async t => {

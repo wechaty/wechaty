@@ -34,6 +34,15 @@ This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty)
 
 ## Usage
 
+### Message types for generated RPC clients
+
+`/wechaty.Puppet/MessagePayload` sends Puppet SDK message type numbers by
+default for compatibility with existing clients. A client that uses the
+published Protobuf enum can send `wechaty-message-type: protobuf` as HTTP
+headers or gRPC metadata. Check for the same response header before
+interpreting the type using the Protobuf schema. An older server can ignore
+the request header and return its legacy representation.
+
 ### Consume a puppet service
 
 ```ts

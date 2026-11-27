@@ -1,7 +1,6 @@
 /**
  * Message schema: `MessageType` and the WeChat-specific type maps (`as const`
- * maps), message payloads and query filters. Puppet Service sends the stable
- * `MessageType` numbers over gRPC using `wechaty-grpc`'s `message.proto`.
+ * maps whose numbers must not change), message payloads and query filters.
  */
 /**
  * Wechaty Puppet Unified Schema for Message
