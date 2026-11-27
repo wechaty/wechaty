@@ -49,16 +49,13 @@ import {
   WechatyEvent,
 }                                 from './events.ts'
 
-/**
- * Normalizes an arbitrary error value or error payload into an `EventErrorPayload`
- * containing a stringified GError JSON object.
- *
- * @param error - Error instance, existing EventErrorPayload, or arbitrary error value.
- * @returns Canonical EventErrorPayload containing serialized GError.
- */
 const utf8Encoder = new TextEncoder()
 const utf8Decoder = new TextDecoder('utf-8', { fatal: false })
 
+/**
+ * Truncates `text` to at most `maxBytes` UTF-8 bytes without splitting a
+ * multi-byte UTF-8 sequence.
+ */
 function truncateUtf8Bytes (text: string, maxBytes: number): string {
   const bytes = utf8Encoder.encode(text)
   if (bytes.byteLength <= maxBytes) {
@@ -82,6 +79,16 @@ function truncateUtf8Bytes (text: string, maxBytes: number): string {
   return utf8Decoder.decode(bytes.subarray(0, end))
 }
 
+/**
+ * Normalizes an arbitrary error value or error payload into an `EventErrorPayload`
+ * containing a stringified GError JSON object.
+ *
+ * Falls back to a 4096-byte UTF-8 truncated message-only `GError` if
+ * `JSON.stringify(gerr)` throws `RangeError` on oversized errors.
+ *
+ * @param error - Error instance, existing EventErrorPayload, or arbitrary error value.
+ * @returns Canonical EventErrorPayload containing serialized GError.
+ */
 function normalizeErrorPayload (error: unknown): EventErrorPayload {
   let gerr: GError
 

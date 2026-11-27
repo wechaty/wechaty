@@ -7,6 +7,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { Code, ConnectError } from '@connectrpc/connect'
+import { fromConnectError } from 'gerror-connect'
 
 import { serverErrorInterceptor, toConnectError } from './grpc-error.ts'
 
@@ -47,7 +48,12 @@ test('toConnectError() preserves valid gRPC status codes from GError', () => {
   const agg = new AggregateError([new Error('m1'), new Error('m2')], 'agg-failure')
   const aggConnect = toConnectError('testAgg', agg)
   assert.equal(aggConnect.code, Code.Internal)
-  assert.equal(aggConnect.details.length > 0, true)
+  assert.equal(aggConnect.rawMessage, 'agg-failure')
+  const decodedAgg = fromConnectError(aggConnect).toData()
+  assert.deepEqual(
+    decodedAgg.errors?.map((e) => e.message),
+    ['m1', 'm2'],
+  )
 })
 
 test('serverErrorInterceptor() converts unary thrown error to Code.Internal', async () => {
