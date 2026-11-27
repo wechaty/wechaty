@@ -16,19 +16,29 @@ RESTORE_LIST="$TMPDIR/restore.tsv"
 backup_file () {
   local file=$1
   if [ -f "$file" ]; then
-    local backup="$TMPDIR/$(echo "$file" | tr '/.' '__')"
+    local backup
+    backup="$TMPDIR/$(echo "$file" | tr '/.' '__')"
     cp "$file" "$backup"
     printf "%s\t%s\n" "$file" "$backup" >> "$RESTORE_LIST"
   fi
 }
 
 cleanup () {
-  while IFS=$'\t' read -r file backup; do
-    [ -f "$backup" ] && cp "$backup" "$file"
-  done < "$RESTORE_LIST"
-  rm -rf "$TMPDIR"
+  local sig=${1:-0}
+  trap - EXIT INT TERM
+  if [ -f "$RESTORE_LIST" ]; then
+    while IFS=$'\t' read -r file backup; do
+      [ -f "$backup" ] && cp "$backup" "$file"
+    done < "$RESTORE_LIST"
+  fi
+  [ -d "$TMPDIR" ] && rm -rf "$TMPDIR"
+  if [ "$sig" -ne 0 ]; then
+    kill -s "$sig" $$
+  fi
 }
-trap cleanup EXIT INT TERM
+trap 'cleanup' EXIT
+trap 'cleanup INT' INT
+trap 'cleanup TERM' TERM
 
 # generate-package-json.sh rewrites src/package-json.ts; put back exactly what
 # was there, including uncommitted edits.

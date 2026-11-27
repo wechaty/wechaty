@@ -172,9 +172,11 @@ export function preparePack (pkgPath = 'package.json'): void {
 
   const backup = backupPathForManifest(pkgPath)
   if (existsSync(backup)) {
-    throw new Error(
-      `Cannot prepare pack: backup file already exists at ${backup}. A previous pack preparation must be restored before running prepare again.`,
-    )
+    // A previous pack preparation was interrupted (e.g. SIGKILL/crash) before restorePack ran.
+    // Automatically restore the original source manifest from backup so preparation starts clean.
+    const original = readFileSync(backup, 'utf8')
+    writeFileSync(pkgPath, original, 'utf8')
+    unlinkSync(backup)
   }
 
   const raw = readFileSync(pkgPath, 'utf8')

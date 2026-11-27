@@ -155,17 +155,20 @@ test('preparePack and restorePack lifecycle cycle preserves file content', () =>
     const backupFile = backupPathForManifest(pkgFile)
     assert.ok(existsSync(backupFile), 'Backup file must exist after preparePack')
 
-    // 2. Calling preparePack again while backup exists must throw
-    assert.throws(
-      () => preparePack(pkgFile),
-      /backup file already exists/,
-      'preparePack must reject when a prior backup exists',
-    )
+    // 2. An interrupted preparation with an existing backup automatically recovers the original manifest
+    preparePack(pkgFile)
+    assert.ok(existsSync(backupFile), 'Backup file must exist after auto-recovered preparePack')
+    const rePreparedContent = JSON.parse(readFileSync(pkgFile, 'utf8'))
+    assert.equal(rePreparedContent.exports['.'].node, './dist/esm/src/mod.js')
 
     // 3. restorePack restores original content and unlinks backup
     restorePack(pkgFile)
     assert.equal(readFileSync(pkgFile, 'utf8'), originalContent, 'Original content must be restored')
     assert.ok(!existsSync(backupFile), 'Backup file must be cleaned up after restorePack')
+
+    // 4. Calling restorePack again when no backup exists is a safe no-op
+    restorePack(pkgFile)
+    assert.equal(readFileSync(pkgFile, 'utf8'), originalContent, 'Content remains unchanged')
   } finally {
     restorePack(pkgFile)
     rmSync(dir, { recursive: true, force: true })
