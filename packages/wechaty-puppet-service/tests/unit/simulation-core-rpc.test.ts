@@ -101,7 +101,7 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
 
       // Test roomTopic get and set with spy verification
       const currentTopic = await puppetService.roomTopic(room.id)
-      assert.equal(currentTopic, 'mock room topic', 'roomTopic should return mock room topic from puppet')
+      assert.equal(currentTopic, 'Safety Net Room', 'roomTopic should return actual room topic from puppet')
 
       const spyTopic = mock.method(puppet, 'roomTopic')
       await puppetService.roomTopic(room.id, 'Updated Topic')
@@ -216,15 +216,17 @@ test('Core RPC simulation between PuppetService and PuppetServer', async t => {
         'puppet.friendshipAdd object options should match without proto internal fields',
       )
 
+      const seededFriendship = puppet.mocker.receiveFriendship(peer, 'Hello from peer')
+
       await assert.doesNotReject(
-        async () => puppetService.friendshipAccept('test-friendship-id'),
+        async () => puppetService.friendshipAccept(seededFriendship.id),
         'friendshipAccept should succeed over gRPC',
       )
       assert.equal(spyAccept.mock.callCount(), 1, 'puppet.friendshipAccept should have been invoked once')
-      assert.deepEqual(spyAccept.mock.calls[0]?.arguments, ['test-friendship-id'], 'puppet.friendshipAccept argument should match')
+      assert.deepEqual(spyAccept.mock.calls[0]?.arguments, [seededFriendship.id], 'puppet.friendshipAccept argument should match')
 
-      const friendshipPayload = await puppetService.friendshipPayload('test-friendship-id')
-      assert.equal(friendshipPayload.id, 'test-friendship-id', 'friendshipPayload should return friendship with matching id')
+      const friendshipPayload = await puppetService.friendshipPayload(seededFriendship.id)
+      assert.equal(friendshipPayload.id, seededFriendship.id, 'friendshipPayload should return friendship with matching id')
     })
   } finally {
     mock.restoreAll()

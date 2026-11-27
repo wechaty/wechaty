@@ -8,6 +8,11 @@ import { PuppetMock } from '../puppet-mock.ts'
 import { runPuppetTCK } from './puppet-tck.ts'
 
 runPuppetTCK({
+  createPuppet: (options) => new PuppetMock(options),
+  name: 'PuppetMock (minimal)',
+})
+
+runPuppetTCK({
   createHangingPuppet: (options) => {
     class HangingPuppetMock extends PuppetMock {
 

@@ -428,6 +428,7 @@ class Mocker {
       contactId : contact.id,
       hello,
       id,
+      ...(type === PUPPET.types.Friendship.Receive ? { ticket: id } : {}),
       timestamp : Date.now(),
       type,
     } as PUPPET.payloads.Friendship

@@ -16,7 +16,7 @@ import {
   Wechaty,
   types,
   type Contact,
-} from './mods/mod.ts'
+} from './mods/browser.ts'
 
 describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
   test('Public API: ContactSelf, Contact, Tag, Room, Friendship & useScoped()', async (t) => {
@@ -55,6 +55,11 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
 
     const foundBob = await bot.Friendship.search({ handle: 'bob_wx' })
     assert.equal(foundBob?.id, bob.id)
+
+    const vipTag = await bot.Tag.get('vip')
+    await vipTag.add(foundAlice)
+    assert.ok((await foundAlice.tags()).some((tag) => tag.id === 'vip'))
+    await vipTag.remove(foundAlice)
 
     await bot.stop()
     assert.deepEqual(lifecycleLog, ['install', 'uninstall'])
@@ -114,7 +119,7 @@ describe('Wechaty TCK: Public API & Chatbot Automation Recipes', () => {
       const msgRoom = msg.room()
       if (msgRoom && msg.text().includes('SPAM')) {
         await msg.recall()
-        await msgRoom.del(msg.talker() as Parameters<typeof msgRoom.del>[0])
+        await msgRoom.remove(msg.talker() as Parameters<typeof msgRoom.remove>[0])
       }
     })
 

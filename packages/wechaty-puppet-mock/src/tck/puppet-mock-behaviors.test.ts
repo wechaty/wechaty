@@ -122,7 +122,7 @@ describe('PuppetMock Full-Domain Behaviors', () => {
 
     const announceFuture = puppet.next('room-announce')
     await puppet.roomAnnounce(newRoomId, 'Welcome!')
-    assert.equal((await announceFuture).roomId, newRoomId)
+    assert.equal((await announceFuture).newAnnounce, 'Welcome!')
     assert.equal(await puppet.roomAnnounce(newRoomId), 'Welcome!')
 
     const joinFuture = puppet.next('room-join')
@@ -173,34 +173,46 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     const { puppet, alice } = await createMockWorld(t)
 
     await puppet.tagContactAdd('vip', alice.id)
+    await puppet.tagContactAdd('vip', alice.id)
     assert.deepEqual(await puppet.tagContactList(alice.id), ['vip'])
     assert.deepEqual(await puppet.tagContactList(), ['vip'])
     await puppet.tagContactRemove('vip', alice.id)
+    await puppet.tagContactRemove('missing-tag', alice.id)
     assert.deepEqual(await puppet.tagContactList(alice.id), [])
     await puppet.tagContactAdd('vip', alice.id)
     await puppet.tagContactDelete('vip')
+    await puppet.tagContactDelete('missing-tag')
     assert.deepEqual(await puppet.tagContactList(), [])
 
+    await assert.rejects(() => puppet.postRawPayload('missing-post'))
     const postFuture = puppet.next('post')
     const postId1 = await puppet.postPublish({
-      sayableList: [{ payload: { mentions: [], text: 'hello post' }, type: PUPPET.types.Sayable.Text }],
+      sayableList: [
+        { payload: { mentions: [], text: 'hello post' }, type: PUPPET.types.Sayable.Text },
+        { payload: { title: 'Link', url: 'https://wechaty.js.org' }, type: PUPPET.types.Sayable.Url },
+        { payload: { accuracy: 10, address: '1 Main', latitude: 1, longitude: 2, name: 'HQ' }, type: PUPPET.types.Sayable.Location },
+        { payload: { appid: 'wx1', title: 'MP' }, type: PUPPET.types.Sayable.MiniProgram },
+        { payload: { contactId: alice.id }, type: PUPPET.types.Sayable.Contact },
+      ],
       type: PUPPET.types.Post.Moment,
     })
     const postId2 = await puppet.postPublish({
       parentId: postId1,
       rootId: postId1,
       sayableList: [],
-      type: PUPPET.types.Post.Moment,
+      type: PUPPET.types.Post.Channel,
     })
     assert.equal((await postFuture).postId, postId1)
 
     const storedPost1 = await puppet.postRawPayload(postId1)
-    assert.equal(storedPost1.sayableList.length, 1)
+    assert.equal(storedPost1.sayableList.length, 5)
     const sayableMsg = await puppet.messagePayload(storedPost1.sayableList[0] as string)
     assert.equal(sayableMsg.text, 'hello post')
 
-    const children = await puppet.postSearch({ parentId: postId1 })
-    assert.deepEqual(children.response, [postId2])
+    assert.deepEqual((await puppet.postSearch({ id: postId1 })).response, [postId1])
+    assert.deepEqual((await puppet.postSearch({ contactId: 'nobody' })).response, [])
+    assert.deepEqual((await puppet.postSearch({ type: PUPPET.types.Post.Channel })).response, [postId2])
+    assert.deepEqual((await puppet.postSearch({ parentId: postId1, rootId: postId1 })).response, [postId2])
 
     const page1 = await puppet.postSearch({}, { pageSize: 1 })
     assert.deepEqual(page1.response, [postId1])
@@ -210,12 +222,62 @@ describe('PuppetMock Full-Domain Behaviors', () => {
     assert.equal(page2.nextPageToken, undefined)
 
     await puppet.tap(postId1, PUPPET.types.Tap.Like, true)
+    await puppet.tap(postId1, PUPPET.types.Tap.Like, true)
     assert.equal(await puppet.tap(postId1, PUPPET.types.Tap.Like), true)
     const taps = await puppet.tapSearch(postId1, { type: PUPPET.types.Tap.Like })
     assert.equal(taps.response[PUPPET.types.Tap.Like]?.contactId.length, 1)
-    const wildcardTaps = await puppet.tapSearch(postId1, { type: PUPPET.types.Tap.Unspecified })
+    const wildcardTaps = await puppet.tapSearch(postId1, { contactId: 'bot-user', type: PUPPET.types.Tap.Unspecified }, { pageSize: 1 })
     assert.equal(wildcardTaps.response[PUPPET.types.Tap.Like]?.contactId.length, 1)
+    const noMatchTaps = await puppet.tapSearch(postId1, { contactId: 'nobody' })
+    assert.equal(noMatchTaps.response[PUPPET.types.Tap.Like], undefined)
     await puppet.tap(postId1, PUPPET.types.Tap.Like, false)
     assert.equal(await puppet.tap(postId1, PUPPET.types.Tap.Like), false)
+  })
+
+  test('Error & logged-out branches: rejects cleanly on invalid IDs or logged-out writes', async (t) => {
+    const { puppet, alice, bob, room } = await createMockWorld(t)
+
+    // Forward Contact, Location, MiniProgram, Post, and File
+    const contactMsg = await puppet.messageSendContact(alice.id, bob.id)
+    const fwdContact = await puppet.messageForward(bob.id, contactMsg as string)
+    assert.equal(await puppet.messageContact(fwdContact as string), bob.id)
+
+    const locMsg = await puppet.messageSendLocation(alice.id, {
+      accuracy: 5,
+      address: 'Addr',
+      latitude: 1,
+      longitude: 2,
+      name: 'Loc',
+    })
+    const fwdLoc = await puppet.messageForward(bob.id, locMsg as string)
+    assert.equal((await puppet.messageLocation(fwdLoc as string)).name, 'Loc')
+
+    const mpMsg = await puppet.messageSendMiniProgram(alice.id, { title: 'App' })
+    const fwdMp = await puppet.messageForward(bob.id, mpMsg as string)
+    assert.equal((await puppet.messageMiniProgram(fwdMp as string)).title, 'App')
+
+    const postMsg = await puppet.messageSendPost(alice.id, { sayableList: [], type: PUPPET.types.Post.Moment })
+    const fwdPost = await puppet.messageForward(bob.id, postMsg as string)
+    assert.equal((await puppet.messagePayload(fwdPost as string)).type, PUPPET.types.Message.Post)
+
+    const fileMsg = await puppet.messageSendFile(alice.id, FileBox.fromBase64(btoa('hi'), 'hi.txt'))
+    const fwdFile = await puppet.messageForward(bob.id, fileMsg as string)
+    assert.equal((await puppet.messageFile(fwdFile as string)).name, 'hi.txt')
+
+    // Room & invitation error branches
+    await puppet.roomDel(room.id, 'not-a-member')
+    await assert.rejects(() => puppet.roomMemberRawPayload(room.id, 'not-a-member'))
+    await assert.rejects(() => puppet.roomInvitationRawPayload('missing-inv'))
+    await assert.rejects(() => puppet.roomInvitationAccept('missing-inv'))
+    await assert.rejects(() => puppet.friendshipRawPayload('missing-friendship'))
+
+    // Logged-out branches
+    await puppet.logout()
+    assert.equal(typeof await puppet.contactSelfQRCode(), 'string')
+    await assert.rejects(() => puppet.contactSelfName('x'))
+    await assert.rejects(() => puppet.contactSelfSignature('x'))
+    await assert.rejects(() => puppet.messageSendText(alice.id, 'hi'))
+    await assert.rejects(() => puppet.messageSendUrl(alice.id, { title: 't', url: 'https://wechaty.js.org' }))
+    await assert.rejects(() => puppet.tap('any', PUPPET.types.Tap.Like, true))
   })
 })

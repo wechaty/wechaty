@@ -114,7 +114,7 @@ class PuppetMock extends PUPPET.Puppet {
   override async contactSelfQRCode (): Promise<string> {
     log.verbose('PuppetMock', 'contactSelfQRCode()')
     if (!this.isLoggedIn) {
-      throw new Error('not logged in')
+      return CHATIE_OFFICIAL_ACCOUNT_QRCODE
     }
     return `${CHATIE_OFFICIAL_ACCOUNT_QRCODE}?id=${encodeURIComponent(this.currentUserId)}`
   }
@@ -126,7 +126,7 @@ class PuppetMock extends PUPPET.Puppet {
     }
     const payload = this.mocker.contactPayload(this.currentUserId)
     payload.name = name
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, this.currentUserId)
+    await this.contactPayloadDirty(this.currentUserId)
   }
 
   override async contactSelfSignature (signature: string): Promise<void> {
@@ -136,7 +136,7 @@ class PuppetMock extends PUPPET.Puppet {
     }
     const payload = this.mocker.contactPayload(this.currentUserId)
     payload.signature = signature
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, this.currentUserId)
+    await this.contactPayloadDirty(this.currentUserId)
   }
 
   /**
@@ -155,7 +155,7 @@ class PuppetMock extends PUPPET.Puppet {
       return payload.alias ?? ''
     }
     payload.alias = alias ?? undefined
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+    await this.contactPayloadDirty(contactId)
   }
 
   override async contactPhone (contactId: string): Promise<string[]>
@@ -168,21 +168,21 @@ class PuppetMock extends PUPPET.Puppet {
       return payload.phone ?? []
     }
     payload.phone = [...phoneList]
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+    await this.contactPayloadDirty(contactId)
   }
 
   override async contactCorporationRemark (contactId: string, corporationRemark: string | null) {
     log.verbose('PuppetMock', 'contactCorporationRemark(%s, %s)', contactId, corporationRemark)
     const payload = this.mocker.contactPayload(contactId)
     payload.corporation = corporationRemark ?? undefined
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+    await this.contactPayloadDirty(contactId)
   }
 
   override async contactDescription (contactId: string, description: string | null) {
     log.verbose('PuppetMock', 'contactDescription(%s, %s)', contactId, description)
     const payload = this.mocker.contactPayload(contactId)
     payload.description = description ?? undefined
-    await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+    await this.contactPayloadDirty(contactId)
   }
 
   override async contactList (): Promise<string[]> {
@@ -201,7 +201,7 @@ class PuppetMock extends PUPPET.Puppet {
     if (file) {
       const base64 = await file.toBase64()
       this.mocker.cacheContactAvatar.set(contactId, { base64, name: file.name })
-      await this.dirtyPayload(PUPPET.types.Payload.Contact, contactId)
+      await this.contactPayloadDirty(contactId)
       return
     }
 
@@ -266,8 +266,11 @@ class PuppetMock extends PUPPET.Puppet {
       return false
     }
     payload.type = PUPPET.types.Message.Recalled
-    payload.text = ''
-    await this.dirtyPayload(PUPPET.types.Payload.Message, messageId)
+    payload.text = messageId
+    await this.messagePayloadDirty(messageId)
+    this.dispatchEvent(new PUPPET.WechatyEvent('message', {
+      detail: { messageId },
+    }))
     return true
   }
 
@@ -573,20 +576,28 @@ class PuppetMock extends PUPPET.Puppet {
     log.verbose('PuppetMock', 'roomDel(%s, %s)', roomId, contactId)
     const ids = Array.isArray(contactId) ? contactId : [contactId]
     const payload = this.mocker.roomPayload(roomId)
-    const removedSet = new Set(ids)
+    const existing = new Set(payload.memberIdList)
+    const removed = ids.filter((id) => existing.has(id))
+    if (removed.length === 0) {
+      return
+    }
+    const removedSet = new Set(removed)
     payload.memberIdList = payload.memberIdList.filter((id) => !removedSet.has(id))
-    for (const id of ids) {
+    for (const id of removed) {
       this.mocker.cacheRoomMemberPayload.delete(`${roomId}:${id}`)
     }
-    await this.dirtyPayload(PUPPET.types.Payload.Room, roomId)
-    this.dispatchEvent(new PUPPET.WechatyEvent('room-leave', {
-      detail: {
-        removeeIdList: ids,
-        removerId: this.isLoggedIn ? this.currentUserId : '',
-        roomId,
-        timestamp: Date.now(),
-      },
-    }))
+    await this.roomPayloadDirty(roomId)
+    const removerId = this.isLoggedIn ? this.currentUserId : (payload.ownerId ?? removed[0])
+    if (removerId) {
+      this.dispatchEvent(new PUPPET.WechatyEvent('room-leave', {
+        detail: {
+          removeeIdList: removed,
+          removerId,
+          roomId,
+          timestamp: Date.now(),
+        },
+      }))
+    }
   }
 
   override async roomAvatar (roomId: string): Promise<FileBoxInterface> {
@@ -628,12 +639,13 @@ class PuppetMock extends PUPPET.Puppet {
       }
     }
     payload.memberIdList = [...existing]
-    await this.dirtyPayload(PUPPET.types.Payload.Room, roomId)
-    if (added.length > 0) {
+    await this.roomPayloadDirty(roomId)
+    const inviterId = this.isLoggedIn ? this.currentUserId : (payload.ownerId ?? added[0])
+    if (added.length > 0 && inviterId) {
       this.dispatchEvent(new PUPPET.WechatyEvent('room-join', {
         detail: {
           inviteeIdList: added,
-          inviterId: this.isLoggedIn ? this.currentUserId : '',
+          inviterId,
           roomId,
           timestamp: Date.now(),
         },
@@ -657,16 +669,19 @@ class PuppetMock extends PUPPET.Puppet {
 
     const oldTopic = payload.topic
     payload.topic = topic
-    await this.dirtyPayload(PUPPET.types.Payload.Room, roomId)
-    this.dispatchEvent(new PUPPET.WechatyEvent('room-topic', {
-      detail: {
-        changerId: this.isLoggedIn ? this.currentUserId : '',
-        newTopic: topic,
-        oldTopic,
-        roomId,
-        timestamp: Date.now(),
-      },
-    }))
+    await this.roomPayloadDirty(roomId)
+    const changerId = this.isLoggedIn ? this.currentUserId : (payload.ownerId ?? payload.memberIdList[0])
+    if (changerId) {
+      this.dispatchEvent(new PUPPET.WechatyEvent('room-topic', {
+        detail: {
+          changerId,
+          newTopic: topic,
+          oldTopic,
+          roomId,
+          timestamp: Date.now(),
+        },
+      }))
+    }
   }
 
   override async roomCreate (
@@ -708,6 +723,10 @@ class PuppetMock extends PUPPET.Puppet {
 
   override async roomMemberRawPayload (roomId: string, contactId: string): Promise<PUPPET.payloads.RoomMember>  {
     log.verbose('PuppetMock', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
+    const roomPayload = this.mocker.roomPayload(roomId)
+    if (!roomPayload.memberIdList.includes(contactId)) {
+      throw new Error(`contact ${contactId} is not a member of room ${roomId}`)
+    }
     const stored = this.mocker.cacheRoomMemberPayload.get(`${roomId}:${contactId}`)
     if (stored) {
       return stored
@@ -730,18 +749,23 @@ class PuppetMock extends PUPPET.Puppet {
   override async roomAnnounce (roomId: string, text: string)  : Promise<void>
 
   override async roomAnnounce (roomId: string, text?: string) : Promise<void | string> {
-    this.mocker.roomPayload(roomId)
+    const roomPayload = this.mocker.roomPayload(roomId)
     if (typeof text !== 'undefined') {
+      const oldAnnounce = this.mocker.cacheRoomAnnounce.get(roomId)
       this.mocker.cacheRoomAnnounce.set(roomId, text)
-      await this.dirtyPayload(PUPPET.types.Payload.Room, roomId)
-      this.dispatchEvent(new PUPPET.WechatyEvent('room-announce', {
-        detail: {
-          changerId: this.isLoggedIn ? this.currentUserId : '',
-          roomId,
-          text,
-          timestamp: Date.now(),
-        },
-      }))
+      await this.roomPayloadDirty(roomId)
+      const changerId = this.isLoggedIn ? this.currentUserId : (roomPayload.ownerId ?? roomPayload.memberIdList[0])
+      if (changerId) {
+        this.dispatchEvent(new PUPPET.WechatyEvent('room-announce', {
+          detail: {
+            changerId,
+            newAnnounce: text,
+            oldAnnounce,
+            roomId,
+            timestamp: Date.now(),
+          },
+        }))
+      }
       return
     }
     return this.mocker.cacheRoomAnnounce.get(roomId) ?? ''
@@ -975,12 +999,16 @@ class PuppetMock extends PUPPET.Puppet {
       PUPPET.helpers.typeName(PUPPET.types.Tap, type),
       typeof tap === 'undefined' ? '' : `, ${tap}`,
     )
+    if (!this.isLoggedIn) {
+      throw new Error('not logged in')
+    }
+    const post = await this.postRawPayload(postId)
     let tapPayload = this.mocker.cacheTapPayload.get(postId)
     if (!tapPayload) {
       tapPayload = {}
       this.mocker.cacheTapPayload.set(postId, tapPayload)
     }
-    const contactId = this.isLoggedIn ? this.currentUserId : 'mock-user'
+    const contactId = this.currentUserId
     const entry = tapPayload[type] ?? { contactId: [], timestamp: [] }
 
     if (typeof tap === 'undefined') {
@@ -999,6 +1027,8 @@ class PuppetMock extends PUPPET.Puppet {
       entry.timestamp.splice(idx, 1)
       tapPayload[type] = entry
     }
+    post.counter.taps ??= {}
+    post.counter.taps[type] = entry.contactId.length
     return tap
   }
 
@@ -1014,6 +1044,11 @@ class PuppetMock extends PUPPET.Puppet {
     )
     const tapPayload = this.mocker.cacheTapPayload.get(postId) ?? {}
     const filtered: PUPPET.payloads.Tap = {}
+    const pageSize = pagination?.pageSize
+    const offset = pagination?.pageToken ? Number.parseInt(pagination.pageToken, 10) : 0
+    let hasMore = false
+    let nextToken: string | undefined
+
     for (const [key, entry] of Object.entries(tapPayload)) {
       const tapType = Number.parseInt(key, 10) as PUPPET.types.Tap
       if (
@@ -1024,25 +1059,30 @@ class PuppetMock extends PUPPET.Puppet {
         continue
       }
       if (!entry) continue
-      if (query?.contactId) {
-        const contactId: string[] = []
-        const timestamp: number[] = []
-        entry.contactId.forEach((cid, i) => {
-          if (cid === query.contactId) {
-            contactId.push(cid)
-            timestamp.push(entry.timestamp[i] ?? 0)
-          }
-        })
-        filtered[tapType] = { contactId, timestamp }
-      } else {
+      const matchedIds: string[] = []
+      const matchedTimestamps: number[] = []
+      entry.contactId.forEach((cid, i) => {
+        if (!query?.contactId || cid === query.contactId) {
+          matchedIds.push(cid)
+          matchedTimestamps.push(entry.timestamp[i] ?? 0)
+        }
+      })
+      const end = pageSize !== undefined ? offset + pageSize : matchedIds.length
+      if (end < matchedIds.length) {
+        hasMore = true
+        nextToken = String(end)
+      }
+      const slicedIds = matchedIds.slice(offset, end)
+      const slicedTimestamps = matchedTimestamps.slice(offset, end)
+      if (slicedIds.length > 0) {
         filtered[tapType] = {
-          contactId: [...entry.contactId],
-          timestamp: [...entry.timestamp],
+          contactId: slicedIds,
+          timestamp: slicedTimestamps,
         }
       }
     }
     return {
-      nextPageToken: undefined,
+      nextPageToken: hasMore ? nextToken : undefined,
       response: filtered,
     }
   }
