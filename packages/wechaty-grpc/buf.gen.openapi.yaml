@@ -1,0 +1,12 @@
+version: v2
+clean: true
+plugins:
+  - remote: buf.build/community/sudorandom-connect-openapi:v0.28.0
+    out: openapi
+    opt:
+      - format=json
+      - features=connectrpc
+      - content-types=json
+      - allow-get
+      - with-service-descriptions
+      - trim-unused-types

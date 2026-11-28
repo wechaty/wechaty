@@ -23,7 +23,8 @@
     "src/generated/wechaty/puppet/room_pb.ts",
     "src/generated/wechaty/puppet/tag_pb.ts",
     "src/generated/wechaty/puppet/url-link_pb.ts",
-    "src/generated/wechaty/puppet_pb.ts"
+    "src/generated/wechaty/puppet_pb.ts",
+    "src/openapi-spec.ts"
   ],
   "deno": {
     "allowNet": [

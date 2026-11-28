@@ -7,3 +7,4 @@ plugins:
       - target=ts
       - erasable_syntax=true
       - import_extension=ts
+      - json_types=true

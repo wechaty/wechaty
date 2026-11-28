@@ -9,6 +9,12 @@
       "browser": "./src/mod.ts",
       "node": "./src/mod.ts",
       "default": "./src/mod.ts"
+    },
+    "./openapi": {
+      "types": "./src/openapi.ts",
+      "browser": "./src/openapi.ts",
+      "node": "./src/openapi.ts",
+      "default": "./src/openapi.ts"
     }
   },
   "types": "./src/mod.ts",
@@ -18,6 +24,7 @@
   },
   "scripts": {
     "generate": "buf generate",
+    "generate:openapi": "buf generate --template buf.gen.openapi.yaml && node scripts/enrich-openapi.ts",
     "clean": "shx rm -fr dist/*",
     "prebuild": "npm run generate",
     "build": "tsc",

@@ -70,10 +70,11 @@ This package lives in the [Wechaty monorepo](https://github.com/wechaty/wechaty)
 
 - The Node.js package (`wechaty-grpc` on npm) is built, tested and published from here. It needs
   Node.js 26 or newer and is ESM only.
-- The other-language packages in `polyglot/` (C#, Go, Java, PHP, Python) and the OpenAPI document
-  in `openapi/` are kept but not built or published until the protocol freezes at 2.0.0
-  ([wechaty/wechaty#3053](https://github.com/wechaty/wechaty/issues/3053)). Their old CI workflows
-  are in the history of `wechaty/grpc`.
+- The other-language packages in `polyglot/` (C#, Go, Java, PHP, Python) are kept for
+  polyglot reference; the OpenAPI 3.2.0 specification in `openapi/puppet.openapi.json` is
+  generated via `npm run generate:openapi` and exported via `wechaty-grpc/openapi`
+  ([wechaty/wechaty#3068](https://github.com/wechaty/wechaty/issues/3068)). Their old CI
+  workflows are in the history of `wechaty/grpc`.
 
 ## Test runtimes
 
@@ -256,9 +257,8 @@ Check out [RESOURCES.md](RESOURCES.md) file for learning resources.
 
 1. Moved into the Wechaty monorepo ([wechaty/wechaty#3054](https://github.com/wechaty/wechaty/issues/3054))
 1. ESM only, Node.js 26; Node.js runs the TypeScript sources directly, and only packaging compiles to `dist/`
-1. Code generation needs only npm packages and the pinned `third-party/` protos; no system `protoc`,
-   Go or network access
-1. Breaking: the `openApi` export is removed, and grpc-web stubs are no longer generated
+1. Offline code generation (`npm run generate`) needs only npm packages (`@bufbuild/buf`, `@bufbuild/protoc-gen-es`); no system `protoc` or Go required. OpenAPI generation (`npm run generate:openapi`) uses `protoc-gen-connect-openapi` via Buf.
+1. OpenAPI 3.2.0 specification is exported from the `wechaty-grpc/openapi` subpath (`openApiSpec`), and legacy `grpc-web` stubs are no longer generated
 1. Tests use `node:test`, run under Node.js and Deno, and close their clients and bind free ports
 
 ### master v1.0 (Mar 14, 2022)
