@@ -1,8 +1,9 @@
 /**
  * Server-side token check for the puppet ConnectRPC service.
  * `authImplToken(validToken)` returns a ConnectRPC `Interceptor` that validates
- * incoming requests against `Authorization: Wechaty <token>` or `Authorization: Bearer <token>`,
- * rejecting unauthorized calls with Code.Unauthenticated.
+ * incoming requests using constant-time comparison against `Authorization`
+ * (`Bearer` / `Wechaty`), `x-wechaty-token`, or legacy `:authority`/`host` headers,
+ * rejecting unauthorized calls with `Code.Unauthenticated`.
  */
 import {
   type Interceptor,
@@ -10,6 +11,8 @@ import {
   Code,
 } from '@connectrpc/connect'
 import { log } from 'wechaty-puppet'
+
+import { verifyTokenFromHeaders } from './verify-token.ts'
 
 export function authImplToken (validToken: string): Interceptor {
   log.verbose('wechaty-puppet-service', 'auth/auth-impl-token.ts authImplToken(%s)', validToken)
@@ -19,25 +22,7 @@ export function authImplToken (validToken: string): Interceptor {
       throw new ConnectError('unauthenticated: server token is not configured', Code.Unauthenticated)
     }
 
-    const authHeader = req.header.get('authorization')
-    let token = ''
-
-    if (authHeader) {
-      if (authHeader.startsWith('Wechaty ')) {
-        token = authHeader.substring(8)
-      } else if (authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7)
-      } else {
-        token = authHeader
-      }
-    } else {
-      const authority = req.header.get('authority') || req.header.get('host')
-      if (authority) {
-        token = authority
-      }
-    }
-
-    if (!token || token.trim() === '' || token !== validToken) {
+    if (!verifyTokenFromHeaders(req.header, validToken)) {
       throw new ConnectError('unauthenticated', Code.Unauthenticated)
     }
 
