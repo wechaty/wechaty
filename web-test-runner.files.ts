@@ -16,7 +16,7 @@ export const browserTestFiles: string[] = [
   'packages/wechaty-puppet-service/{src,tests/unit}/**/*.test.ts',
   // Native code and cases: LMDB folders, file boxes from local paths.
   '!packages/wechaty-puppet-service/src/node/**/*.test.ts',
-  '!packages/wechaty-puppet-service/src/**/*.native.test.ts',
+  '!packages/wechaty-puppet-service/src/**/*.{native,integration}.test.ts',
   // TLS certificates and an https server.
   '!packages/wechaty-puppet-service/src/auth/ca.test.ts',
   // GrpcManager and PuppetServer, and the package entry that exports them, need

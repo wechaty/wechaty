@@ -1,68 +1,43 @@
 /**
- * Tests `createPuppetTransport` across both `'grpc'` and `'connect'` protocols,
- * plus `@connectrpc/connect-web` (`fetch`) transport against `PuppetServer`.
+ * Browser-compatible unit tests for `createPuppetTransport` (web/WinterTC)
+ * verifying `grpc` rejection and transport-wide `abort()` cancellation of
+ * in-flight `fetch` requests.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import { createClient } from '@connectrpc/connect'
-import { createConnectTransport as createWebConnectTransport } from '@connectrpc/connect-web'
 import { Puppet as PuppetServiceDef } from 'wechaty-grpc'
-import { PuppetMock } from 'wechaty-puppet-mock'
 
-import { callCredToken } from '../auth/mod.ts'
-import { PuppetServer } from '../server/puppet-server.ts'
-import { createPuppetTransport as createNodeTransport } from '../node/transport.ts'
-import { createPuppetTransport as createWebTransport } from './transport.ts'
+import { createPuppetTransport } from './transport.ts'
 
-test('createPuppetTransport supports web connect-web and node grpc/connect transports', async (t) => {
-  assert.throws(() => createWebTransport({ baseUrl: 'http://127.0.0.1:8788', protocol: 'grpc' }))
+test('createPuppetTransport (web) rejects grpc protocol', () => {
+  assert.throws(() => createPuppetTransport({ baseUrl: 'http://127.0.0.1:8788', protocol: 'grpc' }))
+})
 
-  const puppet = new PuppetMock()
-  await puppet.start()
-  const token = 'insecure_test-connect-web-token'
-  const port = 18790
-  const server = new PuppetServer({
-    endpoint: `127.0.0.1:${port}`,
-    puppet,
-    token,
-    tls: { disable: true },
-  })
-  await server.start()
+test('createPuppetTransport (web) abort() cancels in-flight requests', async () => {
+  let capturedSignal: AbortSignal | undefined
+  const mockFetch: typeof globalThis.fetch = (_input, init) => {
+    capturedSignal = init?.signal ?? undefined
+    return new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        reject(init.signal?.reason ?? new Error('aborted'))
+      }, { once: true })
+    })
+  }
 
-  t.after(async () => {
-    await server.stop()
-    await puppet.stop()
-  })
-
-  // 1. Connect-web transport over HTTP/1.1 fetch
-  const webTransport = createWebConnectTransport({
-    baseUrl: `http://127.0.0.1:${port}`,
-    interceptors: [callCredToken(token)],
-  })
-  const webClient = createClient(PuppetServiceDef, webTransport)
-  const webVersion = await webClient.version({})
-  assert.ok(webVersion.version)
-
-  // 2. Node Connect transport over HTTP/2
-  const nodeConnect = createNodeTransport({
-    baseUrl: `http://127.0.0.1:${port}`,
+  const handle = createPuppetTransport({
+    baseUrl: 'http://127.0.0.1:8788',
     protocol: 'connect',
-    interceptors: [callCredToken(token)],
+    fetch: mockFetch,
   })
-  t.after(() => nodeConnect.abort())
-  const connectClient = createClient(PuppetServiceDef, nodeConnect.transport)
-  const connectVersion = await connectClient.version({})
-  assert.equal(connectVersion.version, webVersion.version)
+  const client = createClient(PuppetServiceDef, handle.transport)
 
-  // 3. Node gRPC transport over HTTP/2
-  const nodeGrpc = createNodeTransport({
-    baseUrl: `http://127.0.0.1:${port}`,
-    protocol: 'grpc',
-    interceptors: [callCredToken(token)],
-  })
-  t.after(() => nodeGrpc.abort())
-  const grpcClient = createClient(PuppetServiceDef, nodeGrpc.transport)
-  const grpcVersion = await grpcClient.version({})
-  assert.equal(grpcVersion.version, webVersion.version)
+  const pending = client.version({})
+  assert.ok(capturedSignal)
+  assert.equal(capturedSignal.aborted, false)
+
+  handle.abort()
+  assert.equal(capturedSignal.aborted, true)
+  await assert.rejects(() => pending)
 })
