@@ -1,25 +1,32 @@
 /**
  * Verifies that the generated and enriched OpenAPI 3.2.0 specification exported by
- * `wechaty-grpc` includes BearerAuth, ConnectRPC HTTP/JSON routes (including GET
- * for NO_SIDE_EFFECTS RPCs), and plain-HTTP fallback routes (`/events`, `/files`,
- * `/files/{id}`, `/healthz`).
+ * `wechaty-grpc/openapi` includes BearerAuth, ConnectRPC HTTP/JSON routes (including
+ * GET for NO_SIDE_EFFECTS RPCs), Health routes, declared tags, and no empty PathItems.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { openApiSpec } from '../../src/mod.ts'
+import { openApiSpec } from '../../src/openapi.ts'
 
-test('openApiSpec is a valid OpenAPI 3.2.0 document with Puppet routes and BearerAuth', () => {
+test('openApiSpec is a valid OpenAPI 3.2.0 document with Puppet and Health routes', () => {
   assert.equal(openApiSpec.openapi, '3.2.0')
   assert.equal(openApiSpec.info.title, 'Wechaty Puppet Service API')
-  assert.ok(openApiSpec.components.securitySchemes.BearerAuth)
+  assert.ok(openApiSpec.info.version)
+  assert.ok(openApiSpec.components.securitySchemes?.['BearerAuth'])
   assert.deepEqual(openApiSpec.security, [{ BearerAuth: [] }])
 
-  const paths = openApiSpec.paths as Record<string, Record<string, unknown>>
-  assert.ok(paths['/wechaty.Puppet/MessageSendText']?.['post'])
-  assert.ok(paths['/wechaty.Puppet/Version']?.['get'], 'NO_SIDE_EFFECTS RPC should expose GET')
-  assert.ok(paths['/events']?.['get'])
-  assert.ok(paths['/files']?.['post'])
-  assert.ok(paths['/files/{id}']?.['get'])
-  assert.ok(paths['/healthz']?.['get'])
+  assert.ok(openApiSpec.paths['/wechaty.Puppet/MessageSendText']?.['post'])
+  assert.ok(openApiSpec.paths['/wechaty.Puppet/Version']?.['get'], 'NO_SIDE_EFFECTS RPC should expose GET')
+  assert.ok(openApiSpec.paths['/grpc.health.v1.Health/Check']?.['post'])
+
+  const declaredTags = new Set((openApiSpec.tags ?? []).map(t => t.name))
+  for (const [route, item] of Object.entries(openApiSpec.paths)) {
+    assert.ok(Object.keys(item).length > 0, `PathItem for ${route} must not be empty`)
+    for (const op of Object.values(item)) {
+      const tags = (op as { tags?: string[] })?.tags ?? []
+      for (const tag of tags) {
+        assert.ok(declaredTags.has(tag), `Tag ${tag} on ${route} must be declared in top-level tags`)
+      }
+    }
+  }
 })

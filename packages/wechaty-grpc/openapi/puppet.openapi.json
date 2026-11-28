@@ -1101,8 +1101,6 @@
         }
       }
     },
-    "/wechaty.Puppet/Download": {},
-    "/wechaty.Puppet/Event": {},
     "/wechaty.Puppet/FriendshipAccept": {
       "post": {
         "tags": [
@@ -2250,7 +2248,6 @@
         }
       }
     },
-    "/wechaty.Puppet/MessageFileStream": {},
     "/wechaty.Puppet/MessageForward": {
       "post": {
         "tags": [
@@ -2472,7 +2469,6 @@
         }
       }
     },
-    "/wechaty.Puppet/MessageImageStream": {},
     "/wechaty.Puppet/MessageLocation": {
       "get": {
         "tags": [
@@ -3136,7 +3132,6 @@
         }
       }
     },
-    "/wechaty.Puppet/MessageSendFileStream": {},
     "/wechaty.Puppet/MessageSendLocation": {
       "post": {
         "tags": [
@@ -5561,7 +5556,6 @@
         }
       }
     },
-    "/wechaty.Puppet/Upload": {},
     "/wechaty.Puppet/Version": {
       "get": {
         "tags": [
@@ -5722,189 +5716,61 @@
         }
       }
     },
-    "/events": {
-      "get": {
-        "operationId": "Puppet_EventsSSE",
-        "summary": "Subscribe to real-time Puppet events via Server-Sent Events (SSE)",
-        "tags": [
-          "wechaty.Puppet"
-        ],
-        "responses": {
-          "200": {
-            "description": "Continuous SSE stream of Wechaty Puppet events",
-            "content": {
-              "text/event-stream": {
-                "itemSchema": {
-                  "type": "object",
-                  "required": [
-                    "event",
-                    "data"
-                  ],
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "event": {
-                      "type": "string",
-                      "description": "Wechaty PuppetEventName (e.g., message, scan, login, heartbeat)"
-                    },
-                    "retry": {
-                      "type": "integer",
-                      "minimum": 0
-                    },
-                    "data": {
-                      "type": "string",
-                      "contentMediaType": "application/json",
-                      "contentSchema": {
-                        "type": "object",
-                        "additionalProperties": true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/files": {
+    "/grpc.health.v1.Health/Check": {
       "post": {
-        "operationId": "Puppet_FilesUpload",
-        "summary": "Upload binary media to stage a FileBox handle for MessageSendFile",
-        "tags": [
-          "wechaty.Puppet"
-        ],
-        "parameters": [
-          {
-            "name": "X-File-Name",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Optional filename for the uploaded media."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Staged file metadata",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "id",
-                    "url",
-                    "name",
-                    "mimeType",
-                    "size"
-                  ],
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "mimeType": {
-                      "type": "string"
-                    },
-                    "size": {
-                      "type": "integer",
-                      "minimum": 0
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/files/{id}": {
-      "get": {
-        "operationId": "Puppet_FilesDownload",
-        "summary": "Download staged upload or Puppet media/avatar FileBox by ID",
-        "tags": [
-          "wechaty.Puppet"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "kind",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "staged",
-                "message",
-                "contact-avatar",
-                "room-avatar"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Binary file stream",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/healthz": {
-      "get": {
-        "operationId": "Puppet_Healthz",
-        "summary": "Lightweight HTTP health probe",
         "tags": [
           "grpc.health.v1.Health"
         ],
-        "security": [],
+        "summary": "Check gets the health of the specified service. If the requested service\n is unknown, the call will fail with status NOT_FOUND. If the caller does\n not specify a service name, the server should respond with its overall\n health status.",
+        "description": "Clients should set a deadline when calling Check, and can declare the\n server unhealthy if they do not receive a timely response.\n\n Check implementations should be idempotent and side effect free.",
+        "operationId": "grpc.health.v1.Health.Check",
+        "parameters": [
+          {
+            "name": "Connect-Protocol-Version",
+            "in": "header",
+            "description": "Define the version of the Connect protocol",
+            "schema": {
+              "$ref": "#/components/schemas/connect-protocol-version"
+            },
+            "example": 1
+          },
+          {
+            "name": "Connect-Timeout-Ms",
+            "in": "header",
+            "description": "Define the timeout, in ms",
+            "schema": {
+              "$ref": "#/components/schemas/connect-timeout-header"
+            },
+            "example": 1000
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/grpc.health.v1.HealthCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": "Service is healthy",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "status"
-                  ],
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/grpc.health.v1.HealthCheckResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/connect.error"
                 }
               }
             }
@@ -8263,6 +8129,42 @@
         },
         "title": "VersionResponse",
         "additionalProperties": false
+      },
+      "grpc.health.v1.HealthCheckRequest": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "title": "service"
+          }
+        },
+        "title": "HealthCheckRequest",
+        "additionalProperties": false
+      },
+      "grpc.health.v1.HealthCheckResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/grpc.health.v1.HealthCheckResponse.ServingStatus"
+              }
+            ],
+            "title": "status"
+          }
+        },
+        "title": "HealthCheckResponse",
+        "additionalProperties": false
+      },
+      "grpc.health.v1.HealthCheckResponse.ServingStatus": {
+        "type": "string",
+        "title": "ServingStatus",
+        "enum": [
+          "UNKNOWN",
+          "SERVING",
+          "NOT_SERVING",
+          "SERVICE_UNKNOWN"
+        ]
       }
     },
     "securitySchemes": {
@@ -8281,6 +8183,10 @@
   "tags": [
     {
       "name": "wechaty.Puppet"
+    },
+    {
+      "name": "grpc.health.v1.Health",
+      "description": "Health is gRPC's mechanism for checking whether a server is able to handle\n RPCs. Its semantics are documented in\n https://github.com/grpc/grpc/blob/master/doc/health-checking.md."
     }
   ]
 }

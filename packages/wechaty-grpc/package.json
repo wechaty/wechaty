@@ -9,6 +9,12 @@
       "browser": "./src/mod.ts",
       "node": "./src/mod.ts",
       "default": "./src/mod.ts"
+    },
+    "./openapi": {
+      "types": "./src/openapi.ts",
+      "browser": "./src/openapi.ts",
+      "node": "./src/openapi.ts",
+      "default": "./src/openapi.ts"
     }
   },
   "types": "./src/mod.ts",
@@ -17,12 +23,13 @@
     "npm": ">=10"
   },
   "scripts": {
-    "generate": "buf generate && node scripts/enrich-openapi.ts",
+    "generate": "buf generate",
+    "generate:openapi": "buf generate --template buf.gen.openapi.yaml && node scripts/enrich-openapi.ts",
     "clean": "shx rm -fr dist/*",
     "prebuild": "npm run generate",
     "build": "tsc",
     "dist": "npm run clean && npm run build && npm run dist:copy",
-    "dist:copy": "shx cp -R proto dist/esm/ && shx cp -R openapi dist/esm/",
+    "dist:copy": "shx cp -R proto dist/esm/",
     "prepack": "node ../../scripts/pack-exports.ts prepare",
     "postpack": "node ../../scripts/pack-exports.ts restore",
     "prelint:ts": "npm run generate",

@@ -24,7 +24,7 @@
     "src/generated/wechaty/puppet/tag_pb.ts",
     "src/generated/wechaty/puppet/url-link_pb.ts",
     "src/generated/wechaty/puppet_pb.ts",
-    "src/generated/openapi.ts"
+    "src/openapi-spec.ts"
   ],
   "deno": {
     "allowNet": [
