@@ -22,7 +22,7 @@ export const browserTestFiles: string[] = [
   // GrpcManager and PuppetServer, and the package entry that exports them, need
   // the Node.js HTTP/2 transport (browser transport: #3110).
   '!packages/wechaty-puppet-service/src/client/{grpc-manager,puppet-service}.test.ts',
-  '!packages/wechaty-puppet-service/src/{server/puppet-server,mod}.test.ts',
+  '!packages/wechaty-puppet-service/src/{server/puppet-server,server/http-fallback,server/staged-file-store,mod}.test.ts',
   // Chunk adapters over stronger-typed-streams, i.e. native Node streams (media: #3111).
   '!packages/wechaty-puppet-service/src/deprecated/{chunk-pb,conversation-id-file-box,file-box-chunk,file-box-pb}.test.ts',
   // Simulations that connect a PuppetService to a PuppetServer over a TCP port.

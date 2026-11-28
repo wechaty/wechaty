@@ -1,13 +1,15 @@
 /**
- * Shared constant-time token extraction and verification for both ConnectRPC
- * interceptors and plain-HTTP `fallback` routes (`/events`, `/files`, `/files/:id`).
- * Rejects URL query string tokens to avoid secret leakage in proxy/access logs.
+ * Shared WinterTC-compatible constant-time token extraction and verification for
+ * both ConnectRPC interceptors and plain-HTTP `fallback` routes (`/events`,
+ * `/files`, `/files/:id`). Rejects URL query string tokens to avoid secret
+ * leakage in proxy/access logs.
  */
-import crypto from 'node:crypto'
 
 export type HeaderLookup =
   | Headers
   | Record<string, string | string[] | undefined>
+
+const encoder = new TextEncoder()
 
 function readHeader (headers: HeaderLookup, name: string): string | undefined {
   if (headers instanceof Headers) {
@@ -50,18 +52,22 @@ export function extractTokenFromHeaders (headers: HeaderLookup): string {
 }
 
 /**
- * Constant-time string comparison for authentication tokens.
+ * Constant-time string comparison for authentication tokens using `TextEncoder`.
  */
 export function isTokenValid (candidate: string, expected: string): boolean {
   if (!expected || expected.trim() === '' || !candidate || candidate.trim() === '') {
     return false
   }
-  const a = Buffer.from(candidate, 'utf8')
-  const b = Buffer.from(expected, 'utf8')
+  const a = encoder.encode(candidate)
+  const b = encoder.encode(expected)
   if (a.length !== b.length) {
     return false
   }
-  return crypto.timingSafeEqual(a, b)
+  let diff = 0
+  for (let i = 0; i < a.length; i++) {
+    diff |= (a[i] ?? 0) ^ (b[i] ?? 0)
+  }
+  return diff === 0
 }
 
 /**

@@ -1,7 +1,7 @@
 /**
  * Ephemeral disk-backed staging store for `POST /files` and `GET /files/:id` on
- * `PuppetServer`, enforcing max upload byte limits and automatic TTL eviction
- * without buffering entire files in memory.
+ * `PuppetServer`, enforcing per-file byte limits, total disk/entry caps, and
+ * automatic TTL eviction without buffering entire files in memory.
  */
 import crypto from 'node:crypto'
 import { createWriteStream } from 'node:fs'
@@ -10,6 +10,9 @@ import os from 'node:os'
 import path from 'node:path'
 import type { Readable } from 'node:stream'
 
+/**
+ * Metadata for a staged file stored on disk.
+ */
 export interface StagedFileEntry {
   id: string
   url: string
@@ -20,28 +23,50 @@ export interface StagedFileEntry {
   expiresAt: number
 }
 
+/**
+ * Error thrown when an incoming upload exceeds `maxBytes` or total staging capacity.
+ */
 export class PayloadTooLargeError extends Error {
-  constructor (maxBytes: number) {
-    super(`Uploaded file exceeds maximum size of ${maxBytes} bytes`)
+  /** Create a `PayloadTooLargeError` describing the violated byte limit. */
+  constructor (message: string) {
+    super(message)
     this.name = 'PayloadTooLargeError'
   }
 }
 
 const DEFAULT_MAX_FILE_BYTES = 100 * 1024 * 1024 // 100 MiB
+const DEFAULT_MAX_TOTAL_BYTES = 512 * 1024 * 1024 // 512 MiB
+const DEFAULT_MAX_ENTRIES = 1000
 const DEFAULT_TTL_MS = 15 * 60 * 1000 // 15 minutes
 
+/**
+ * Ephemeral disk-backed store for staged HTTP file uploads.
+ */
 export class StagedFileStore {
 
   private readonly entries = new Map<string, StagedFileEntry>()
   private readonly maxBytes: number
+  private readonly maxTotalBytes: number
+  private readonly maxEntries: number
   private readonly ttlMs: number
+  private totalBytes = 0
   private dirPath?: string
   private sweepTimer?: ReturnType<typeof setInterval>
 
-  constructor (options?: { maxBytes?: number; ttlMs?: number }) {
+  /**
+   * Create a `StagedFileStore` with optional per-file, total-disk, entry-count, and TTL bounds.
+   */
+  constructor (options?: {
+    maxBytes?: number
+    maxTotalBytes?: number
+    maxEntries?: number
+    ttlMs?: number
+  }) {
     const envMax = Number(process.env['WECHATY_PUPPET_SERVICE_MAX_FILE_BYTES'])
     this.maxBytes = options?.maxBytes
       ?? (Number.isFinite(envMax) && envMax > 0 ? envMax : DEFAULT_MAX_FILE_BYTES)
+    this.maxTotalBytes = options?.maxTotalBytes ?? DEFAULT_MAX_TOTAL_BYTES
+    this.maxEntries = options?.maxEntries ?? DEFAULT_MAX_ENTRIES
     this.ttlMs = options?.ttlMs ?? DEFAULT_TTL_MS
   }
 
@@ -57,13 +82,28 @@ export class StagedFileStore {
     return this.dirPath
   }
 
+  private async deleteEntry (id: string, entry: StagedFileEntry): Promise<void> {
+    if (this.entries.delete(id)) {
+      this.totalBytes = Math.max(0, this.totalBytes - entry.size)
+      await unlink(entry.filePath).catch(() => {})
+    }
+  }
+
   /**
-   * Stream an incoming HTTP request body to a temporary file while enforcing `maxBytes`.
+   * Stream an incoming HTTP request body to a temporary file while enforcing
+   * per-file and total staging limits. Drains excess request bytes rather than
+   * destroying the socket so the server can deliver an HTTP 413 response cleanly.
    */
   public async stageFromStream (
     stream: Readable,
     meta: { name?: string; mimeType?: string },
   ): Promise<StagedFileEntry> {
+    await this.evictExpired()
+    if (this.entries.size >= this.maxEntries) {
+      stream.resume()
+      throw new PayloadTooLargeError(`Staged file entry limit (${this.maxEntries}) reached`)
+    }
+
     const dir = await this.ensureDir()
     const id = crypto.randomUUID()
     const filePath = path.join(dir, id)
@@ -76,39 +116,60 @@ export class StagedFileStore {
     try {
       await new Promise<void>((resolve, reject) => {
         let settled = false
-        const fail = (err: Error) => {
+        let failed = false
+
+        const fail = (err: Error, drainInput = false) => {
           if (settled) return
           settled = true
-          stream.destroy()
+          failed = true
           writeStream.destroy()
+          if (drainInput) {
+            // Drain remaining request body so HTTP/1.1 can still send 413 before closing.
+            stream.resume()
+          } else {
+            stream.destroy()
+          }
           reject(err)
         }
 
-        stream.on('data', (chunk: Buffer) => {
+        const onData = (chunk: Buffer) => {
+          if (failed || settled) return
           size += chunk.length
           if (size > this.maxBytes) {
-            fail(new PayloadTooLargeError(this.maxBytes))
+            stream.removeListener('data', onData)
+            fail(new PayloadTooLargeError(`Uploaded file exceeds maximum size of ${this.maxBytes} bytes`), true)
+            return
+          }
+          if (this.totalBytes + size > this.maxTotalBytes) {
+            stream.removeListener('data', onData)
+            fail(new PayloadTooLargeError(`Staged file store exceeds total capacity of ${this.maxTotalBytes} bytes`), true)
             return
           }
           if (!writeStream.write(chunk)) {
             stream.pause()
-            writeStream.once('drain', () => stream.resume())
-          }
-        })
-
-        stream.once('end', () => {
-          if (!settled) {
-            writeStream.end(() => {
-              if (!settled) {
-                settled = true
-                resolve()
-              }
+            writeStream.once('drain', () => {
+              if (!failed && !settled) stream.resume()
             })
           }
+        }
+
+        stream.on('data', onData)
+
+        stream.once('end', () => {
+          if (failed || settled) return
+          writeStream.end((err?: Error | null) => {
+            if (settled) return
+            settled = true
+            if (err) {
+              reject(err)
+            } else {
+              resolve()
+            }
+          })
         })
 
-        stream.once('error', fail)
-        writeStream.once('error', fail)
+        stream.once('error', (err) => fail(err, false))
+        writeStream.once('error', (err) => fail(err, true))
       })
     } catch (err) {
       await unlink(filePath).catch(() => {})
@@ -125,6 +186,7 @@ export class StagedFileStore {
       expiresAt: Date.now() + this.ttlMs,
     }
     this.entries.set(id, entry)
+    this.totalBytes += size
     return entry
   }
 
@@ -135,8 +197,7 @@ export class StagedFileStore {
     const entry = this.entries.get(id)
     if (!entry) return undefined
     if (Date.now() > entry.expiresAt) {
-      this.entries.delete(id)
-      void unlink(entry.filePath).catch(() => {})
+      void this.deleteEntry(id, entry)
       return undefined
     }
     return entry
@@ -146,8 +207,7 @@ export class StagedFileStore {
     const now = Date.now()
     for (const [id, entry] of this.entries) {
       if (now > entry.expiresAt) {
-        this.entries.delete(id)
-        await unlink(entry.filePath).catch(() => {})
+        await this.deleteEntry(id, entry)
       }
     }
   }
@@ -161,6 +221,7 @@ export class StagedFileStore {
       this.sweepTimer = undefined
     }
     this.entries.clear()
+    this.totalBytes = 0
     if (this.dirPath) {
       const dir = this.dirPath
       this.dirPath = undefined
