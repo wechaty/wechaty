@@ -205,18 +205,27 @@ jobs:
         shell: bash
         env:
           REVIEW_TITLE: ${{ steps.effort.outputs.review_title }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
-          # Use the workflow checkout and stage the server before the agent runs.
+          trusted_ref="refs/remotes/origin/$DEFAULT_BRANCH"
+          trusted_sha="$(git rev-parse --verify "$trusted_ref")"
+          # Anthropic only authorizes workflows matching the default branch.
+          if ! git diff --quiet "$trusted_sha" "$GITHUB_SHA" -- .github/workflows/claude.yml; then
+            echo '::notice::Claude review skipped because this PR changes the Claude workflow. Test the deployed workflow on a fresh PR.'
+            exit 0
+          fi
+          # This process inherits the App credential. Load its code from the
+          # trusted default branch so a PR cannot replace it.
           server="$RUNNER_TEMP/claude-review-mcp.mjs"
           config="$RUNNER_TEMP/claude-review-mcp.json"
-          git show "${GITHUB_SHA}:.github/scripts/claude-review-mcp.mjs" > "$server"
+          git show "$trusted_sha:.github/scripts/claude-review-mcp.mjs" > "$server"
           jq -n --arg server "$server" --arg title "$REVIEW_TITLE" \
             '{mcpServers: {claude_review: {command: "node", args: [$server, $title]}}}' > "$config"
           echo "config=$config" >> "$GITHUB_OUTPUT"
 
       - name: Run Claude PR review (direct prompt)
-        if: steps.eyes.outputs.review_needed == 'true'
+        if: steps.review-tool.outputs.config != ''
         id: claude-review
         uses: anthropics/claude-code-action@v1
         env:
@@ -241,7 +250,7 @@ jobs:
             --permission-mode default
 
       - name: Verify publication and record revision status
-        if: steps.claude-review.outcome == 'success'
+        if: steps.claude-review.outcome == 'success' && steps.claude-review.outputs.execution_file != ''
         env:
           GH_TOKEN: ${{ github.token }}
           EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
