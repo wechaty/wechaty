@@ -18,6 +18,12 @@ async function main (): Promise<void> {
     protocol: 'grpc',
   })
 
+  // Keep an error listener attached so transient upstream drops trigger automatic
+  // reconnection instead of failing the owned lifecycle when no SSE client is connected.
+  legacyPuppet.on('error', (err) => {
+    console.error('Bridge upstream puppet error:', err)
+  })
+
   const openApiServer = new PuppetServer({
     endpoint: listenEndpoint,
     puppet: legacyPuppet,

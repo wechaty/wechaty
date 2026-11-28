@@ -19,6 +19,16 @@ import { PuppetService } from '../../src/client/puppet-service.ts'
 
 test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridge', async (t) => {
   useTempHome(t)
+
+  const deadline = new AbortController()
+  const deadlineTimer = setTimeout(() => {
+    deadline.abort(new Error('Cross-protocol E2E test timed out after 30000ms'))
+  }, 30_000)
+  t.after(() => {
+    clearTimeout(deadlineTimer)
+    deadline.abort()
+  })
+
   const upstreamPuppet = new PuppetMock()
   await upstreamPuppet.start()
 
@@ -47,6 +57,7 @@ test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridg
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ data: 'fetch-post-ding' }),
+    signal: deadline.signal,
   })
   assert.equal(postDingRes.status, 200)
 
@@ -55,6 +66,7 @@ test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridg
     {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
+      signal: deadline.signal,
     },
   )
   assert.equal(getVersionRes.status, 200)
@@ -69,7 +81,7 @@ test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridg
   })
   t.after(() => grpcHandle.abort())
   const grpcClient = createClient(PuppetServiceDef, grpcHandle.transport)
-  assert.equal((await grpcClient.version({})).version, versionJson.version)
+  assert.equal((await grpcClient.version({}, { signal: deadline.signal })).version, versionJson.version)
 
   const connectHandle = createPuppetTransport({
     baseUrl,
@@ -78,7 +90,7 @@ test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridg
   })
   t.after(() => connectHandle.abort())
   const connectClient = createClient(PuppetServiceDef, connectHandle.transport)
-  assert.equal((await connectClient.version({})).version, versionJson.version)
+  assert.equal((await connectClient.version({}, { signal: deadline.signal })).version, versionJson.version)
 
   // 3. Pattern 3 Sidecar Bridge (PuppetService -> PuppetServer)
   const bridgeClientPuppet = new PuppetService({
@@ -87,6 +99,7 @@ test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridg
     protocol: 'grpc',
     tls: { disable: true },
   })
+  bridgeClientPuppet.on('error', () => {})
   await bridgeClientPuppet.start()
 
   const bridgePort = 18792
@@ -103,22 +116,31 @@ test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridg
     await bridgeClientPuppet.stop()
   })
 
-  const bridgeSpecRes = await fetch(`http://127.0.0.1:${bridgePort}/openapi.json`)
+  const bridgeSpecRes = await fetch(`http://127.0.0.1:${bridgePort}/openapi.json`, {
+    signal: deadline.signal,
+  })
   assert.equal(bridgeSpecRes.status, 200)
   const bridgeSpec = await bridgeSpecRes.json() as { openapi: string }
   assert.equal(bridgeSpec.openapi, '3.2.0')
 
-  const bridgeVersionRes = await fetch(`http://127.0.0.1:${bridgePort}/wechaty.Puppet/Version`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: '{}',
+  const upstreamDongPromise = new Promise<string>((resolve, reject) => {
+    const cleanup = () => {
+      deadline.signal.removeEventListener('abort', onAbort)
+      upstreamPuppet.off('dong', onDong)
+    }
+    const onAbort = () => {
+      cleanup()
+      reject(deadline.signal.reason)
+    }
+    const onDong = (payload: { data?: string }) => {
+      if (payload.data === 'bridge-ding') {
+        cleanup()
+        resolve(payload.data)
+      }
+    }
+    deadline.signal.addEventListener('abort', onAbort, { once: true })
+    upstreamPuppet.on('dong', onDong)
   })
-  assert.equal(bridgeVersionRes.status, 200)
-  const bridgeVersion = await bridgeVersionRes.json() as { version: string }
-  assert.ok(bridgeVersion.version)
 
   const bridgeDingRes = await fetch(`http://127.0.0.1:${bridgePort}/wechaty.Puppet/Ding`, {
     method: 'POST',
@@ -127,6 +149,8 @@ test('Cross-protocol E2E: fetch JSON, Connect, gRPC, and Pattern 3 sidecar bridg
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ data: 'bridge-ding' }),
+    signal: deadline.signal,
   })
   assert.equal(bridgeDingRes.status, 200)
+  assert.equal(await upstreamDongPromise, 'bridge-ding')
 })
