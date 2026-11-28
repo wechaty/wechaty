@@ -1,0 +1,11 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "wechaty.puppet",
+    "description": "API documentation for wechaty.puppet",
+    "version": "1.0.0"
+  },
+  "paths": {},
+  "components": {},
+  "security": []
+}

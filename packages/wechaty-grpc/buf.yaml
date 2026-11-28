@@ -3,7 +3,22 @@ modules:
   - path: proto
 lint:
   use:
-    - MINIMAL
+    - STANDARD
+  ignore:
+    - proto/grpc/health/v1/health.proto
   except:
-    - PACKAGE_SAME_DIRECTORY
+    # Preserve wire-compatible proto package, service, file, and RPC names for polyglot gRPC Puppets.
+    - PACKAGE_VERSION_SUFFIX
+    - SERVICE_SUFFIX
     - PACKAGE_DIRECTORY_MATCH
+    - PACKAGE_SAME_DIRECTORY
+    - PACKAGE_SAME_JAVA_PACKAGE
+    - FILE_LOWER_SNAKE_CASE
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_RESPONSE_STANDARD_NAME
+    - ENUM_VALUE_PREFIX
+    - ENUM_ZERO_VALUE_SUFFIX
+breaking:
+  use:
+    - FILE

@@ -17,12 +17,12 @@
     "npm": ">=10"
   },
   "scripts": {
-    "generate": "buf generate",
+    "generate": "buf generate && node scripts/enrich-openapi.ts",
     "clean": "shx rm -fr dist/*",
     "prebuild": "npm run generate",
     "build": "tsc",
     "dist": "npm run clean && npm run build && npm run dist:copy",
-    "dist:copy": "shx cp -R proto dist/esm/",
+    "dist:copy": "shx cp -R proto dist/esm/ && shx cp -R openapi dist/esm/",
     "prepack": "node ../../scripts/pack-exports.ts prepare",
     "postpack": "node ../../scripts/pack-exports.ts restore",
     "prelint:ts": "npm run generate",
