@@ -17,7 +17,9 @@ test('openApiSpec is a valid OpenAPI 3.2.0 document with Puppet and Health route
 
   assert.ok(openApiSpec.paths['/wechaty.Puppet/MessageSendText']?.['post'])
   assert.ok(openApiSpec.paths['/wechaty.Puppet/Version']?.['get'], 'NO_SIDE_EFFECTS RPC should expose GET')
-  assert.ok(openApiSpec.paths['/grpc.health.v1.Health/Check']?.['post'])
+  const healthCheck = openApiSpec.paths['/grpc.health.v1.Health/Check']?.['post'] as { security?: unknown[] } | undefined
+  assert.ok(healthCheck)
+  assert.deepEqual(healthCheck.security, [], 'Health check should be unauthenticated')
 
   const declaredTags = new Set((openApiSpec.tags ?? []).map(t => t.name))
   for (const [route, item] of Object.entries(openApiSpec.paths)) {

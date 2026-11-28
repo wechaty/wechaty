@@ -18,8 +18,11 @@ import {
   EventType,
   VERSION,
 } from 'wechaty-grpc'
+import { openApiSpec } from 'wechaty-grpc/openapi'
 
 assert.notEqual(VERSION, '0.0.0', 'version should be set before publishing')
+assert.equal(openApiSpec.openapi, '3.2.0', 'OpenAPI 3.2.0 spec should be exported from wechaty-grpc/openapi')
+assert.equal(openApiSpec.info.version, VERSION, 'OpenAPI info.version should match package VERSION')
 assert.match(proto.puppet.v0.data, /service Puppet/, 'puppet.proto should be bundled')
 assert.equal(Puppet.typeName, 'wechaty.Puppet', 'Puppet service definition should be exposed')
 

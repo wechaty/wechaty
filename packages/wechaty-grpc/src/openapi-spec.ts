@@ -5786,7 +5786,8 @@ export const openApiSpec: OpenApiDocument = {
               }
             }
           }
-        }
+        },
+        "security": []
       }
     }
   },

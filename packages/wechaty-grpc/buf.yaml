@@ -5,7 +5,7 @@ lint:
   use:
     - STANDARD
   ignore:
-    - proto/grpc/health/v1/health.proto
+    - grpc/health/v1/health.proto
   except:
     # Preserve wire-compatible proto package, service, file, and RPC names for polyglot gRPC Puppets.
     - PACKAGE_VERSION_SUFFIX
