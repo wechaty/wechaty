@@ -27,7 +27,7 @@ export const browserTestFiles: string[] = [
   '!packages/wechaty-puppet-service/src/deprecated/{chunk-pb,conversation-id-file-box,file-box-chunk,file-box-pb}.test.ts',
   // Simulations that connect a PuppetService to a PuppetServer over a TCP port.
   // Listed one by one so that a new suite runs in Chromium unless it is classified here.
-  '!packages/wechaty-puppet-service/tests/unit/{conversation-read,grpc-client,grpc-stream,integration}.test.ts',
+  '!packages/wechaty-puppet-service/tests/unit/{conversation-read,cross-protocol,grpc-client,grpc-stream,integration}.test.ts',
   '!packages/wechaty-puppet-service/tests/unit/{message-stream,performance,ready-event,uuid-file-box}.test.ts',
   '!packages/wechaty-puppet-service/tests/unit/simulation-{core-rpc,event-stream,resiliency}.test.ts',
   'packages/wechaty-puppet/{src,tests/unit}/**/*.test.ts',
