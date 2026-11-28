@@ -1,7 +1,8 @@
 /**
  * Ephemeral disk-backed staging store for `POST /files` and `GET /files/:id` on
- * `PuppetServer`, enforcing per-file byte limits, total disk/entry caps, and
- * automatic TTL eviction without buffering entire files in memory.
+ * `PuppetServer`, enforcing per-file byte limits, total disk/entry caps (including
+ * in-flight reservations), and automatic TTL eviction without buffering entire
+ * files in memory.
  */
 import crypto from 'node:crypto'
 import { createWriteStream } from 'node:fs'
@@ -50,7 +51,10 @@ export class StagedFileStore {
   private readonly maxEntries: number
   private readonly ttlMs: number
   private totalBytes = 0
+  private reservedBytes = 0
+  private reservedEntries = 0
   private dirPath?: string
+  private dirInitPromise?: Promise<string>
   private sweepTimer?: ReturnType<typeof setInterval>
 
   /**
@@ -71,15 +75,26 @@ export class StagedFileStore {
   }
 
   private async ensureDir (): Promise<string> {
-    if (!this.dirPath) {
-      this.dirPath = path.join(os.tmpdir(), `wechaty-puppet-files-${crypto.randomUUID()}`)
-      await mkdir(this.dirPath, { recursive: true })
-      this.sweepTimer = setInterval(() => {
-        void this.evictExpired()
-      }, Math.min(this.ttlMs, 60_000))
-      this.sweepTimer.unref?.()
+    if (this.dirPath) {
+      return this.dirPath
     }
-    return this.dirPath
+    if (!this.dirInitPromise) {
+      const candidate = path.join(os.tmpdir(), `wechaty-puppet-files-${crypto.randomUUID()}`)
+      this.dirInitPromise = mkdir(candidate, { recursive: true })
+        .then(() => {
+          this.dirPath = candidate
+          this.sweepTimer = setInterval(() => {
+            void this.evictExpired()
+          }, Math.min(this.ttlMs, 60_000))
+          this.sweepTimer.unref?.()
+          return candidate
+        })
+        .catch((err) => {
+          this.dirInitPromise = undefined
+          throw err
+        })
+    }
+    return await this.dirInitPromise
   }
 
   private async deleteEntry (id: string, entry: StagedFileEntry): Promise<void> {
@@ -91,29 +106,34 @@ export class StagedFileStore {
 
   /**
    * Stream an incoming HTTP request body to a temporary file while enforcing
-   * per-file and total staging limits. Drains excess request bytes rather than
-   * destroying the socket so the server can deliver an HTTP 413 response cleanly.
+   * per-file and total staging limits (with in-flight reservations for concurrent uploads).
+   * Drains excess request bytes rather than destroying the socket so the server can
+   * deliver an HTTP 413 response cleanly.
    */
   public async stageFromStream (
     stream: Readable,
     meta: { name?: string; mimeType?: string },
   ): Promise<StagedFileEntry> {
     await this.evictExpired()
-    if (this.entries.size >= this.maxEntries) {
+    if (this.entries.size + this.reservedEntries >= this.maxEntries) {
       stream.resume()
       throw new PayloadTooLargeError(`Staged file entry limit (${this.maxEntries}) reached`)
     }
 
-    const dir = await this.ensureDir()
-    const id = crypto.randomUUID()
-    const filePath = path.join(dir, id)
-    const name = (meta.name && path.basename(meta.name)) || `${id}.bin`
-    const mimeType = meta.mimeType || 'application/octet-stream'
-
-    let size = 0
-    const writeStream = createWriteStream(filePath)
+    this.reservedEntries += 1
+    let myReservedBytes = 0
+    let filePath = ''
 
     try {
+      const dir = await this.ensureDir()
+      const id = crypto.randomUUID()
+      filePath = path.join(dir, id)
+      const name = (meta.name && path.basename(meta.name)) || `${id}.bin`
+      const mimeType = meta.mimeType || 'application/octet-stream'
+
+      let size = 0
+      const writeStream = createWriteStream(filePath)
+
       await new Promise<void>((resolve, reject) => {
         let settled = false
         let failed = false
@@ -140,11 +160,13 @@ export class StagedFileStore {
             fail(new PayloadTooLargeError(`Uploaded file exceeds maximum size of ${this.maxBytes} bytes`), true)
             return
           }
-          if (this.totalBytes + size > this.maxTotalBytes) {
+          if (this.totalBytes + this.reservedBytes + chunk.length > this.maxTotalBytes) {
             stream.removeListener('data', onData)
             fail(new PayloadTooLargeError(`Staged file store exceeds total capacity of ${this.maxTotalBytes} bytes`), true)
             return
           }
+          this.reservedBytes += chunk.length
+          myReservedBytes += chunk.length
           if (!writeStream.write(chunk)) {
             stream.pause()
             writeStream.once('drain', () => {
@@ -171,23 +193,28 @@ export class StagedFileStore {
         stream.once('error', (err) => fail(err, false))
         writeStream.once('error', (err) => fail(err, true))
       })
-    } catch (err) {
-      await unlink(filePath).catch(() => {})
-      throw err
-    }
 
-    const entry: StagedFileEntry = {
-      id,
-      url: `/files/${id}`,
-      name,
-      mimeType,
-      size,
-      filePath,
-      expiresAt: Date.now() + this.ttlMs,
+      const entry: StagedFileEntry = {
+        id,
+        url: `/files/${id}`,
+        name,
+        mimeType,
+        size,
+        filePath,
+        expiresAt: Date.now() + this.ttlMs,
+      }
+      this.entries.set(id, entry)
+      this.totalBytes += size
+      return entry
+    } catch (err) {
+      if (filePath) {
+        await unlink(filePath).catch(() => {})
+      }
+      throw err
+    } finally {
+      this.reservedEntries = Math.max(0, this.reservedEntries - 1)
+      this.reservedBytes = Math.max(0, this.reservedBytes - myReservedBytes)
     }
-    this.entries.set(id, entry)
-    this.totalBytes += size
-    return entry
   }
 
   /**
@@ -222,6 +249,9 @@ export class StagedFileStore {
     }
     this.entries.clear()
     this.totalBytes = 0
+    this.reservedBytes = 0
+    this.reservedEntries = 0
+    this.dirInitPromise = undefined
     if (this.dirPath) {
       const dir = this.dirPath
       this.dirPath = undefined

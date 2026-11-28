@@ -38,3 +38,30 @@ test('StagedFileStore enforces maxBytes, total capacity, and TTL eviction', asyn
   await new Promise(resolve => setTimeout(resolve, 70))
   assert.equal(store.get(first.id), undefined)
 })
+
+test('StagedFileStore awaits shared mkdir and reserves capacity across concurrent uploads', async (t) => {
+  const store = new StagedFileStore({
+    maxBytes: 10,
+    maxTotalBytes: 6,
+    maxEntries: 2,
+  })
+  t.after(() => store.destroy())
+
+  const s1 = new Readable({ read () {} })
+  const s2 = new Readable({ read () {} })
+
+  const p1 = store.stageFromStream(s1, { name: 'c1.bin' })
+  const p2 = store.stageFromStream(s2, { name: 'c2.bin' })
+
+  s1.push(Buffer.from('1234'))
+  s2.push(Buffer.from('5678'))
+  s1.push(null)
+  s2.push(null)
+
+  const results = await Promise.allSettled([p1, p2])
+  const fulfilled = results.filter(r => r.status === 'fulfilled')
+  const rejected = results.filter(r => r.status === 'rejected')
+  assert.equal(fulfilled.length, 1, 'only one concurrent 4-byte upload should fit in maxTotalBytes=6')
+  assert.equal(rejected.length, 1)
+  assert.ok(rejected[0]?.reason instanceof PayloadTooLargeError)
+})

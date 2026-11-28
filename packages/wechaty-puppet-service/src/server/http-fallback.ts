@@ -139,7 +139,7 @@ export function buildRuntimeOpenApiSpec (baseSpec: OpenApiDocument): OpenApiDocu
                       data: {
                         type: 'string',
                         contentMediaType: 'application/json',
-                        contentSchema: { $ref: '#/components/schemas/wechaty.puppet.EventResponse' },
+                        contentSchema: { type: 'object', additionalProperties: true },
                       },
                     },
                   },
