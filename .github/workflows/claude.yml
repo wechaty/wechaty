@@ -199,6 +199,22 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Configure Claude review tool
+        if: steps.eyes.outputs.review_needed == 'true'
+        id: review-tool
+        shell: bash
+        env:
+          REVIEW_TITLE: ${{ steps.effort.outputs.review_title }}
+        run: |
+          set -euo pipefail
+          # Use the workflow checkout and stage the server before the agent runs.
+          server="$RUNNER_TEMP/claude-review-mcp.mjs"
+          config="$RUNNER_TEMP/claude-review-mcp.json"
+          git show "${GITHUB_SHA}:.github/scripts/claude-review-mcp.mjs" > "$server"
+          jq -n --arg server "$server" --arg title "$REVIEW_TITLE" \
+            '{mcpServers: {claude_review: {command: "node", args: [$server, $title]}}}' > "$config"
+          echo "config=$config" >> "$GITHUB_OUTPUT"
+
       - name: Run Claude PR review (direct prompt)
         if: steps.eyes.outputs.review_needed == 'true'
         id: claude-review
@@ -215,22 +231,20 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Tag mode posts native progress while preserving the direct review prompt.
           track_progress: true
-          # Direct review prompt: no plugin-wide "already commented" skip rule.
-          # The existing HEAD/BASE guard handles duplicate revisions.
           prompt: |
-            Review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} at HEAD ${{ github.event.pull_request.head.sha }} against BASE ${{ github.event.pull_request.base.sha }} and share any actionable feedback.
+            Review https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }} at HEAD ${{ github.event.pull_request.head.sha }} against BASE ${{ github.event.pull_request.base.sha }}. Follow AGENTS.md, leave actionable findings inline, and submit a formal Comment review.
           claude_args: |
             --effort ${{ steps.effort.outputs.level }}
-            --allowedTools "mcp__github_inline_comment__create_inline_comment"
-            --json-schema '{"type":"object","properties":{"review_body":{"type":"string"}},"required":["review_body"],"additionalProperties":false}'
+            --mcp-config "${{ steps.review-tool.outputs.config }}"
+            --allowedTools "mcp__claude_review__submit_review,mcp__github_inline_comment__create_inline_comment"
             --max-turns 150
             --permission-mode default
 
-      - name: Publish formal review and record revision status
-        if: steps.claude-review.outputs.conclusion == 'success'
+      - name: Verify publication and record revision status
+        if: steps.claude-review.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
-          REVIEW_OUTPUT: ${{ steps.claude-review.outputs.structured_output }}
+          EXECUTION_FILE: ${{ steps.claude-review.outputs.execution_file }}
           REVIEW_TITLE: ${{ steps.effort.outputs.review_title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
@@ -238,56 +252,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pr="repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}"
-          run="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          review_body="$(jq -er '.review_body | strings | select(test("[^[:space:]]"))' <<< "$REVIEW_OUTPUT")"
-          body="$(printf '## %s\n\n%s\n\nReviewed HEAD SHA: %s\n\n[Actions run](%s)' "$REVIEW_TITLE" "$review_body" "$EXPECTED_SHA" "$run")"
-
-          # Find only this run's App-authored review. Reruns can reuse a verified publication.
-          existing="$(gh api --paginate --slurp "$pr/reviews?per_page=100" |
-            jq -c --arg head "$EXPECTED_SHA" --arg title "## $REVIEW_TITLE" --arg run "($run)" '
-              first(.[][] | select(.user.login == "claude[bot]" and .state == "COMMENTED" and .commit_id == $head
-                and ((.body // "") | split("\n")[0]) == $title
-                and ((.body // "") | endswith($run)))) // empty')"
-          current="$(gh api "$pr" --jq '[.state, .head.sha, .base.sha] | @tsv')"
-          if [[ "$current" != open$'\t'"$EXPECTED_SHA"$'\t'"$EXPECTED_BASE_SHA" ]]; then
-            echo '::warning::PR changed during review; publication skipped.'
-            exit 0
+          current="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '[.state, .head.sha, .base.sha] | @tsv')"
+          if [[ "$current" != "open"$'\t'"${EXPECTED_SHA}"$'\t'"${EXPECTED_BASE_SHA}" ]]; then
+            echo '::warning::PR revision changed during review; no success status recorded.'
+            echo '### Review may be stale — trigger a new review on the current HEAD/BASE.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            test -s "$EXECUTION_FILE"
+            jq -e 'type == "array" and any(.[]; .type == "result" and .subtype == "success" and .is_error == false)' "$EXECUTION_FILE" >/dev/null
+            gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews?per_page=100" |
+              jq -e --arg head "$EXPECTED_SHA" --arg title "## $REVIEW_TITLE" \
+                --arg run "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" '
+                any(.[][]; .user.login == "claude[bot]" and .state == "COMMENTED" and .commit_id == $head
+                  and ((.body // "") | split("\n") | index($title)) != null
+                  and ((.body // "") | contains("(" + $run + ")")))
+              ' >/dev/null || {
+                echo '::error::Claude did not publish a formal review for the expected HEAD.'
+                exit 1
+              }
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}" \
+              -f state=success -f context="claude-agent/review/${EXPECTED_BASE_SHA}" \
+              -f description="Claude review completed for this HEAD/BASE" \
+              -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >/dev/null
           fi
-          if [[ -z "$existing" ]]; then
-            # The action revokes its own token before this step. Use the same OIDC exchange
-            # as the reaction helper, with a fresh token confined to this publisher.
-            oidc="$(curl -q -fsSG -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"   \
-            --data-urlencode 'audience=claude-code-github-action'   \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -er '.value')"
-            app_token="$(curl -q -fsS --method POST -H "Authorization: Bearer $oidc"   \
-            https://api.anthropic.com/api/github/github-app-token-exchange | jq -er '.token // .app_token | strings | select(length > 0)')"
-            unset oidc
-            echo "::add-mask::$app_token"
-            revoke() {
-              GH_TOKEN="$app_token" gh api --method DELETE /installation/token --silent ||
-                echo '::warning::Could not revoke the Claude App token.'
-            }
-            trap revoke EXIT
-            existing="$(jq -n --arg body "$body" --arg sha "$EXPECTED_SHA"   \
-            '{body: $body, commit_id: $sha, event: "COMMENT"}' |
-              GH_TOKEN="$app_token" gh api --method POST "$pr/reviews" --input -)"
-          fi
-          jq -e --arg head "$EXPECTED_SHA" '
-            .user.login == "claude[bot]" and .state == "COMMENTED" and .commit_id == $head
-          ' <<< "$existing" >/dev/null
-          jq -r '"Published formal Claude review: " + .html_url' <<< "$existing"
-
-          current="$(gh api "$pr" --jq '[.state, .head.sha, .base.sha] | @tsv')"
-          if [[ "$current" != open$'\t'"$EXPECTED_SHA"$'\t'"$EXPECTED_BASE_SHA" ]]; then
-            echo '::warning::PR changed after publication; no success status recorded.'
-            exit 0
-          fi
-          gh api -X POST "repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}" \
-            -f state=success -f context="claude-agent/review/${EXPECTED_BASE_SHA}" \
-            -f description="Claude review completed for this HEAD/BASE" \
-            -f target_url="$run" >/dev/null
-
       - name: Clear Claude eyes after review
         if: always() && steps.eyes.outputs.reaction_id != ''
         continue-on-error: true
