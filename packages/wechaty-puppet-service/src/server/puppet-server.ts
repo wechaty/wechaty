@@ -52,6 +52,13 @@ import {
 import {
   uuidifyFileBoxLocal,
 } from '../file-box-helper/uuidify-file-box-local.ts'
+import {
+  applyCorsHeaders,
+  createHttpFallback,
+} from './http-fallback.ts'
+import {
+  StagedFileStore,
+} from './staged-file-store.ts'
 
 export interface PuppetServerOptions {
   endpoint      : string,
@@ -73,6 +80,7 @@ export class PuppetServer extends AsyncLifecycle {
   protected server?: HttpServer | Http2Server | Http2SecureServer | net.Server
   protected urnRegistry?: UniformResourceNameRegistry
   protected shutdownController?: AbortController
+  protected stagedFiles?: StagedFileStore
 
   private sessions = new Set<http2.ServerHttp2Session>()
   private sockets = new Set<Socket>()
@@ -205,6 +213,21 @@ export class PuppetServer extends AsyncLifecycle {
       shutdownController.signal,
     )
 
+    const stagedFiles = new StagedFileStore()
+    this.stagedFiles = stagedFiles
+    scope.defer(async () => {
+      if (this.stagedFiles === stagedFiles) {
+        this.stagedFiles = undefined
+      }
+      await stagedFiles.destroy()
+    })
+    const fallback = createHttpFallback({
+      puppet: this.options.puppet,
+      token: this.options.token,
+      stagedFiles,
+      shutdownSignal: shutdownController.signal,
+    })
+
     const handler = connectNodeAdapter({
       readMaxBytes: 4 * 1024 * 1024,
       shutdownSignal: shutdownController.signal,
@@ -219,11 +242,18 @@ export class PuppetServer extends AsyncLifecycle {
           interceptors: [serverErrorInterceptor()],
         })
       },
+      fallback,
     })
 
     const requestListener = (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => {
       if (req.headers[':authority'] && !req.headers['authority']) {
         req.headers['authority'] = req.headers[':authority']
+      }
+      applyCorsHeaders(res)
+      if (req.method === 'OPTIONS') {
+        res.statusCode = 204
+        res.end()
+        return
       }
       return handler(req, res)
     }
