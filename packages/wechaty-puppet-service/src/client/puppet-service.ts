@@ -37,6 +37,10 @@ import { millisecondsFromTimestamp } from '../pure-functions/timestamp.ts'
 
 export type PuppetServiceOptions = PUPPET.PuppetOptions & {
   authority?     : string
+  /** Transport wire protocol: `'grpc'` (default, HTTP/2 binary) or `'connect'` (HTTP/1.1 & HTTP/2). */
+  protocol?      : 'grpc' | 'connect'
+  /** HTTP/2 keepalive ping interval in milliseconds (defaults to 15000 on Node). */
+  pingIntervalMs?: number
   /** Optional clock for deterministic reconnect backoff and stop-timeout testing. */
   clock?         : LifecycleClock
   /** Maximum milliseconds to wait for `GrpcManager.stop()` before force-closing. */

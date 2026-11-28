@@ -31,9 +31,9 @@ import {
   type Client,
 } from '@connectrpc/connect'
 import {
-  createGrpcTransport,
-  Http2SessionManager,
-} from '@connectrpc/connect-node'
+  createPuppetTransport,
+  type PuppetTransportHandle,
+} from '#transport'
 
 import {
   envVars,
@@ -121,7 +121,7 @@ class GrpcManager extends EventEmitter implements Lifecycle {
   declare [Symbol.asyncDispose]: () => Promise<void>
 
   protected _client?: Client<typeof Puppet>
-  protected sessionManager?: Http2SessionManager
+  protected transportHandle?: PuppetTransportHandle
   get client (): Client<typeof Puppet> {
     if (!this._client) {
       throw new Error('NO CLIENT')
@@ -485,28 +485,28 @@ class GrpcManager extends EventEmitter implements Lifecycle {
       servername: this.serverName,
     }
 
-    this.sessionManager = new Http2SessionManager(baseUrl, undefined, nodeOptions)
-
-    const transport = createGrpcTransport({
+    const transportHandle = createPuppetTransport({
       baseUrl,
-      sessionManager: this.sessionManager,
+      protocol: this.options.protocol ?? 'grpc',
+      pingIntervalMs: this.options.pingIntervalMs,
       interceptors: [
         callCredToken(this.token.token),
       ],
       nodeOptions,
     })
+    this.transportHandle = transportHandle
 
-    this._client = createClient(Puppet, transport)
+    this._client = createClient(Puppet, transportHandle.transport)
     log.verbose('GrpcManager', 'initClient() ... done')
   }
 
   protected destroyClient (): void {
     log.verbose('GrpcManager', 'destroyClient()')
-    if (this.sessionManager) {
+    if (this.transportHandle) {
       try {
-        this.sessionManager.abort()
+        this.transportHandle.abort()
       } catch {}
-      this.sessionManager = undefined
+      this.transportHandle = undefined
     }
     this._client = undefined
   }
