@@ -16,8 +16,8 @@
 <dl>
 <dt><a href="#Wechaty">Wechaty</a></dt>
 <dd><p>Main bot class.</p>
-<p>A <code>Bot</code> is a WeChat client depends on which puppet you use.
-It may equals</p>
+<p>A <code>Bot</code> is a WeChat client whose behavior depends on the puppet you use.
+Examples include</p>
 <ul>
 <li>web-WeChat, when you use: <a href="https://github.com/wechaty/wechaty-puppet-puppeteer">puppet-puppeteer</a>/<a href="https://github.com/wechaty/wechaty-puppet-wechat4u">puppet-wechat4u</a></li>
 <li>ipad-WeChat, when you use: <a href="https://github.com/wechaty/wechaty-puppet-padchat">puppet-padchat</a></li>
